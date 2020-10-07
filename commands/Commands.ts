@@ -8,12 +8,10 @@ import { trackEvent } from '../common/telemetry'
 
 /* eslint-disable */
 // confusing when eslint formats
-export type Command =
-	& { name: string }
-	& ({ type: 'comment'; allowUsers: string[] } | { type: 'label' })
-	& { action?: 'close' }
-	& Partial<{ comment: string; addLabel: string; removeLabel: string }>
-	& Partial<{ requireLabel: string; disallowLabel: string }>
+export type Command = { name: string } & ({ type: 'comment'; allowUsers: string[] } | { type: 'label' }) & {
+		action?: 'close'
+	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
+	Partial<{ requireLabel: string; disallowLabel: string }>
 /* eslint-enable */
 
 export class Commands {
@@ -30,6 +28,8 @@ export class Commands {
 		if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
 			return false
 		}
+
+		console.log('matching', command, issue)
 
 		if ('label' in this.action) {
 			return command.type === 'label' && this.action.label === command.name
