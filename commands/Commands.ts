@@ -29,6 +29,7 @@ export class Commands {
 			return false
 		}
 
+		console.log('action', this.action)
 		console.log('matching', command, issue)
 
 		if ('label' in this.action) {
