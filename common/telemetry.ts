@@ -55,8 +55,6 @@ if (apiKey) {
 			})
 		},
 	}
-
-	console.log('apiKey', aiHandle)
 }
 
 export const trackEvent = async (issue: GitHubIssue, event: string, props?: Record<string, string>) => {

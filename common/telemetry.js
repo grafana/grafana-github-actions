@@ -40,7 +40,6 @@ if (apiKey) {
             });
         },
     };
-    console.log('apiKey', exports.aiHandle);
 }
 exports.trackEvent = async (issue, event, props) => {
     console.log('tracking event', event, props);
