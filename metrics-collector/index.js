@@ -31,33 +31,20 @@ class MetricsCollector extends Action_1.Action {
         });
     }
     async onTriggered(octokit) {
-        await this.count('type/bug', octokit);
-        await this.count('needs more info', octokit);
-        await this.count('needs investigation', octokit);
-        await this.countUnlabeled(octokit);
+        await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit);
+        await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit);
+        await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit);
+        await this.countQuery('unlabeled', 'is:open is:issue no:label', octokit);
+        await this.countQuery('milestone_7_3_open', 'is:open is:issue milestone:7.3 ', octokit);
+        await this.countQuery('open_prs', 'is:open is:pr', octokit);
     }
-    async count(label, octokit) {
-        const query = `label:"${label}" is:open`;
+    async countQuery(name, query, octokit) {
         let count = 0;
         for await (const page of octokit.query({ q: query })) {
             count += page.length;
         }
         telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({
-            name: `issue.open_issues_by_label`,
-            value: count,
-            labels: {
-                label: `${label}`,
-            },
-        });
-    }
-    async countUnlabeled(octokit) {
-        const query = `is:open is:issue no:label`;
-        let count = 0;
-        for await (const page of octokit.query({ q: query })) {
-            count += page.length;
-        }
-        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({
-            name: `issue.open_issues_without_label`,
+            name: `issue_query.${name}.count`,
             value: count,
         });
     }
