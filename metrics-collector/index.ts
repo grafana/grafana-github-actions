@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { OctoKitIssue, OctoKit } from '../api/octokit'
-import { getRequiredInput } from '../common/utils'
 import { Action } from '../common/Action'
 import { aiHandle } from '../common/telemetry'
 
@@ -54,6 +53,7 @@ class MetricsCollector extends Action {
 		aiHandle?.trackMetric({
 			name: `issue_query.${name}.count`,
 			value: count,
+			type: 'gauge',
 		})
 	}
 }
