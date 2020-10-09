@@ -4,9 +4,6 @@ inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions
     default: ${{ github.token }}
-  config-path:
-    description: Name of .json file (no extension) in .github/ directory of repo holding configuration for this action
-    required: true
   metricsWriteAPIKey:
     description: Grfanaa Cloud metrics api key
     required: false
