@@ -34,7 +34,9 @@ if (apiKey) {
 
 			if (metric.labels) {
 				for (const key of Object.keys(metric.labels)) {
-					tags.push(`${key}=${metric.labels[key]}`)
+					const safeKey = key.replace(' ', '_').replace('/', '_')
+					const safeValue = metric.labels[key].replace(' ', '_').replace('/', '_')
+					tags.push(`${safeKey}=${safeValue}`)
 				}
 			}
 
