@@ -15,7 +15,7 @@ export interface TelemetryClient {
 export interface TelemetryMetric {
 	name: string
 	value: number
-	properties?: Record<string, any>
+	labels?: Record<string, any>
 	type?: string
 }
 
@@ -30,6 +30,13 @@ if (apiKey) {
 		},
 		trackMetric: (metric: TelemetryMetric) => {
 			console.log(`trackMetric ${metric.name} ${metric.value}`)
+			const tags = []
+
+			if (metric.labels) {
+				for (const key of Object.keys(metric.labels)) {
+					tags.push(`${key}=${metric.labels[key]}`)
+				}
+			}
 
 			axios({
 				url: 'https://graphite-us-central1.grafana.net/metrics',
@@ -48,6 +55,7 @@ if (apiKey) {
 						interval: 60,
 						mtype: metric.type ?? 'count',
 						time: Math.floor(new Date().valueOf() / 1000),
+						tags,
 					},
 				]),
 			}).catch(e => {

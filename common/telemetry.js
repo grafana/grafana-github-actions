@@ -16,6 +16,12 @@ if (apiKey) {
         trackMetric: (metric) => {
             var _a;
             console.log(`trackMetric ${metric.name} ${metric.value}`);
+            const tags = [];
+            if (metric.labels) {
+                for (const key of Object.keys(metric.labels)) {
+                    tags.push(`${key}=${metric.labels[key]}`);
+                }
+            }
             axios_1.default({
                 url: 'https://graphite-us-central1.grafana.net/metrics',
                 method: 'POST',
@@ -33,6 +39,7 @@ if (apiKey) {
                         interval: 60,
                         mtype: (_a = metric.type) !== null && _a !== void 0 ? _a : 'count',
                         time: Math.floor(new Date().valueOf() / 1000),
+                        tags,
                     },
                 ]),
             }).catch(e => {

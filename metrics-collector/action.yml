@@ -1,5 +1,5 @@
-name: Commands
-description: Respond to commands given in the form of either labels or comments by contributors or authorized community members
+name: Metrics collector
+description: Records metrics on issue open & close
 inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions

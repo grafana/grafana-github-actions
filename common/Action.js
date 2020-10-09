@@ -12,19 +12,13 @@ const telemetry_1 = require("./telemetry");
 class Action {
     constructor() {
         this.token = utils_1.getRequiredInput('token');
-        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name);
+        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then(v => v.data.name);
     }
     async trackMetric(telemetry) {
         console.log('tracking metric:', telemetry);
         if (telemetry_1.aiHandle) {
             telemetry_1.aiHandle.trackMetric({
                 ...telemetry,
-                properties: {
-                    repo: `${github_1.context.repo.owner}/${github_1.context.repo.repo}`,
-                    issue: '' + github_1.context.issue.number,
-                    id: this.id,
-                    user: await this.username,
-                },
             });
         }
     }
