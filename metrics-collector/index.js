@@ -44,7 +44,7 @@ class MetricsCollector extends Action_1.Action {
             count += page.length;
         }
         telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({
-            name: `issue_query.${name}.count`,
+            name: `issue_query.${name}.gauge`,
             value: count,
             type: 'gauge',
         });

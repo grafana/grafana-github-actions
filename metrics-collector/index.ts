@@ -51,7 +51,7 @@ class MetricsCollector extends Action {
 		}
 
 		aiHandle?.trackMetric({
-			name: `issue_query.${name}.count`,
+			name: `issue_query.${name}.gauge`,
 			value: count,
 			type: 'gauge',
 		})
