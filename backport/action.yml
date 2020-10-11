@@ -6,7 +6,7 @@ inputs:
     default: ${{ github.token }}
   title:
     description: Title for the backport PR
-    default: [Backport {{base}}] {{originalTitle}}
+    default: [Backport to {{base}}] {{originalTitle}}
   labelsToAdd:
     description: Comma separated list of labels to add to the backport PR.
     required: false
