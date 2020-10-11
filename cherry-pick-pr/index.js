@@ -4,16 +4,14 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const backport_1 = require("./backport");
-class Backport extends Action_1.Action {
+class CherryPickPR extends Action_1.Action {
     constructor() {
         super(...arguments);
-        this.id = 'Backport';
+        this.id = 'CherryPickPR';
     }
-    async onLabeled(issue, label) {
-        console.log('onTriggered');
+    async onLabeled(issue, _label) {
         try {
-            console.log('context', JSON.stringify(github_1.context, undefined, 2));
-            const titleTemplate = core_1.getInput('titleTemplate');
+            const titleTemplate = '[Cherry-pick to {{base}}] {{originalTitle}}';
             await backport_1.backport({
                 labelsToAdd: [],
                 payload: github_1.context.payload,
@@ -28,5 +26,5 @@ class Backport extends Action_1.Action {
         }
     }
 }
-new Backport().run(); // eslint-disable-line
+new CherryPickPR().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map
