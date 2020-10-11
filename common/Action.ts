@@ -51,6 +51,7 @@ export abstract class Action {
 				return console.log('refusing to run on error logging issue to prevent cascading errors')
 			}
 		}
+		console.log('AAAA')
 
 		try {
 			const token = getRequiredInput('token')

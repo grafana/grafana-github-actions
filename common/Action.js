@@ -42,6 +42,7 @@ class Action {
                 return console.log('refusing to run on error logging issue to prevent cascading errors');
             }
         }
+        console.log('AAAA');
         try {
             const token = utils_1.getRequiredInput('token');
             const readonly = !!core_1.getInput('readonly');
