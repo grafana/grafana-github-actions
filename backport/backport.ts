@@ -80,7 +80,7 @@ const backportOnce = async ({
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
-		await git('cherry-pick', commitToBackport)
+		await git('cherry-pick', '-x', commitToBackport)
 	} catch (error) {
 		await git('cherry-pick', '--abort')
 		throw error
