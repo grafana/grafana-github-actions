@@ -124,7 +124,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     base,
                     body,
                     commitToBackport,
-                    github: github.octokit,
+                    github: github,
                     head,
                     labelsToAdd,
                     owner,
@@ -136,7 +136,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                 const errorMessage = error.message;
                 core_1.error(error);
                 // Create comment
-                await github.octokit.issues.createComment({
+                await github.issues.createComment({
                     body: getFailedBackportCommentBody({
                         base,
                         commitToBackport,

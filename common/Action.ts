@@ -7,7 +7,7 @@ import { OctoKit, OctoKitIssue, getNumRequests } from '../api/octokit'
 import { context, GitHub } from '@actions/github'
 import { getRequiredInput, logErrorToIssue, getRateLimit, errorLoggingIssue } from './utils'
 import { getInput, setFailed } from '@actions/core'
-import { aiHandle, TelemetryMetric } from './telemetry'
+import { aiHandle } from './telemetry'
 
 export abstract class Action {
 	abstract id: string
@@ -23,7 +23,7 @@ export abstract class Action {
 		return this.token
 	}
 
-	public async trackMetric(telemetry: TelemetryMetric) {
+	public async trackMetric(telemetry: { name: string; value: number }) {
 		console.log('tracking metric:', telemetry)
 		if (aiHandle) {
 			aiHandle.trackMetric(telemetry)
@@ -51,14 +51,12 @@ export abstract class Action {
 				return console.log('refusing to run on error logging issue to prevent cascading errors')
 			}
 		}
-		console.log('AAAA')
 
 		try {
 			const token = getRequiredInput('token')
 			const readonly = !!getInput('readonly')
 
 			const issue = context?.issue?.number
-			console.log('issue', issue)
 
 			if (issue) {
 				const octokit = new OctoKitIssue(token, context.repo, { number: issue }, { readonly })
@@ -92,11 +90,9 @@ export abstract class Action {
 					}
 				}
 			} else {
-				console.log('onTriggered')
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
 			}
 		} catch (e) {
-			console.log('error', e)
 			await this.error(e)
 		}
 

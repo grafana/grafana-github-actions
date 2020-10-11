@@ -42,12 +42,10 @@ class Action {
                 return console.log('refusing to run on error logging issue to prevent cascading errors');
             }
         }
-        console.log('AAAA');
         try {
             const token = utils_1.getRequiredInput('token');
             const readonly = !!core_1.getInput('readonly');
             const issue = (_o = github_1.context === null || github_1.context === void 0 ? void 0 : github_1.context.issue) === null || _o === void 0 ? void 0 : _o.number;
-            console.log('issue', issue);
             if (issue) {
                 const octokit = new octokit_1.OctoKitIssue(token, github_1.context.repo, { number: issue }, { readonly });
                 if (github_1.context.eventName === 'issue_comment') {
@@ -82,12 +80,10 @@ class Action {
                 }
             }
             else {
-                console.log('onTriggered');
                 await this.onTriggered(new octokit_1.OctoKit(token, github_1.context.repo, { readonly }));
             }
         }
         catch (e) {
-            console.log('error', e);
             await this.error(e);
         }
         await this.trackMetric({ name: 'octokit_request_count', value: octokit_1.getNumRequests() });

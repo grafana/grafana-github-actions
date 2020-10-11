@@ -9,7 +9,7 @@ class Backport extends Action_1.Action {
         super(...arguments);
         this.id = 'Backport';
     }
-    async onTriggered(octokit) {
+    async onLabeled(issue, label) {
         console.log('onTriggered');
         try {
             console.log('context', JSON.stringify(github_1.context, undefined, 2));
@@ -18,7 +18,7 @@ class Backport extends Action_1.Action {
                 labelsToAdd: [],
                 payload: github_1.context.payload,
                 titleTemplate,
-                github: octokit,
+                github: issue.octokit,
                 token: this.getToken(),
             });
         }
