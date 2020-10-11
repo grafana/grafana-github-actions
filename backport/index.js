@@ -11,11 +11,10 @@ class CherryPickPR extends Action_1.Action {
     }
     async onLabeled(issue, _label) {
         try {
-            const titleTemplate = '[Cherry-pick to {{base}}] {{originalTitle}}';
             await backport_1.backport({
-                labelsToAdd: [],
+                labelsToAdd: exports.getLabelsToAdd(core_1.getInput('labelsToAdd')),
                 payload: github_1.context.payload,
-                titleTemplate,
+                titleTemplate: core_1.getInput('title'),
                 github: issue.octokit,
                 token: this.getToken(),
             });
@@ -26,5 +25,12 @@ class CherryPickPR extends Action_1.Action {
         }
     }
 }
+exports.getLabelsToAdd = (input) => {
+    if (input === undefined || input === '') {
+        return [];
+    }
+    const labels = input.split(',');
+    return labels.map((v) => v.trim()).filter((v) => v !== '');
+};
 new CherryPickPR().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

@@ -1,6 +1,6 @@
 // Based on code from https://github.com/tibdex/backport/blob/master/src/backport.ts
 
-import { error as logError, group, warning, info } from '@actions/core'
+import { error as logError, group, info } from '@actions/core'
 import { exec } from '@actions/exec'
 import { GitHub } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'

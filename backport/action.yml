@@ -1,9 +1,15 @@
-name: Cherry-pick PR
+name: Backport
 description: Automatically creates a cherry pick PR
 inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions
     default: ${{ github.token }}
+  title:
+    description: Title for the backport PR
+    default: [Backport {{base}}] {{originalTitle}}
+  labelsToAdd:
+    description: Comma separated list of labels to add to the backport PR.
+    required: false
   metricsWriteAPIKey:
     description: Grfanaa Cloud metrics api key
     required: false

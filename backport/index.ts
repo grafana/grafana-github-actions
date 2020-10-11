@@ -10,12 +10,10 @@ class CherryPickPR extends Action {
 
 	async onLabeled(issue: OctoKitIssue, _label: string) {
 		try {
-			const titleTemplate = '[Cherry-pick to {{base}}] {{originalTitle}}'
-
 			await backport({
-				labelsToAdd: [],
+				labelsToAdd: getLabelsToAdd(getInput('labelsToAdd')),
 				payload: context.payload as EventPayloads.WebhookPayloadPullRequest,
-				titleTemplate,
+				titleTemplate: getInput('title'),
 				github: issue.octokit,
 				token: this.getToken(),
 			})
@@ -24,6 +22,15 @@ class CherryPickPR extends Action {
 			setFailed(error.message)
 		}
 	}
+}
+
+export const getLabelsToAdd = (input: string | undefined): string[] => {
+	if (input === undefined || input === '') {
+		return []
+	}
+
+	const labels = input.split(',')
+	return labels.map((v) => v.trim()).filter((v) => v !== '')
 }
 
 new CherryPickPR().run() // eslint-disable-line
