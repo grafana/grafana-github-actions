@@ -5,8 +5,8 @@ import { OctoKitIssue } from '../api/octokit'
 import { Action } from '../common/Action'
 import { backport } from './backport'
 
-class Backporter extends Action {
-	id = 'Backporter'
+class Backport extends Action {
+	id = 'Backport'
 
 	async onClosed(_issue: OctoKitIssue) {
 		console.log('context.payload', context.payload)
@@ -31,4 +31,4 @@ class Backporter extends Action {
 	}
 }
 
-new Backporter().run() // eslint-disable-line
+new Backport().run() // eslint-disable-line

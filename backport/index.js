@@ -4,10 +4,10 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const backport_1 = require("./backport");
-class Backporter extends Action_1.Action {
+class Backport extends Action_1.Action {
     constructor() {
         super(...arguments);
-        this.id = 'Backporter';
+        this.id = 'Backport';
     }
     async onClosed(_issue) {
         console.log('context.payload', github_1.context.payload);
@@ -30,5 +30,5 @@ class Backporter extends Action_1.Action {
         }
     }
 }
-new Backporter().run(); // eslint-disable-line
+new Backport().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map
