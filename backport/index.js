@@ -10,6 +10,7 @@ class Backport extends Action_1.Action {
         this.id = 'Backport';
     }
     async onTriggered(octokit) {
+        console.log('onTriggered');
         try {
             console.log('context', JSON.stringify(github_1.context, undefined, 2));
             const titleTemplate = core_1.getInput('titleTemplate');

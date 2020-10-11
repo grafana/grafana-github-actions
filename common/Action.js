@@ -20,9 +20,7 @@ class Action {
     async trackMetric(telemetry) {
         console.log('tracking metric:', telemetry);
         if (telemetry_1.aiHandle) {
-            telemetry_1.aiHandle.trackMetric({
-                ...telemetry,
-            });
+            telemetry_1.aiHandle.trackMetric(telemetry);
         }
     }
     async run() {
@@ -82,6 +80,7 @@ class Action {
                 }
             }
             else {
+                console.log('onTriggered');
                 await this.onTriggered(new octokit_1.OctoKit(token, github_1.context.repo, { readonly }));
             }
         }

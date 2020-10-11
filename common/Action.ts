@@ -7,7 +7,7 @@ import { OctoKit, OctoKitIssue, getNumRequests } from '../api/octokit'
 import { context, GitHub } from '@actions/github'
 import { getRequiredInput, logErrorToIssue, getRateLimit, errorLoggingIssue } from './utils'
 import { getInput, setFailed } from '@actions/core'
-import { aiHandle } from './telemetry'
+import { aiHandle, TelemetryMetric } from './telemetry'
 
 export abstract class Action {
 	abstract id: string
@@ -23,18 +23,10 @@ export abstract class Action {
 		return this.token
 	}
 
-	public async trackMetric(telemetry: { name: string; value: number }) {
+	public async trackMetric(telemetry: TelemetryMetric) {
 		console.log('tracking metric:', telemetry)
 		if (aiHandle) {
-			aiHandle.trackMetric({
-				...telemetry,
-				// properties: {
-				// 	repo: `${context.repo.owner}/${context.repo.repo}`,
-				// 	issue: '' + context.issue.number,
-				// 	id: this.id,
-				// 	user: await this.username,
-				// },
-			})
+			aiHandle.trackMetric(telemetry)
 		}
 	}
 
@@ -98,6 +90,7 @@ export abstract class Action {
 					}
 				}
 			} else {
+				console.log('onTriggered')
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
 			}
 		} catch (e) {

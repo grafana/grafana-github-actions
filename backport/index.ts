@@ -9,6 +9,7 @@ class Backport extends Action {
 	id = 'Backport'
 
 	async onTriggered(octokit: OctoKit) {
+		console.log('onTriggered')
 		try {
 			console.log('context', JSON.stringify(context, undefined, 2))
 			const titleTemplate = getInput('titleTemplate')
