@@ -85,6 +85,7 @@ class Action {
             }
         }
         catch (e) {
+            console.log('error', e);
             await this.error(e);
         }
         await this.trackMetric({ name: 'octokit_request_count', value: octokit_1.getNumRequests() });

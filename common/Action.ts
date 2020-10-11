@@ -94,6 +94,7 @@ export abstract class Action {
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
 			}
 		} catch (e) {
+			console.log('error', e)
 			await this.error(e)
 		}
 
