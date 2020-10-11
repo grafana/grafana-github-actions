@@ -47,6 +47,7 @@ class Action {
             const token = utils_1.getRequiredInput('token');
             const readonly = !!core_1.getInput('readonly');
             const issue = (_o = github_1.context === null || github_1.context === void 0 ? void 0 : github_1.context.issue) === null || _o === void 0 ? void 0 : _o.number;
+            console.log('issue', issue);
             if (issue) {
                 const octokit = new octokit_1.OctoKitIssue(token, github_1.context.repo, { number: issue }, { readonly });
                 if (github_1.context.eventName === 'issue_comment') {

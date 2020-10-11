@@ -58,6 +58,7 @@ export abstract class Action {
 			const readonly = !!getInput('readonly')
 
 			const issue = context?.issue?.number
+			console.log('issue', issue)
 
 			if (issue) {
 				const octokit = new OctoKitIssue(token, context.repo, { number: issue }, { readonly })
