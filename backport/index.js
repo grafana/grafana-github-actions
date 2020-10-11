@@ -4,12 +4,18 @@ const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const backport_1 = require("./backport");
-class CherryPickPR extends Action_1.Action {
+class Backport extends Action_1.Action {
     constructor() {
         super(...arguments);
-        this.id = 'CherryPickPR';
+        this.id = 'Backport';
+    }
+    async onClosed(issue) {
+        this.backport(issue);
     }
     async onLabeled(issue, _label) {
+        this.backport(issue);
+    }
+    async backport(issue) {
         try {
             await backport_1.backport({
                 labelsToAdd: exports.getLabelsToAdd(core_1.getInput('labelsToAdd')),
@@ -32,5 +38,5 @@ exports.getLabelsToAdd = (input) => {
     const labels = input.split(',');
     return labels.map((v) => v.trim()).filter((v) => v !== '');
 };
-new CherryPickPR().run(); // eslint-disable-line
+new Backport().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

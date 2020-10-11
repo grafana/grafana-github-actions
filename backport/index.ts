@@ -5,10 +5,18 @@ import { OctoKitIssue } from '../api/octokit'
 import { Action } from '../common/Action'
 import { backport } from './backport'
 
-class CherryPickPR extends Action {
-	id = 'CherryPickPR'
+class Backport extends Action {
+	id = 'Backport'
+
+	async onClosed(issue: OctoKitIssue) {
+		this.backport(issue)
+	}
 
 	async onLabeled(issue: OctoKitIssue, _label: string) {
+		this.backport(issue)
+	}
+
+	async backport(issue: OctoKitIssue) {
 		try {
 			await backport({
 				labelsToAdd: getLabelsToAdd(getInput('labelsToAdd')),
@@ -33,4 +41,4 @@ export const getLabelsToAdd = (input: string | undefined): string[] => {
 	return labels.map((v) => v.trim()).filter((v) => v !== '')
 }
 
-new CherryPickPR().run() // eslint-disable-line
+new Backport().run() // eslint-disable-line
