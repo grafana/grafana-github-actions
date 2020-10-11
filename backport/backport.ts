@@ -5,7 +5,7 @@ import { exec } from '@actions/exec'
 import { GitHub } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
-import { OctoKitIssue } from '../api/octokit'
+import { OctoKitIssue, OctoKit } from '../api/octokit'
 
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/
 
@@ -153,7 +153,7 @@ interface BackportArgs {
 	payload: EventPayloads.WebhookPayloadPullRequest
 	titleTemplate: string
 	token: string
-	issue: OctoKitIssue
+	github: OctoKit
 }
 
 const backport = async ({
@@ -175,7 +175,7 @@ const backport = async ({
 	},
 	titleTemplate,
 	token,
-	issue,
+	github,
 }: BackportArgs) => {
 	if (!merged) {
 		return
@@ -218,7 +218,7 @@ const backport = async ({
 					base,
 					body,
 					commitToBackport,
-					github: issue.octokit,
+					github: github.octokit,
 					head,
 					labelsToAdd,
 					owner,
@@ -228,14 +228,19 @@ const backport = async ({
 			} catch (error) {
 				const errorMessage: string = error.message
 				logError(error)
-				issue.postComment(
-					getFailedBackportCommentBody({
+
+				// Create comment
+				await github.octokit.issues.createComment({
+					body: getFailedBackportCommentBody({
 						base,
 						commitToBackport,
 						errorMessage,
 						head,
 					}),
-				)
+					issue_number: pullRequestNumber,
+					owner,
+					repo,
+				})
 			}
 		})
 	}

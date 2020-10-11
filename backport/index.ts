@@ -1,18 +1,14 @@
 import { error as logError, getInput, setFailed } from '@actions/core'
 import { context } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
-import { OctoKitIssue } from '../api/octokit'
+import { OctoKit } from '../api/octokit'
 import { Action } from '../common/Action'
 import { backport } from './backport'
 
 class Backport extends Action {
 	id = 'Backport'
 
-	async onClosed(_issue: OctoKitIssue) {
-		console.log('context.payload', context.payload)
-	}
-
-	async onLabeled(issue: OctoKitIssue) {
+	async onTriggered(octokit: OctoKit) {
 		try {
 			console.log('context', JSON.stringify(context, undefined, 2))
 			const titleTemplate = getInput('titleTemplate')
@@ -21,7 +17,7 @@ class Backport extends Action {
 				labelsToAdd: [],
 				payload: context.payload as EventPayloads.WebhookPayloadPullRequest,
 				titleTemplate,
-				issue,
+				github: octokit,
 				token: this.getToken(),
 			})
 		} catch (error) {

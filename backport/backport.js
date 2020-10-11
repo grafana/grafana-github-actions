@@ -89,7 +89,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
-const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, issue, }) => {
+const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, }) => {
     if (!merged) {
         return;
     }
@@ -124,7 +124,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     base,
                     body,
                     commitToBackport,
-                    github: issue.octokit,
+                    github: github.octokit,
                     head,
                     labelsToAdd,
                     owner,
@@ -135,12 +135,18 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             catch (error) {
                 const errorMessage = error.message;
                 core_1.error(error);
-                issue.postComment(getFailedBackportCommentBody({
-                    base,
-                    commitToBackport,
-                    errorMessage,
-                    head,
-                }));
+                // Create comment
+                await github.octokit.issues.createComment({
+                    body: getFailedBackportCommentBody({
+                        base,
+                        commitToBackport,
+                        errorMessage,
+                        head,
+                    }),
+                    issue_number: pullRequestNumber,
+                    owner,
+                    repo,
+                });
             }
         });
     }
