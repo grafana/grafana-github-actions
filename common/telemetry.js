@@ -3,9 +3,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
-const axios_1 = require("axios");
+const axios_1 = __importDefault(require("axios"));
 exports.aiHandle = undefined;
 const apiKey = utils_1.getInput('metricsWriteAPIKey');
 if (apiKey) {

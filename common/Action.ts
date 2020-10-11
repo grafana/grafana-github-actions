@@ -16,7 +16,11 @@ export abstract class Action {
 	private token = getRequiredInput('token')
 
 	constructor() {
-		this.username = new GitHub(this.token).users.getAuthenticated().then(v => v.data.name)
+		this.username = new GitHub(this.token).users.getAuthenticated().then((v) => v.data.name)
+	}
+
+	protected getToken() {
+		return this.token
 	}
 
 	public async trackMetric(telemetry: { name: string; value: number }) {

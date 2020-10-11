@@ -1,8 +1,3 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See LICENSE in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
 import { OctoKitIssue, OctoKit } from '../api/octokit'
 import { Action } from '../common/Action'
 import { aiHandle } from '../common/telemetry'
@@ -13,7 +8,7 @@ class MetricsCollector extends Action {
 	async onClosed(issue: OctoKitIssue) {
 		const issueData = await issue.getIssue()
 
-		const typeLabel = issueData.labels.find(label => label.startsWith('type/'))
+		const typeLabel = issueData.labels.find((label) => label.startsWith('type/'))
 		const labels: Record<string, string> = {}
 
 		if (typeLabel) {

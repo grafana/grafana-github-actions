@@ -21,8 +21,12 @@
 	"homepage": "https://github.com/microsoft/vscode-github-triage-actions#readme",
 	"dependencies": {
 		"@actions/core": "^1.2.6",
+		"@actions/exec": "^1.0.4",
 		"@actions/github": "^2.1.1",
-		"axios": "^0.19.2"
+		"@octokit/webhooks": "^7.12.2",
+		"@types/lodash.escaperegexp": "^4.1.6",
+		"axios": "^0.19.2",
+		"lodash.escaperegexp": "^4.1.2"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.10",

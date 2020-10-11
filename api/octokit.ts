@@ -14,7 +14,7 @@ export const getNumRequests = () => numRequests
 
 export class OctoKit implements GitHub {
 	private _octokit: GitHubAPI
-	protected get octokit(): GitHubAPI {
+	public get octokit(): GitHubAPI {
 		numRequests++
 		return this._octokit
 	}
@@ -189,7 +189,7 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 		options: { readonly: boolean } = { readonly: false },
 	) {
 		super(token, params, options)
-		console.log('running bot on issue', issueData.number)
+		// console.log('running bot on issue', issueData.number)
 	}
 
 	async addAssignee(assignee: string): Promise<void> {

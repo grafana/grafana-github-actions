@@ -5,14 +5,10 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"removeComments": false,
+		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
-		"lib": [
-			"es2020"
-		]
+		"lib": ["es2020"]
 	},
-	"exclude": [
-		"**/*.test.ts",
-		"**/vm-filesystem/**"
-	]
+	"exclude": ["**/*.test.ts", "**/vm-filesystem/**"]
 }

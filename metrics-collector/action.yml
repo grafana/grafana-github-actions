@@ -1,5 +1,5 @@
-name: Metrics collector
-description: Records metrics on issue open & close
+name: Backporter
+description: Automatically creates a backport PR
 inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions
