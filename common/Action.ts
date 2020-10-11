@@ -62,7 +62,7 @@ export abstract class Action {
 				const octokit = new OctoKitIssue(token, context.repo, { number: issue }, { readonly })
 				if (context.eventName === 'issue_comment') {
 					await this.onCommented(octokit, context.payload.comment.body, context.actor)
-				} else if (context.eventName === 'issues') {
+				} else if (context.eventName === 'issues' || context.eventName === 'pull_request') {
 					switch (context.payload.action) {
 						case 'opened':
 							await this.onOpened(octokit)
