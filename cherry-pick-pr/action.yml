@@ -1,0 +1,12 @@
+name: Cherry-pick PR
+description: Automatically creates a cherry pick PR
+inputs:
+  token:
+    description: GitHub token with issue, comment, and label read/write permissions
+    default: ${{ github.token }}
+  metricsWriteAPIKey:
+    description: Grfanaa Cloud metrics api key
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'
