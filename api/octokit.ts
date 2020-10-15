@@ -179,6 +179,10 @@ export class OctoKit implements GitHub {
 		if (!this.options.readonly)
 			await this.octokit.repos.createDispatchEvent({ ...this.params, event_type: title })
 	}
+
+	async getRepoInfo(): Promise<Octokit.Response<Octokit.ReposGetResponse>> {
+		return await this.octokit.repos.get({ owner: this.params.owner, repo: this.params.repo })
+	}
 }
 
 export class OctoKitIssue extends OctoKit implements GitHubIssue {
@@ -189,7 +193,7 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 		options: { readonly: boolean } = { readonly: false },
 	) {
 		super(token, params, options)
-		// console.log('running bot on issue', issueData.number)
+		console.log('running bot on issue', issueData.number)
 	}
 
 	async addAssignee(assignee: string): Promise<void> {

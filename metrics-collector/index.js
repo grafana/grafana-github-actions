@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Action_1 = require("../common/Action");
 const telemetry_1 = require("../common/telemetry");
+const github_1 = require("@actions/github");
 class MetricsCollector extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -9,7 +10,7 @@ class MetricsCollector extends Action_1.Action {
     }
     async onClosed(issue) {
         const issueData = await issue.getIssue();
-        const typeLabel = issueData.labels.find(label => label.startsWith('type/'));
+        const typeLabel = issueData.labels.find((label) => label.startsWith('type/'));
         const labels = {};
         if (typeLabel) {
             labels['type'] = typeLabel.substr(5);
@@ -27,6 +28,8 @@ class MetricsCollector extends Action_1.Action {
         });
     }
     async onTriggered(octokit) {
+        console.log('context', JSON.stringify(github_1.context.payload, null, 2));
+        console.log('repo', octokit.getRepoInfo());
         await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit);
         await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit);
         await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit);

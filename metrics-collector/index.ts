@@ -1,6 +1,7 @@
 import { OctoKitIssue, OctoKit } from '../api/octokit'
 import { Action } from '../common/Action'
 import { aiHandle } from '../common/telemetry'
+import { context } from '@actions/github'
 
 class MetricsCollector extends Action {
 	id = 'MetricsCollector'
@@ -8,7 +9,7 @@ class MetricsCollector extends Action {
 	async onClosed(issue: OctoKitIssue) {
 		const issueData = await issue.getIssue()
 
-		const typeLabel = issueData.labels.find(label => label.startsWith('type/'))
+		const typeLabel = issueData.labels.find((label) => label.startsWith('type/'))
 		const labels: Record<string, string> = {}
 
 		if (typeLabel) {
@@ -30,6 +31,8 @@ class MetricsCollector extends Action {
 	}
 
 	async onTriggered(octokit: OctoKit) {
+		console.log('context', JSON.stringify(context.payload, null, 2))
+		console.log('repo', octokit.getRepoInfo())
 		await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit)
 		await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit)
 		await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit)
