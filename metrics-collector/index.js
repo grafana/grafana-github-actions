@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Action_1 = require("../common/Action");
 const telemetry_1 = require("../common/telemetry");
-const github_1 = require("@actions/github");
 class MetricsCollector extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -28,8 +27,16 @@ class MetricsCollector extends Action_1.Action {
         });
     }
     async onTriggered(octokit) {
-        console.log('context', JSON.stringify(github_1.context.payload, null, 2));
-        console.log('repo', JSON.stringify(await octokit.getRepoInfo(), null, 2));
+        const repo = await octokit.getRepoInfo();
+        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({ name: 'repo.stargazers', value: repo.data.stargazers_count, type: 'gauge' });
+        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({ name: 'repo.watchers', value: repo.data.watchers_count, type: 'gauge' });
+        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({ name: 'repo.size', value: repo.data.size, type: 'gauge' });
+        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({ name: 'repo.forks', value: repo.data.forks_count, type: 'gauge' });
+        telemetry_1.aiHandle === null || telemetry_1.aiHandle === void 0 ? void 0 : telemetry_1.aiHandle.trackMetric({
+            name: 'repo.open_issues_count',
+            value: repo.data.open_issues_count,
+            type: 'gauge',
+        });
         await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit);
         await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit);
         await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit);

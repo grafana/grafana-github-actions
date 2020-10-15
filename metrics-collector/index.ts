@@ -1,7 +1,6 @@
 import { OctoKitIssue, OctoKit } from '../api/octokit'
 import { Action } from '../common/Action'
 import { aiHandle } from '../common/telemetry'
-import { context } from '@actions/github'
 
 class MetricsCollector extends Action {
 	id = 'MetricsCollector'
@@ -31,8 +30,18 @@ class MetricsCollector extends Action {
 	}
 
 	async onTriggered(octokit: OctoKit) {
-		console.log('context', JSON.stringify(context.payload, null, 2))
-		console.log('repo', JSON.stringify(await octokit.getRepoInfo(), null, 2))
+		const repo = await octokit.getRepoInfo()
+
+		aiHandle?.trackMetric({ name: 'repo.stargazers', value: repo.data.stargazers_count, type: 'gauge' })
+		aiHandle?.trackMetric({ name: 'repo.watchers', value: repo.data.watchers_count, type: 'gauge' })
+		aiHandle?.trackMetric({ name: 'repo.size', value: repo.data.size, type: 'gauge' })
+		aiHandle?.trackMetric({ name: 'repo.forks', value: repo.data.forks_count, type: 'gauge' })
+		aiHandle?.trackMetric({
+			name: 'repo.open_issues_count',
+			value: repo.data.open_issues_count,
+			type: 'gauge',
+		})
+
 		await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit)
 		await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit)
 		await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit)

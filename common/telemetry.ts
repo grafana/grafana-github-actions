@@ -6,6 +6,7 @@
 import { getInput } from './utils'
 import { GitHubIssue } from '../api/api'
 import axios from 'axios'
+import { context } from '@actions/github'
 
 export interface TelemetryClient {
 	trackMetric: (metric: TelemetryMetric) => void
@@ -24,12 +25,15 @@ export let aiHandle: TelemetryClient | undefined = undefined
 const apiKey = getInput('metricsWriteAPIKey')
 
 if (apiKey) {
+	console.log('metrics context', context.repo)
+
 	aiHandle = {
 		trackException: (arg: any) => {
 			console.log('trackException', arg)
 		},
 		trackMetric: (metric: TelemetryMetric) => {
 			console.log(`trackMetric ${metric.name} ${metric.value}`)
+
 			const tags = []
 
 			if (metric.labels) {
@@ -60,7 +64,7 @@ if (apiKey) {
 						tags,
 					},
 				]),
-			}).catch(e => {
+			}).catch((e) => {
 				console.log(e)
 			})
 		},

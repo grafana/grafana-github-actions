@@ -9,9 +9,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const utils_1 = require("./utils");
 const axios_1 = __importDefault(require("axios"));
+const github_1 = require("@actions/github");
 exports.aiHandle = undefined;
 const apiKey = utils_1.getInput('metricsWriteAPIKey');
 if (apiKey) {
+    console.log('metrics context', github_1.context.repo);
     exports.aiHandle = {
         trackException: (arg) => {
             console.log('trackException', arg);
@@ -47,7 +49,7 @@ if (apiKey) {
                         tags,
                     },
                 ]),
-            }).catch(e => {
+            }).catch((e) => {
                 console.log(e);
             });
         },
