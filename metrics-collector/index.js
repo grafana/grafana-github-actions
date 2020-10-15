@@ -29,13 +29,12 @@ class MetricsCollector extends Action_1.Action {
     }
     async onTriggered(octokit) {
         console.log('context', JSON.stringify(github_1.context.payload, null, 2));
-        console.log('repo', octokit.getRepoInfo());
+        console.log('repo', JSON.stringify(await octokit.getRepoInfo(), null, 2));
         await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit);
         await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit);
         await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit);
         await this.countQuery('unlabeled', 'is:open is:issue no:label', octokit);
         await this.countQuery('open_prs', 'is:open is:pr', octokit);
-        await this.countQuery('milestone_7_3_open', 'is:open is:issue milestone:7.3.0-beta1', octokit);
     }
     async countQuery(name, query, octokit) {
         let count = 0;
