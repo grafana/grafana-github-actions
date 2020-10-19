@@ -50,35 +50,38 @@ class Action {
             const issue = (_o = github_1.context === null || github_1.context === void 0 ? void 0 : github_1.context.issue) === null || _o === void 0 ? void 0 : _o.number;
             if (issue) {
                 const octokit = new octokit_1.OctoKitIssue(token, github_1.context.repo, { number: issue }, { readonly });
-                if (github_1.context.eventName === 'issue_comment') {
-                    await this.onCommented(octokit, github_1.context.payload.comment.body, github_1.context.actor);
-                }
-                else if (github_1.context.eventName === 'issues' || github_1.context.eventName === 'pull_request') {
-                    switch (github_1.context.payload.action) {
-                        case 'opened':
-                            await this.onOpened(octokit);
-                            break;
-                        case 'reopened':
-                            await this.onReopened(octokit);
-                            break;
-                        case 'closed':
-                            await this.onClosed(octokit);
-                            break;
-                        case 'labeled':
-                            await this.onLabeled(octokit, github_1.context.payload.label.name);
-                            break;
-                        case 'unassigned':
-                            await this.onUnassigned(octokit, github_1.context.payload.assignee.login);
-                            break;
-                        case 'edited':
-                            await this.onEdited(octokit);
-                            break;
-                        case 'milestoned':
-                            await this.onMilestoned(octokit);
-                            break;
-                        default:
-                            throw Error('Unexpected action: ' + github_1.context.payload.action);
-                    }
+                switch (github_1.context.eventName) {
+                    case 'issue_comment':
+                        await this.onCommented(octokit, github_1.context.payload.comment.body, github_1.context.actor);
+                        break;
+                    case 'issues':
+                    case 'pull_request':
+                    case 'pull_request_target':
+                        switch (github_1.context.payload.action) {
+                            case 'opened':
+                                await this.onOpened(octokit);
+                                break;
+                            case 'reopened':
+                                await this.onReopened(octokit);
+                                break;
+                            case 'closed':
+                                await this.onClosed(octokit);
+                                break;
+                            case 'labeled':
+                                await this.onLabeled(octokit, github_1.context.payload.label.name);
+                                break;
+                            case 'unassigned':
+                                await this.onUnassigned(octokit, github_1.context.payload.assignee.login);
+                                break;
+                            case 'edited':
+                                await this.onEdited(octokit);
+                                break;
+                            case 'milestoned':
+                                await this.onMilestoned(octokit);
+                                break;
+                            default:
+                                throw Error('Unexpected action: ' + github_1.context.payload.action);
+                        }
                 }
             }
             else {

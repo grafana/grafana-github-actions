@@ -62,34 +62,38 @@ export abstract class Action {
 
 			if (issue) {
 				const octokit = new OctoKitIssue(token, context.repo, { number: issue }, { readonly })
-				if (context.eventName === 'issue_comment') {
-					await this.onCommented(octokit, context.payload.comment.body, context.actor)
-				} else if (context.eventName === 'issues' || context.eventName === 'pull_request') {
-					switch (context.payload.action) {
-						case 'opened':
-							await this.onOpened(octokit)
-							break
-						case 'reopened':
-							await this.onReopened(octokit)
-							break
-						case 'closed':
-							await this.onClosed(octokit)
-							break
-						case 'labeled':
-							await this.onLabeled(octokit, context.payload.label.name)
-							break
-						case 'unassigned':
-							await this.onUnassigned(octokit, context.payload.assignee.login)
-							break
-						case 'edited':
-							await this.onEdited(octokit)
-							break
-						case 'milestoned':
-							await this.onMilestoned(octokit)
-							break
-						default:
-							throw Error('Unexpected action: ' + context.payload.action)
-					}
+				switch (context.eventName) {
+					case 'issue_comment':
+						await this.onCommented(octokit, context.payload.comment.body, context.actor)
+						break
+					case 'issues':
+					case 'pull_request':
+					case 'pull_request_target':
+						switch (context.payload.action) {
+							case 'opened':
+								await this.onOpened(octokit)
+								break
+							case 'reopened':
+								await this.onReopened(octokit)
+								break
+							case 'closed':
+								await this.onClosed(octokit)
+								break
+							case 'labeled':
+								await this.onLabeled(octokit, context.payload.label.name)
+								break
+							case 'unassigned':
+								await this.onUnassigned(octokit, context.payload.assignee.login)
+								break
+							case 'edited':
+								await this.onEdited(octokit)
+								break
+							case 'milestoned':
+								await this.onMilestoned(octokit)
+								break
+							default:
+								throw Error('Unexpected action: ' + context.payload.action)
+						}
 				}
 			} else {
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
