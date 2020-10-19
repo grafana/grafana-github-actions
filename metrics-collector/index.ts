@@ -8,7 +8,7 @@ class MetricsCollector extends Action {
 	async onClosed(issue: OctoKitIssue) {
 		const issueData = await issue.getIssue()
 
-		const typeLabel = issueData.labels.find((label) => label.startsWith('type/'))
+		const typeLabel = issueData.labels.find(label => label.startsWith('type/'))
 		const labels: Record<string, string> = {}
 
 		if (typeLabel) {
@@ -47,6 +47,7 @@ class MetricsCollector extends Action {
 		await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit)
 		await this.countQuery('unlabeled', 'is:open is:issue no:label', octokit)
 		await this.countQuery('open_prs', 'is:open is:pr', octokit)
+		await this.countQuery('milestone_7_4_open', 'is:open is:issue milestone:7.4 ', octokit)
 	}
 
 	private async countQuery(name: string, query: string, octokit: OctoKit) {
