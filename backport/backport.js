@@ -20,7 +20,7 @@ const getLabelNames = ({ action, label, labels, }) => {
 };
 const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) => {
     const baseToHead = {};
-    getLabelNames({ action, label, labels }).forEach((labelName) => {
+    getLabelNames({ action, label, labels }).forEach(labelName => {
         const matches = labelRegExp.exec(labelName);
         if (matches !== null) {
             const [, base, head = `backport-${pullRequestNumber}-to-${base}`] = matches;
@@ -91,6 +91,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
 };
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, }) => {
     if (!merged) {
+        console.log('PR not merged');
         return;
     }
     const backportBaseToHead = getBackportBaseToHead({

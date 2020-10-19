@@ -40,7 +40,7 @@ const getBackportBaseToHead = ({
 }): { [base: string]: string } => {
 	const baseToHead: { [base: string]: string } = {}
 
-	getLabelNames({ action, label, labels }).forEach((labelName) => {
+	getLabelNames({ action, label, labels }).forEach(labelName => {
 		const matches = labelRegExp.exec(labelName)
 
 		if (matches !== null) {
@@ -97,6 +97,7 @@ const backportOnce = async ({
 		repo,
 		title,
 	})
+
 	if (labelsToAdd.length > 0) {
 		await github.issues.addLabels({
 			issue_number: pullRequestNumber,
@@ -177,6 +178,7 @@ const backport = async ({
 	github,
 }: BackportArgs) => {
 	if (!merged) {
+		console.log('PR not merged')
 		return
 	}
 

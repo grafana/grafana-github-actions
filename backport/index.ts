@@ -17,6 +17,7 @@ class Backport extends Action {
 	}
 
 	async backport(issue: OctoKitIssue) {
+		console.log('backport', JSON.stringify(context.payload, null, 2))
 		try {
 			await backport({
 				labelsToAdd: getLabelsToAdd(getInput('labelsToAdd')),
@@ -38,7 +39,7 @@ export const getLabelsToAdd = (input: string | undefined): string[] => {
 	}
 
 	const labels = input.split(',')
-	return labels.map((v) => v.trim()).filter((v) => v !== '')
+	return labels.map(v => v.trim()).filter(v => v !== '')
 }
 
 new Backport().run() // eslint-disable-line

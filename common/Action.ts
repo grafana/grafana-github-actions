@@ -16,7 +16,7 @@ export abstract class Action {
 	private token = getRequiredInput('token')
 
 	constructor() {
-		this.username = new GitHub(this.token).users.getAuthenticated().then((v) => v.data.name)
+		this.username = new GitHub(this.token).users.getAuthenticated().then(v => v.data.name)
 	}
 
 	protected getToken() {
@@ -38,6 +38,8 @@ export abstract class Action {
 				label: context.payload?.label?.name,
 				repository: context.payload?.repository?.html_url,
 				sender: context.payload?.sender?.login ?? context.payload?.sender?.type,
+				action: context.payload.action,
+				contextIssue: context.issue,
 			},
 		})
 

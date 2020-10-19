@@ -12,7 +12,7 @@ const telemetry_1 = require("./telemetry");
 class Action {
     constructor() {
         this.token = utils_1.getRequiredInput('token');
-        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name);
+        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then(v => v.data.name);
     }
     getToken() {
         return this.token;
@@ -32,6 +32,8 @@ class Action {
                 label: (_d = (_c = github_1.context.payload) === null || _c === void 0 ? void 0 : _c.label) === null || _d === void 0 ? void 0 : _d.name,
                 repository: (_f = (_e = github_1.context.payload) === null || _e === void 0 ? void 0 : _e.repository) === null || _f === void 0 ? void 0 : _f.html_url,
                 sender: (_j = (_h = (_g = github_1.context.payload) === null || _g === void 0 ? void 0 : _g.sender) === null || _h === void 0 ? void 0 : _h.login) !== null && _j !== void 0 ? _j : (_l = (_k = github_1.context.payload) === null || _k === void 0 ? void 0 : _k.sender) === null || _l === void 0 ? void 0 : _l.type,
+                action: github_1.context.payload.action,
+                contextIssue: github_1.context.issue,
             },
         });
         if (utils_1.errorLoggingIssue) {
