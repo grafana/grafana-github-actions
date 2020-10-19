@@ -16,7 +16,6 @@ class Backport extends Action_1.Action {
         this.backport(issue);
     }
     async backport(issue) {
-        console.log('backport', JSON.stringify(github_1.context.payload, null, 2));
         try {
             await backport_1.backport({
                 labelsToAdd: exports.getLabelsToAdd(core_1.getInput('labelsToAdd')),
