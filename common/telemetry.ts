@@ -56,7 +56,7 @@ if (apiKey) {
 				},
 				data: JSON.stringify([
 					{
-						name: `gh_action.${metric.name}`,
+						name: `${getMetricsNamePrefix()}.${metric.name}`,
 						value: metric.value,
 						interval: 60,
 						mtype: metric.type ?? 'count',
@@ -64,11 +64,19 @@ if (apiKey) {
 						tags,
 					},
 				]),
-			}).catch((e) => {
+			}).catch(e => {
 				console.log(e)
 			})
 		},
 	}
+}
+
+function getMetricsNamePrefix() {
+	if (!context || context.repo.repo === 'grafana') {
+		// this is for grafana repo, did not make this multi repo at the start and do not want to loose past metrics
+		return 'gh_action'
+	}
+	return `repo_stats.${context.repo.repo}`
 }
 
 export const trackEvent = async (issue: GitHubIssue, event: string, props?: Record<string, string>) => {
