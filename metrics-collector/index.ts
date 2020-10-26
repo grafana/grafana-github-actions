@@ -1,4 +1,5 @@
 import { OctoKitIssue, OctoKit } from '../api/octokit'
+import { getInput } from '../common/utils'
 import { Action } from '../common/Action'
 import { aiHandle } from '../common/telemetry'
 
@@ -15,23 +16,15 @@ class MetricsCollector extends Action {
 			labels['type'] = typeLabel.substr(5)
 		}
 
-		aiHandle?.trackMetric({
-			name: 'issue.closed_count',
-			value: 1,
-			labels,
-		})
+		aiHandle?.trackMetric({ name: 'issue.closed_count', value: 1, labels })
 	}
 
 	async onOpened(_issue: OctoKitIssue) {
-		aiHandle?.trackMetric({
-			name: 'issue.opened_count',
-			value: 1,
-		})
+		aiHandle?.trackMetric({ name: 'issue.opened_count', value: 1 })
 	}
 
 	async onTriggered(octokit: OctoKit) {
 		const repo = await octokit.getRepoInfo()
-
 		aiHandle?.trackMetric({ name: 'repo.stargazers', value: repo.data.stargazers_count, type: 'gauge' })
 		aiHandle?.trackMetric({ name: 'repo.watchers', value: repo.data.watchers_count, type: 'gauge' })
 		aiHandle?.trackMetric({ name: 'repo.size', value: repo.data.size, type: 'gauge' })
@@ -42,12 +35,15 @@ class MetricsCollector extends Action {
 			type: 'gauge',
 		})
 
-		await this.countQuery('type_bug', 'label:"type/bug" is:open', octokit)
-		await this.countQuery('needs_investigation', 'label:"needs investigation" is:open', octokit)
-		await this.countQuery('needs_more_info', 'label:"needs more info" is:open', octokit)
-		await this.countQuery('unlabeled', 'is:open is:issue no:label', octokit)
-		await this.countQuery('open_prs', 'is:open is:pr', octokit)
-		await this.countQuery('milestone_7_4_open', 'is:open is:issue milestone:7.4 ', octokit)
+		const configPath = getInput('configPath')
+		if (!configPath) {
+			return
+		}
+
+		const config = (await octokit.readConfig(configPath)) as MetricsCollectorConfig
+		for (const query of config.queries) {
+			await this.countQuery(query.name, query.query, octokit)
+		}
 	}
 
 	private async countQuery(name: string, query: string, octokit: OctoKit) {
@@ -63,6 +59,15 @@ class MetricsCollector extends Action {
 			type: 'gauge',
 		})
 	}
+}
+
+interface QueryIssueCount {
+	name: string
+	query: string
+}
+
+interface MetricsCollectorConfig {
+	queries: QueryIssueCount[]
 }
 
 new MetricsCollector().run() // eslint-disable-line

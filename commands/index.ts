@@ -12,12 +12,12 @@ class CommandsRunner extends Action {
 	id = 'Commands'
 
 	async onCommented(issue: OctoKitIssue, comment: string, actor: string) {
-		const commands = await issue.readConfig(getRequiredInput('config-path'))
+		const commands = await issue.readConfig(getRequiredInput('configPath'))
 		await new Commands(issue, commands, { comment, user: { name: actor } }).run()
 	}
 
 	async onLabeled(issue: OctoKitIssue, label: string) {
-		const commands = await issue.readConfig(getRequiredInput('config-path'))
+		const commands = await issue.readConfig(getRequiredInput('configPath'))
 		await new Commands(issue, commands, { label }).run()
 	}
 }
