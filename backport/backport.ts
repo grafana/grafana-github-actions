@@ -62,6 +62,7 @@ const backportOnce = async ({
 	owner,
 	repo,
 	title,
+	milestone,
 }: {
 	base: string
 	body: string
@@ -72,6 +73,7 @@ const backportOnce = async ({
 	owner: string
 	repo: string
 	title: string
+	milestone: EventPayloads.WebhookPayloadPullRequestPullRequestMilestone
 }) => {
 	const git = async (...args: string[]) => {
 		await exec('git', args, { cwd: repo })
@@ -87,9 +89,7 @@ const backportOnce = async ({
 	}
 
 	await git('push', '--set-upstream', 'origin', head)
-	const {
-		data: { number: pullRequestNumber },
-	} = await github.pulls.create({
+	const createRsp = await github.pulls.create({
 		base,
 		body,
 		head,
@@ -97,6 +97,17 @@ const backportOnce = async ({
 		repo,
 		title,
 	})
+
+	const pullRequestNumber = createRsp.data.number
+
+	if (milestone && milestone.id) {
+		await github.issues.update({
+			repo,
+			owner,
+			issue_number: pullRequestNumber,
+			milestone: milestone.id,
+		})
+	}
 
 	if (labelsToAdd.length > 0) {
 		await github.issues.addLabels({
@@ -167,6 +178,8 @@ const backport = async ({
 			merged,
 			number: pullRequestNumber,
 			title: originalTitle,
+			milestone,
+			merged_by,
 		},
 		repository: {
 			name: repo,
@@ -181,6 +194,8 @@ const backport = async ({
 		console.log('PR not merged')
 		return
 	}
+
+	console.log('merged_by', merged_by)
 
 	const backportBaseToHead = getBackportBaseToHead({
 		action,
@@ -225,6 +240,7 @@ const backport = async ({
 					owner,
 					repo,
 					title,
+					milestone,
 				})
 			} catch (error) {
 				const errorMessage: string = error.message

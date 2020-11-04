@@ -29,7 +29,7 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
     });
     return baseToHead;
 };
-const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, }) => {
+const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, milestone, }) => {
     const git = async (...args) => {
         await exec_1.exec('git', args, { cwd: repo });
     };
@@ -43,7 +43,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         throw error;
     }
     await git('push', '--set-upstream', 'origin', head);
-    const { data: { number: pullRequestNumber }, } = await github.pulls.create({
+    const createRsp = await github.pulls.create({
         base,
         body,
         head,
@@ -51,6 +51,15 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         repo,
         title,
     });
+    const pullRequestNumber = createRsp.data.number;
+    if (milestone && milestone.id) {
+        await github.issues.update({
+            repo,
+            owner,
+            issue_number: pullRequestNumber,
+            milestone: milestone.id,
+        });
+    }
     if (labelsToAdd.length > 0) {
         await github.issues.addLabels({
             issue_number: pullRequestNumber,
@@ -89,11 +98,12 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
-const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, }) => {
+const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, }) => {
     if (!merged) {
         console.log('PR not merged');
         return;
     }
+    console.log('merged_by', merged_by);
     const backportBaseToHead = getBackportBaseToHead({
         action,
         // The payload has a label property when the action is "labeled".
@@ -131,6 +141,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     owner,
                     repo,
                     title,
+                    milestone,
                 });
             }
             catch (error) {
