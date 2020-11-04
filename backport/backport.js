@@ -29,7 +29,7 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
     });
     return baseToHead;
 };
-const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, milestone, }) => {
+const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
     const git = async (...args) => {
         await exec_1.exec('git', args, { cwd: repo });
     };
@@ -52,12 +52,32 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         title,
     });
     const pullRequestNumber = createRsp.data.number;
+    // Sync milestone
     if (milestone && milestone.id) {
         await github.issues.update({
             repo,
             owner,
             issue_number: pullRequestNumber,
             milestone: milestone.number,
+        });
+    }
+    // Remove default reviewers
+    if (createRsp.data.requested_reviewers) {
+        const reviewers = createRsp.data.requested_reviewers.map(user => user.login);
+        await github.pulls.deleteReviewRequest({
+            pull_number: pullRequestNumber,
+            repo,
+            owner,
+            reviewers: reviewers,
+        });
+    }
+    if (mergedBy) {
+        // Assign to merger
+        await github.pulls.createReviewRequest({
+            pull_number: pullRequestNumber,
+            repo,
+            owner,
+            reviewers: [mergedBy.login],
         });
     }
     if (labelsToAdd.length > 0) {
@@ -103,7 +123,6 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
         console.log('PR not merged');
         return;
     }
-    console.log('merged_by', merged_by);
     const backportBaseToHead = getBackportBaseToHead({
         action,
         // The payload has a label property when the action is "labeled".
@@ -142,6 +161,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     repo,
                     title,
                     milestone,
+                    mergedBy: merged_by,
                 });
             }
             catch (error) {

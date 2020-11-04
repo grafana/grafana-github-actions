@@ -63,6 +63,7 @@ const backportOnce = async ({
 	repo,
 	title,
 	milestone,
+	mergedBy,
 }: {
 	base: string
 	body: string
@@ -74,6 +75,7 @@ const backportOnce = async ({
 	repo: string
 	title: string
 	milestone: EventPayloads.WebhookPayloadPullRequestPullRequestMilestone
+	mergedBy: any
 }) => {
 	const git = async (...args: string[]) => {
 		await exec('git', args, { cwd: repo })
@@ -100,12 +102,34 @@ const backportOnce = async ({
 
 	const pullRequestNumber = createRsp.data.number
 
+	// Sync milestone
 	if (milestone && milestone.id) {
 		await github.issues.update({
 			repo,
 			owner,
 			issue_number: pullRequestNumber,
 			milestone: milestone.number,
+		})
+	}
+
+	// Remove default reviewers
+	if (createRsp.data.requested_reviewers) {
+		const reviewers = createRsp.data.requested_reviewers.map(user => user.login)
+		await github.pulls.deleteReviewRequest({
+			pull_number: pullRequestNumber,
+			repo,
+			owner,
+			reviewers: reviewers,
+		})
+	}
+
+	if (mergedBy) {
+		// Assign to merger
+		await github.pulls.createReviewRequest({
+			pull_number: pullRequestNumber,
+			repo,
+			owner,
+			reviewers: [mergedBy.login],
 		})
 	}
 
@@ -195,8 +219,6 @@ const backport = async ({
 		return
 	}
 
-	console.log('merged_by', merged_by)
-
 	const backportBaseToHead = getBackportBaseToHead({
 		action,
 		// The payload has a label property when the action is "labeled".
@@ -241,6 +263,7 @@ const backport = async ({
 					repo,
 					title,
 					milestone,
+					mergedBy: merged_by,
 				})
 			} catch (error) {
 				const errorMessage: string = error.message
