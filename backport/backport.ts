@@ -100,6 +100,7 @@ const backportOnce = async ({
 
 	const pullRequestNumber = createRsp.data.number
 
+	console.log('milestone', milestone)
 	// if (milestone && milestone.id) {
 	// 	await github.issues.update({
 	// 		repo,
