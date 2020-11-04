@@ -112,8 +112,6 @@ const backportOnce = async ({
 		})
 	}
 
-	console.log('default reviewers', createRsp.data.requested_reviewers)
-
 	// Remove default reviewers
 	if (createRsp.data.requested_reviewers) {
 		const reviewers = createRsp.data.requested_reviewers.map(user => user.login)

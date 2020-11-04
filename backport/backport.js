@@ -61,7 +61,6 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
             milestone: milestone.number,
         });
     }
-    console.log('default reviewers', createRsp.data.requested_reviewers);
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
         const reviewers = createRsp.data.requested_reviewers.map(user => user.login);
