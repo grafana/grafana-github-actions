@@ -30,7 +30,8 @@ class GrafanaRelease extends Action_1.Action {
         await git('switch', base);
         await git('switch', '--create', prBranch);
         // make changes
-        const packageJson = require(`package.json`);
+        let rawdata = fs_1.default.readFileSync('package.json');
+        let packageJson = JSON.parse(rawdata.toString());
         console.log('packageJson', packageJson);
         packageJson.version = '2.0.0';
         fs_1.default.writeFile('package.json', JSON.stringify(packageJson), function writeJSON(err) {

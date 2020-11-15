@@ -31,7 +31,8 @@ class GrafanaRelease extends Action {
 		await git('switch', '--create', prBranch)
 
 		// make changes
-		const packageJson = require(`package.json`)
+		let rawdata = fs.readFileSync('package.json')
+		let packageJson = JSON.parse(rawdata.toString())
 		console.log('packageJson', packageJson)
 
 		packageJson.version = '2.0.0'
