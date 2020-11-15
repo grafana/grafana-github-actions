@@ -3,3 +3,4 @@ node_modules
 classifier/issue_data.json
 classifier/issue_labels.json
 **/.DS_Store
+.env

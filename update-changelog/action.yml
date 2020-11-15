@@ -1,0 +1,12 @@
+name: Update changelog
+description: Update changelog
+inputs:
+  token:
+    description: GitHub token with issue, comment, and label read/write permissions
+    default: ${{ github.token }}
+  metricsWriteAPIKey:
+    description: Grafana Cloud metrics api key
+    required: false
+runs:
+  using: 'node12'
+  main: 'index.js'

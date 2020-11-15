@@ -4,6 +4,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Commands = void 0;
 const telemetry_1 = require("../common/telemetry");
 /* eslint-enable */
 class Commands {
