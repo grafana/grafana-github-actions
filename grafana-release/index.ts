@@ -43,7 +43,7 @@ class GrafanaRelease extends Action {
 		})
 
 		// commit
-		await git('push', 'commit', '-am', 'Updated version')
+		await git('push', 'commit', '-am', '"Updated version"')
 
 		// push
 		await git('push', '--set-upstream', 'origin', prBranch)

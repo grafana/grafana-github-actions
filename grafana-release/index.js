@@ -40,7 +40,7 @@ class GrafanaRelease extends Action_1.Action {
             console.log('writing package.json');
         });
         // commit
-        await git('push', 'commit', '-am', 'Updated version');
+        await git('push', 'commit', '-am', '"Updated version"');
         // push
         await git('push', '--set-upstream', 'origin', prBranch);
         // await git('switch', '--create', head)
