@@ -34,8 +34,8 @@ class BumpVersion extends Action {
 		await git('switch', '--create', prBranch)
 
 		// Update version
-		await git('npm', 'version', version)
-		await git('npm', 'install')
+		await exec('npm', ['version', version])
+		await exec('npm', ['install'])
 
 		// make changes
 		// let rawdata = fs.readFileSync('package.json')
