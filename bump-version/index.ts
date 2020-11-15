@@ -22,6 +22,8 @@ class BumpVersion extends Action {
 			throw new Error('Missing version input')
 		}
 
+		await exec('node', ['--version'])
+
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)

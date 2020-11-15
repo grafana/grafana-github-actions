@@ -20,6 +20,7 @@ class BumpVersion extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
+        await exec_1.exec('node', ['--version']);
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
         const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
