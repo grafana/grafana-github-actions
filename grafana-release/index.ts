@@ -5,7 +5,7 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
-import fs from 'fs'
+// import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 
 class GrafanaRelease extends Action {
@@ -14,14 +14,11 @@ class GrafanaRelease extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-
-		const initialWorkingDir = process.cwd()
-		console.log('initialWorkingDir', initialWorkingDir)
+		console.log('context', JSON.stringify(context, null, 2))
 
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)
-		console.log('currentWorkingDir', process.cwd())
 
 		const base = 'main'
 		const prBranch = 'patch'
@@ -31,16 +28,17 @@ class GrafanaRelease extends Action {
 		await git('switch', '--create', prBranch)
 
 		// make changes
-		let rawdata = fs.readFileSync('package.json')
-		let packageJson = JSON.parse(rawdata.toString())
-		console.log('packageJson', packageJson)
+		// let rawdata = fs.readFileSync('package.json')
+		// let packageJson = JSON.parse(rawdata.toString())
 
-		packageJson.version = '2.0.0'
+		// packageJson.version = '2.0.0'
 
-		fs.writeFile('package.json', JSON.stringify(packageJson), function writeJSON(err) {
-			if (err) return console.log(err)
-			console.log('writing package.json')
-		})
+		// fs.writeFile('package.json', JSON.stringify(packageJson), function writeJSON(err) {
+		// 	if (err) return console.log(err)
+		// 	console.log('writing package.json')
+		// })
+
+		await git('npx', 'add', 'lodash')
 
 		// commit
 		await git('commit', '-am', '"Updated version"')
