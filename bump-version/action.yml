@@ -1,11 +1,11 @@
-name: Grafana Release Automation
-description: Helps with release automation steps
+name: Bump version
+description: Updates version
 inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions
     default: ${{ github.token }}
-  configPath:
-    description: Name of .json file (no extension) in .github/ directory of repo holding configuration for this action
+  version:
+    description: New version
   metricsWriteAPIKey:
     description: Grafana Cloud metrics api key
     required: false

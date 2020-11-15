@@ -8,10 +8,10 @@ const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const utils_1 = require("../common/utils");
-class GrafanaRelease extends Action_1.Action {
+class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
-        this.id = 'GrafanaRelease';
+        this.id = 'BumpVersion';
     }
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
@@ -26,6 +26,7 @@ class GrafanaRelease extends Action_1.Action {
         await git('switch', '--create', prBranch);
         // Update version
         await git('npm', 'version', version);
+        await git('npm', 'install');
         // make changes
         // let rawdata = fs.readFileSync('package.json')
         // let packageJson = JSON.parse(rawdata.toString())
@@ -52,5 +53,5 @@ const git = async (...args) => {
     // await exec('git', args, { cwd: repo })
     await exec_1.exec('git', args);
 };
-new GrafanaRelease().run(); // eslint-disable-line
+new BumpVersion().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

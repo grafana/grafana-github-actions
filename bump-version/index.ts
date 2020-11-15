@@ -9,8 +9,8 @@ import { getRequiredInput } from '../common/utils'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 
-class GrafanaRelease extends Action {
-	id = 'GrafanaRelease'
+class BumpVersion extends Action {
+	id = 'BumpVersion'
 
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
@@ -30,6 +30,7 @@ class GrafanaRelease extends Action {
 
 		// Update version
 		await git('npm', 'version', version)
+		await git('npm', 'install')
 
 		// make changes
 		// let rawdata = fs.readFileSync('package.json')
@@ -64,4 +65,4 @@ const git = async (...args: string[]) => {
 	await exec('git', args)
 }
 
-new GrafanaRelease().run() // eslint-disable-line
+new BumpVersion().run() // eslint-disable-line
