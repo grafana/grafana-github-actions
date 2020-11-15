@@ -5,7 +5,6 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
-import { getRequiredInput } from '../common/utils'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
@@ -27,7 +26,7 @@ class BumpVersion extends Action {
 
 		process.chdir(repo)
 
-		const base = context.ref
+		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
 		const prBranch = `version-bump-${version}`
 
 		// create branch
