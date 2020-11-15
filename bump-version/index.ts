@@ -22,8 +22,6 @@ class BumpVersion extends Action {
 			throw new Error('Missing version input')
 		}
 
-		await exec('node', ['--version'])
-
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)
@@ -37,8 +35,16 @@ class BumpVersion extends Action {
 
 		// Update version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
-		await exec('yarn', ['install', '--pure-lock-file'])
-		await exec('yarn', ['run', 'packages:prepare'])
+		await exec('npx', [
+			'lerna',
+			'version',
+			version,
+			'--no-push',
+			'--no-git-tag-version',
+			'--force-publish',
+			'--exact',
+			'--yes',
+		])
 
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 

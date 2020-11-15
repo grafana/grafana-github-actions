@@ -20,7 +20,6 @@ class BumpVersion extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
-        await exec_1.exec('node', ['--version']);
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
         const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
@@ -30,8 +29,16 @@ class BumpVersion extends Action_1.Action {
         await git('switch', '--create', prBranch);
         // Update version
         await exec_1.exec('npm', ['version', version, '--no-git-tag-version']);
-        await exec_1.exec('yarn', ['install', '--pure-lock-file']);
-        await exec_1.exec('yarn', ['run', 'packages:prepare']);
+        await exec_1.exec('npx', [
+            'lerna',
+            'version',
+            version,
+            '--no-push',
+            '--no-git-tag-version',
+            '--force-publish',
+            '--exact',
+            '--yes',
+        ]);
         await git('commit', '-am', `"Release: Updated versions in package to ${version}"`);
         // push
         await git('push', '--set-upstream', 'origin', prBranch);
