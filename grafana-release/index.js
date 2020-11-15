@@ -7,6 +7,7 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
+const utils_1 = require("../common/utils");
 class GrafanaRelease extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -15,14 +16,16 @@ class GrafanaRelease extends Action_1.Action {
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
         const token = this.getToken();
-        console.log('context', JSON.stringify(github_1.context, null, 2));
+        const version = utils_1.getRequiredInput('version');
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
-        const base = 'main';
-        const prBranch = 'patch';
+        const base = github_1.context.ref;
+        const prBranch = `version-bump-${version}`;
         // create branch
         await git('switch', base);
         await git('switch', '--create', prBranch);
+        // Update version
+        await git('npm', 'version', version);
         // make changes
         // let rawdata = fs.readFileSync('package.json')
         // let packageJson = JSON.parse(rawdata.toString())
@@ -31,19 +34,10 @@ class GrafanaRelease extends Action_1.Action {
         // 	if (err) return console.log(err)
         // 	console.log('writing package.json')
         // })
-        await git('npx', 'add', 'lodash');
         // commit
         await git('commit', '-am', '"Updated version"');
         // push
         await git('push', '--set-upstream', 'origin', prBranch);
-        // await git('switch', '--create', head)
-        // try {
-        // 	await git('cherry-pick', '-x', commitToBackport)
-        // } catch (error) {
-        // 	await git('cherry-pick', '--abort')
-        // 	throw error
-        // }
-        // await git('push', '--set-upstream', 'origin', head)
         // const createRsp = await github.pulls.create({
         // 	base,
         // 	body,

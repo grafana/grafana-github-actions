@@ -5,6 +5,7 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
+import { getRequiredInput } from '../common/utils'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 
@@ -14,18 +15,21 @@ class GrafanaRelease extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		console.log('context', JSON.stringify(context, null, 2))
+		const version = getRequiredInput('version')
 
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)
 
-		const base = 'main'
-		const prBranch = 'patch'
+		const base = context.ref
+		const prBranch = `version-bump-${version}`
 
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
+
+		// Update version
+		await git('npm', 'version', version)
 
 		// make changes
 		// let rawdata = fs.readFileSync('package.json')
@@ -38,23 +42,12 @@ class GrafanaRelease extends Action {
 		// 	console.log('writing package.json')
 		// })
 
-		await git('npx', 'add', 'lodash')
-
 		// commit
 		await git('commit', '-am', '"Updated version"')
 
 		// push
 		await git('push', '--set-upstream', 'origin', prBranch)
 
-		// await git('switch', '--create', head)
-		// try {
-		// 	await git('cherry-pick', '-x', commitToBackport)
-		// } catch (error) {
-		// 	await git('cherry-pick', '--abort')
-		// 	throw error
-		// }
-
-		// await git('push', '--set-upstream', 'origin', head)
 		// const createRsp = await github.pulls.create({
 		// 	base,
 		// 	body,
