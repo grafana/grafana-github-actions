@@ -5,6 +5,7 @@ import { exec } from '@actions/exec'
 import { GitHub } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
+import { cloneRepo } from '../common/git'
 
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/
 
@@ -235,9 +236,7 @@ const backport = async ({
 	const commitToBackport = String(mergeCommitSha)
 	info(`Backporting ${commitToBackport} from #${pullRequestNumber}`)
 
-	await exec('git', ['clone', `https://x-access-token:${token}@github.com/${owner}/${repo}.git`])
-	await exec('git', ['config', '--global', 'user.email', 'github-actions[bot]@users.noreply.github.com'])
-	await exec('git', ['config', '--global', 'user.name', 'github-actions[bot]'])
+	await cloneRepo({ token, owner, repo })
 
 	for (const [base, head] of Object.entries(backportBaseToHead)) {
 		const body = `Backport ${commitToBackport} from #${pullRequestNumber}`

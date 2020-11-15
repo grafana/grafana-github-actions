@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
+const git_1 = require("../common/git");
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
 const getLabelNames = ({ action, label, labels, }) => {
     switch (action) {
@@ -136,9 +137,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
     // The merge commit SHA is actually not null.
     const commitToBackport = String(mergeCommitSha);
     core_1.info(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
-    await exec_1.exec('git', ['clone', `https://x-access-token:${token}@github.com/${owner}/${repo}.git`]);
-    await exec_1.exec('git', ['config', '--global', 'user.email', 'github-actions[bot]@users.noreply.github.com']);
-    await exec_1.exec('git', ['config', '--global', 'user.name', 'github-actions[bot]']);
+    await git_1.cloneRepo({ token, owner, repo });
     for (const [base, head] of Object.entries(backportBaseToHead)) {
         const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
         let title = titleTemplate;
