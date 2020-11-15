@@ -28,28 +28,23 @@ class BumpVersion extends Action_1.Action {
         await git('switch', base);
         await git('switch', '--create', prBranch);
         // Update version
-        await exec_1.exec('npm', ['version', version]);
-        await exec_1.exec('npm', ['install']);
-        // make changes
-        // let rawdata = fs.readFileSync('package.json')
-        // let packageJson = JSON.parse(rawdata.toString())
-        // packageJson.version = '2.0.0'
-        // fs.writeFile('package.json', JSON.stringify(packageJson), function writeJSON(err) {
-        // 	if (err) return console.log(err)
-        // 	console.log('writing package.json')
-        // })
-        // commit
-        await git('commit', '-am', '"Updated version"');
+        await exec_1.exec('npm', ['version', version, '--no-git-tag-version']);
+        await exec_1.exec('yarn', ['install', '--pure-lock-file']);
+        await exec_1.exec('yarn', ['run', 'packages:prepare']);
+        await git('commit', '-am', `"Release: Updated versions in package to ${version}"`);
         // push
         await git('push', '--set-upstream', 'origin', prBranch);
-        // const createRsp = await github.pulls.create({
-        // 	base,
-        // 	body,
-        // 	head,
-        // 	owner,
-        // 	repo,
-        // 	title,
-        // })
+        const body = `
+		  Bumps version to ${version}
+		`;
+        await octokit.octokit.pulls.create({
+            base,
+            body,
+            head: prBranch,
+            owner,
+            repo,
+            title: `Release: Bump version to ${version}`,
+        });
     }
 }
 const git = async (...args) => {
