@@ -4,8 +4,6 @@ inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions
     default: ${{ github.token }}
-  version:
-    description: New version
   metricsWriteAPIKey:
     description: Grafana Cloud metrics api key
     required: false

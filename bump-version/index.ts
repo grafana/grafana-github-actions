@@ -8,6 +8,7 @@ import { cloneRepo } from '../common/git'
 import { getRequiredInput } from '../common/utils'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
+import { EventPayloads } from '@octokit/webhooks'
 
 class BumpVersion extends Action {
 	id = 'BumpVersion'
@@ -15,7 +16,12 @@ class BumpVersion extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		const version = getRequiredInput('version')
+		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
+		const version = (payload.inputs as any).version
+
+		if (!version) {
+			throw new Error('Missing version input')
+		}
 
 		await cloneRepo({ token, owner, repo })
 
