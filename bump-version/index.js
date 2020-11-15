@@ -42,9 +42,10 @@ class BumpVersion extends Action_1.Action {
         await git('commit', '-am', `"Release: Updated versions in package to ${version}"`);
         // push
         await git('push', '--set-upstream', 'origin', prBranch);
-        const body = `
-		  Bumps version to ${version}
-		`;
+        const body = `Executed:\n
+npm version ${version} --no-git-tag-version\n
+npx lerna version ${version} --no-push --not-git-tag-version --force-publish --exact --yes
+`;
         await octokit.octokit.pulls.create({
             base,
             body,
