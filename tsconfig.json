@@ -10,5 +10,5 @@
 		"sourceMap": true,
 		"lib": ["es2020"]
 	},
-	"exclude": ["**/*.test.ts", "**/vm-filesystem/**"]
+	"exclude": ["**/*.test.ts", "**/vm-filesystem/**", "__mocks__/**/*"]
 }
