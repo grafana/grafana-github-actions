@@ -86,6 +86,7 @@ export class ReleaseNotesBuilder {
 			lines.push(this.getMarkdownLineForIssue(issue))
 		}
 
+		lines.push('')
 		return lines
 	}
 

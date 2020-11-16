@@ -42,14 +42,14 @@ class FileUpdater {
                 }
             }
             if (endMarker.test(line)) {
-                endIndex = lineIdx - 1;
+                endIndex = lineIdx;
                 break;
             }
         }
         const newLines = utils_1.splitStringIntoLines(content);
         if (endIndex === startIndex) {
             // Insert new lines
-            this.lines.splice(startIndex, 0, ...['', `<!-- ${version} START -->`, '', ...newLines, '', `<!-- ${version} END -->`]);
+            this.lines.splice(startIndex, 0, ...['', `<!-- ${version} START -->`, '', ...newLines, `<!-- ${version} END -->`]);
         }
         else {
             // remove the lines between the markers and add the updates lines

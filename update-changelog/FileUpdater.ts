@@ -43,7 +43,7 @@ export class FileUpdater {
 			}
 
 			if (endMarker.test(line)) {
-				endIndex = lineIdx - 1
+				endIndex = lineIdx
 				break
 			}
 		}
@@ -55,7 +55,7 @@ export class FileUpdater {
 			this.lines.splice(
 				startIndex,
 				0,
-				...['', `<!-- ${version} START -->`, '', ...newLines, '', `<!-- ${version} END -->`],
+				...['', `<!-- ${version} START -->`, '', ...newLines, `<!-- ${version} END -->`],
 			)
 		} else {
 			// remove the lines between the markers and add the updates lines

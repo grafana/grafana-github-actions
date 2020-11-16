@@ -97,7 +97,8 @@ describe('FileUpdater', () => {
 
 			updater.update({
 				version: '7.3.2',
-				content: `Updated content`,
+				content: `Updated content
+				`,
 			})
 
 			expect(updater.getContent()).toMatchInlineSnapshot(`
@@ -111,7 +112,7 @@ describe('FileUpdater', () => {
 			<!-- 7.3.2 START -->
 
 			Updated content
-
+							
 			<!-- 7.3.2 END -->
 
 			<!-- 7.3.1 START -->

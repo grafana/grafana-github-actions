@@ -70,6 +70,7 @@ class ReleaseNotesBuilder {
         for (const issue of issues) {
             lines.push(this.getMarkdownLineForIssue(issue));
         }
+        lines.push('');
         return lines;
     }
     getGrafanaReleaseNotes(issues) {
