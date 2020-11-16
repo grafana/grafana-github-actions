@@ -25,8 +25,6 @@ export let aiHandle: TelemetryClient | undefined = undefined
 const apiKey = getInput('metricsWriteAPIKey')
 
 if (apiKey) {
-	console.log('metrics context', context.repo)
-
 	aiHandle = {
 		trackException: (arg: any) => {
 			console.log('trackException', arg)
@@ -80,5 +78,5 @@ function getMetricsNamePrefix() {
 }
 
 export const trackEvent = async (issue: GitHubIssue, event: string, props?: Record<string, string>) => {
-	console.log('tracking event', event, props)
+	// console.log('tracking event', event, props)
 }

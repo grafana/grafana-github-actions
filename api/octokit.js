@@ -76,6 +76,7 @@ class OctoKit {
             createdAt: +new Date(issue.created_at),
             updatedAt: +new Date(issue.updated_at),
             closedAt: issue.closed_at ? +new Date(issue.closed_at) : undefined,
+            isPullRequest: !!issue.pull_request,
         };
     }
     async hasWriteAccess(user) {
@@ -172,7 +173,6 @@ class OctoKitIssue extends OctoKit {
         super(token, params, options);
         this.params = params;
         this.issueData = issueData;
-        console.log('running bot on issue', issueData.number);
     }
     async addAssignee(assignee) {
         core_1.debug('Adding assignee ' + assignee + ' to ' + this.issueData.number);

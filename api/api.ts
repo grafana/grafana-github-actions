@@ -91,6 +91,7 @@ export interface Issue {
 	createdAt: number
 	updatedAt: number
 	closedAt?: number
+	isPullRequest?: boolean
 }
 export interface Query {
 	q: string

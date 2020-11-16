@@ -14,7 +14,6 @@ const github_1 = require("@actions/github");
 exports.aiHandle = undefined;
 const apiKey = utils_1.getInput('metricsWriteAPIKey');
 if (apiKey) {
-    console.log('metrics context', github_1.context.repo);
     exports.aiHandle = {
         trackException: (arg) => {
             console.log('trackException', arg);
@@ -64,6 +63,6 @@ function getMetricsNamePrefix() {
     return `repo_stats.${github_1.context.repo.repo}`;
 }
 exports.trackEvent = async (issue, event, props) => {
-    console.log('tracking event', event, props);
+    // console.log('tracking event', event, props)
 };
 //# sourceMappingURL=telemetry.js.map

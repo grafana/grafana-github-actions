@@ -7,6 +7,12 @@ import { expect } from 'chai'
 import { TestbedIssue } from '../api/testbed'
 import { Command, Commands } from './Commands'
 
+jest.mock('@actions/github', () => {
+	return {
+		context: { repo: { repo: 'grafan', owner: 'grafana' } },
+	}
+})
+
 describe('Commands', () => {
 	describe('Comments', () => {
 		it('Close (team member)', async () => {

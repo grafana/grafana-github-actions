@@ -88,6 +88,7 @@ export class OctoKit implements GitHub {
 			createdAt: +new Date(issue.created_at),
 			updatedAt: +new Date(issue.updated_at),
 			closedAt: issue.closed_at ? +new Date((issue.closed_at as unknown) as string) : undefined,
+			isPullRequest: !!issue.pull_request,
 		}
 	}
 
@@ -193,7 +194,6 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 		options: { readonly: boolean } = { readonly: false },
 	) {
 		super(token, params, options)
-		console.log('running bot on issue', issueData.number)
 	}
 
 	async addAssignee(assignee: string): Promise<void> {
