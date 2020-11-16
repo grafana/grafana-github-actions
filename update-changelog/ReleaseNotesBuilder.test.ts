@@ -7,6 +7,7 @@ import {
 	CHANGELOG_LABEL,
 	GRAFANA_UI_LABEL,
 	BREAKING_CHANGE_LABEL,
+	BREAKING_SECTION_START,
 } from './ReleaseNotesBuilder'
 
 describe('ReleaseNotesBuilder', () => {
@@ -52,6 +53,12 @@ describe('ReleaseNotesBuilder', () => {
 			{
 				issue: {
 					title: 'Dashboard: Issue with deprecation notice',
+					body: `
+asdasd
+asdasd
+
+### ${BREAKING_SECTION_START}
+Here is the content of this breaking change notice.`,
 					isPullRequest: true,
 					author: {
 						name: 'torkelo',
@@ -82,7 +89,7 @@ describe('ReleaseNotesBuilder', () => {
 
 		const octokit = new OctoKit(token, { repo, owner })
 		const builder = new ReleaseNotesBuilder(octokit)
-		const text = await builder.getText('7.3.3')
+		const text = await builder.getText('7.4')
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

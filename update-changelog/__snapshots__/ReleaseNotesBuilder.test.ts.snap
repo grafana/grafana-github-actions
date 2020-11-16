@@ -2,12 +2,20 @@
 
 exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 "### Features / Enhancements
+
+* **Dashboard**: Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 * **Login**: New feature. [#1](https://github.com/grafana/grafana/issues/1)
 
 ### Bug Fixes
+
 * **API**: Fixed api issue. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 * **Alerting**: Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
 
+### Breaking changes
+
+Here is the content of this breaking change notice. Issue [#1](https://github.com/grafana/grafana/issues/1)
+
 ### Plugin development fixes & changes
+
 * **Button**: Changed prop name for button. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)"
 `;

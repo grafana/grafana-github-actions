@@ -5,6 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileUpdater = void 0;
 const fs_1 = __importDefault(require("fs"));
+const lodash_1 = require("lodash");
+const utils_1 = require("../common/utils");
 class FileUpdater {
     constructor() {
         this.lines = [];
@@ -14,14 +16,14 @@ class FileUpdater {
             throw new Error(`File not found ${filePath}`);
         }
         const fileContent = require('fs').readFileSync(filePath, 'utf-8');
-        this.lines = splitStringIntoLines(fileContent);
+        this.lines = utils_1.splitStringIntoLines(fileContent);
     }
     getLines() {
         return this.lines;
     }
     update({ marker, content }) {
-        const startMarker = new RegExp(`\<\!-- ${escapeRegExp(marker)} START`);
-        const endMarker = new RegExp(`\<\!-- ${escapeRegExp(marker)} END`);
+        const startMarker = new RegExp(`\<\!-- ${lodash_1.escapeRegExp(marker)} START`);
+        const endMarker = new RegExp(`\<\!-- ${lodash_1.escapeRegExp(marker)} END`);
         let startIndex = null;
         let endIndex = null;
         for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
@@ -34,7 +36,7 @@ class FileUpdater {
                 break;
             }
         }
-        const newLines = splitStringIntoLines(content);
+        const newLines = utils_1.splitStringIntoLines(content);
         if (!endIndex || !startIndex) {
             // Insert new lines
             this.lines.splice(0, 0, ...[
@@ -56,10 +58,4 @@ class FileUpdater {
     }
 }
 exports.FileUpdater = FileUpdater;
-function splitStringIntoLines(content) {
-    return content.split(/\r?\n/);
-}
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 //# sourceMappingURL=FileUpdater.js.map

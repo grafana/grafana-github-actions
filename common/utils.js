@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logErrorToIssue = exports.errorLoggingIssue = exports.getRateLimit = exports.daysAgoToHumanReadbleDate = exports.daysAgoToTimestamp = exports.loadLatestRelease = exports.normalizeIssue = exports.getRequiredInput = exports.getInput = void 0;
+exports.splitStringIntoLines = exports.logErrorToIssue = exports.errorLoggingIssue = exports.getRateLimit = exports.daysAgoToHumanReadbleDate = exports.daysAgoToTimestamp = exports.loadLatestRelease = exports.normalizeIssue = exports.getRequiredInput = exports.getInput = void 0;
 const core = __importStar(require("@actions/core"));
 const github_1 = require("@actions/github");
 const axios_1 = __importDefault(require("axios"));
@@ -99,7 +99,7 @@ exports.errorLoggingIssue = (() => {
 })();
 exports.logErrorToIssue = async (message, ping, token) => {
     // Attempt to wait out abuse detection timeout if present
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 10000));
     const dest = exports.errorLoggingIssue;
     if (!dest)
         return console.log('no error logging repo defined. swallowing error:', message);
@@ -121,4 +121,8 @@ ${JSON.stringify(github_1.context, null, 2)
 -->
 `);
 };
+function splitStringIntoLines(content) {
+    return content.split(/\r?\n/);
+}
+exports.splitStringIntoLines = splitStringIntoLines;
 //# sourceMappingURL=utils.js.map

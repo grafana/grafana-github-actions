@@ -1,4 +1,6 @@
 import fs from 'fs'
+import { escapeRegExp } from 'lodash'
+import { splitStringIntoLines } from '../common/utils'
 
 export class FileUpdater {
 	private lines: string[] = []
@@ -61,12 +63,4 @@ export class FileUpdater {
 	public getContent() {
 		return this.lines.join('\r\n')
 	}
-}
-
-function splitStringIntoLines(content: string) {
-	return content.split(/\r?\n/)
-}
-
-function escapeRegExp(string: string) {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
