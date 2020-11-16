@@ -42,7 +42,7 @@ class ReleaseNotesBuilder {
             lines.push(...breakingChanges);
         }
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
-        return lines.join('\r\n');
+        return lines.join('\n');
     }
     getBreakingChangeNotice(issue) {
         const noticeLines = [];

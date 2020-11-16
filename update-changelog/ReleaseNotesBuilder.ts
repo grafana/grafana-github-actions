@@ -49,7 +49,7 @@ export class ReleaseNotesBuilder {
 
 		lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues))
 
-		return lines.join('\r\n')
+		return lines.join('\n')
 	}
 
 	private getBreakingChangeNotice(issue: Issue): string[] {
