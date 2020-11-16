@@ -8,6 +8,8 @@ import { cloneRepo } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
+import { FileUpdater } from './FileUpdater'
+import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
 
 class UpdateChangelog extends Action {
 	id = 'UpdateChangelog'
@@ -26,12 +28,25 @@ class UpdateChangelog extends Action {
 
 		process.chdir(repo)
 
-		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
-		const prBranch = `version-bump-${version}`
+		const fileUpdater = new FileUpdater()
+		const builder = new ReleaseNotesBuilder(octokit)
+		const changelogFile = './CHANGELOG.md'
+		const branchName = 'update-changelog-and-relase-notes'
+		const releaseNotes = await builder.buildReleaseNotes(version)
 
-		// create branch
-		await git('switch', base)
-		await git('switch', '--create', prBranch)
+		console.log('releas notes', releaseNotes)
+
+		fileUpdater.loadFile(changelogFile)
+		fileUpdater.update({
+			version: version,
+			content: releaseNotes,
+		})
+
+		fileUpdater.writeFile(changelogFile)
+
+		await git('switch', '--create', branchName)
+		await git('commit', '-am', `"Release: Updated changelog and release notes for ${version}`)
+		await git('push', '--set-upstream', 'origin', branchName)
 	}
 }
 

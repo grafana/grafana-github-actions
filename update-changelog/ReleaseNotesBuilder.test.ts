@@ -76,7 +76,7 @@ Here is the content of this breaking change notice.`,
 
 		const testbed = new Testbed({ queryRunner })
 		const builder = new ReleaseNotesBuilder(testbed)
-		const text = await builder.getText('7.3.3')
+		const text = await builder.buildReleaseNotes('7.3.3')
 		expect(text).toMatchSnapshot()
 	})
 
@@ -89,7 +89,7 @@ Here is the content of this breaking change notice.`,
 
 		const octokit = new OctoKit(token, { repo, owner })
 		const builder = new ReleaseNotesBuilder(octokit)
-		const text = await builder.getText('7.4')
+		const text = await builder.buildReleaseNotes('7.4')
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

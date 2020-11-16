@@ -7,6 +7,8 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
+const FileUpdater_1 = require("./FileUpdater");
+const ReleaseNotesBuilder_1 = require("./ReleaseNotesBuilder");
 class UpdateChangelog extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -22,11 +24,21 @@ class UpdateChangelog extends Action_1.Action {
         }
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
-        const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
-        const prBranch = `version-bump-${version}`;
-        // create branch
-        await git('switch', base);
-        await git('switch', '--create', prBranch);
+        const fileUpdater = new FileUpdater_1.FileUpdater();
+        const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit);
+        const changelogFile = './CHANGELOG.md';
+        const branchName = 'update-changelog-and-relase-notes';
+        const releaseNotes = await builder.buildReleaseNotes(version);
+        console.log('releas notes', releaseNotes);
+        fileUpdater.loadFile(changelogFile);
+        fileUpdater.update({
+            version: version,
+            content: releaseNotes,
+        });
+        fileUpdater.writeFile(changelogFile);
+        await git('switch', '--create', branchName);
+        await git('commit', '-am', `"Release: Updated changelog and release notes for ${version}`);
+        await git('push', '--set-upstream', 'origin', branchName);
     }
 }
 const git = async (...args) => {

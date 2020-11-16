@@ -11,7 +11,7 @@ export class FileUpdater {
 			throw new Error(`File not found ${filePath}`)
 		}
 
-		const fileContent = require('fs').readFileSync(filePath, 'utf-8')
+		const fileContent = fs.readFileSync(filePath, 'utf-8')
 		this.lines = splitStringIntoLines(fileContent)
 	}
 
@@ -61,6 +61,10 @@ export class FileUpdater {
 			// remove the lines between the markers and add the updates lines
 			this.lines.splice(startIndex, endIndex - startIndex, '', ...newLines)
 		}
+	}
+
+	writeFile(filePath: string) {
+		fs.writeFileSync(filePath, this.getContent(), { encoding: 'utf-8' })
 	}
 
 	public getContent() {

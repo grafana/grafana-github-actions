@@ -13,7 +13,7 @@ const githubGrafanaUrl = 'https://github.com/grafana/grafana'
 export class ReleaseNotesBuilder {
 	constructor(private octokit: GitHub) {}
 
-	async getText(milestone: string): Promise<string> {
+	async buildReleaseNotes(milestone: string): Promise<string> {
 		const lines: string[] = []
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []

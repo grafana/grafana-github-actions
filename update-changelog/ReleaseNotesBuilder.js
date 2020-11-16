@@ -13,7 +13,7 @@ class ReleaseNotesBuilder {
     constructor(octokit) {
         this.octokit = octokit;
     }
-    async getText(milestone) {
+    async buildReleaseNotes(milestone) {
         const lines = [];
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];

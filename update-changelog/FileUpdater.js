@@ -16,7 +16,7 @@ class FileUpdater {
         if (!fs_1.default.existsSync(filePath)) {
             throw new Error(`File not found ${filePath}`);
         }
-        const fileContent = require('fs').readFileSync(filePath, 'utf-8');
+        const fileContent = fs_1.default.readFileSync(filePath, 'utf-8');
         this.lines = utils_1.splitStringIntoLines(fileContent);
     }
     getLines() {
@@ -55,6 +55,9 @@ class FileUpdater {
             // remove the lines between the markers and add the updates lines
             this.lines.splice(startIndex, endIndex - startIndex, '', ...newLines);
         }
+    }
+    writeFile(filePath) {
+        fs_1.default.writeFileSync(filePath, this.getContent(), { encoding: 'utf-8' });
     }
     getContent() {
         return this.lines.join('\r\n');
