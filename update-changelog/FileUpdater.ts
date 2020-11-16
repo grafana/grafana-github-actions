@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { escapeRegExp } from 'lodash'
 import { splitStringIntoLines } from '../common/utils'
+import semver from 'semver'
 
 export class FileUpdater {
 	private lines: string[] = []
@@ -18,45 +19,47 @@ export class FileUpdater {
 		return this.lines
 	}
 
-	update({ marker, content }: { marker: string; content: string }) {
-		const startMarker = new RegExp(`\<\!-- ${escapeRegExp(marker)} START`)
-		const endMarker = new RegExp(`\<\!-- ${escapeRegExp(marker)} END`)
+	update({ version, content }: { version: string; content: string }) {
+		const startMarker = new RegExp(`\<\!-- (.*) START`)
+		const endMarker = new RegExp(`\<\!-- ${escapeRegExp(version)} END`)
 
-		let startIndex: number | null = null
-		let endIndex: number | null = null
+		let startIndex = 0
+		let endIndex = 0
 
 		for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
 			const line = this.lines[lineIdx]
 
-			if (startMarker.test(line)) {
-				startIndex = lineIdx
+			const startMatches = startMarker.exec(line)
+			if (startMatches) {
+				if (startMatches[1] === version) {
+					startIndex = lineIdx + 1
+				}
+				// check if our version is greater than are current position
+				else if (semver.gt(version, startMatches[1])) {
+					startIndex = Math.max(lineIdx - 1, 0)
+					endIndex = Math.max(lineIdx - 1, 0)
+					break
+				}
 			}
 
 			if (endMarker.test(line)) {
-				endIndex = lineIdx
+				endIndex = lineIdx - 1
 				break
 			}
 		}
 
 		const newLines = splitStringIntoLines(content)
 
-		if (!endIndex || !startIndex) {
+		if (endIndex === startIndex) {
 			// Insert new lines
 			this.lines.splice(
+				startIndex,
 				0,
-				0,
-				...[
-					`<!-- ${marker} START AUTO GENERATED -->`,
-					'',
-					...newLines,
-					'',
-					`<!-- ${marker} END AUTO GENERATED -->`,
-					'',
-				],
+				...['', `<!-- ${version} START -->`, '', ...newLines, '', `<!-- ${version} END -->`],
 			)
 		} else {
 			// remove the lines between the markers and add the updates lines
-			this.lines.splice(startIndex + 1, endIndex - startIndex - 2, ...newLines)
+			this.lines.splice(startIndex, endIndex - startIndex, '', ...newLines)
 		}
 	}
 

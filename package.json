@@ -25,10 +25,12 @@
 		"@actions/github": "^2.1.1",
 		"@octokit/webhooks": "^7.12.2",
 		"@types/lodash.escaperegexp": "^4.1.6",
+		"@types/semver": "^7.3.4",
 		"axios": "^0.19.2",
 		"dotenv": "^8.2.0",
 		"lodash": "^4.17.20",
-		"lodash.escaperegexp": "^4.1.2"
+		"lodash.escaperegexp": "^4.1.2",
+		"semver": "^7.3.2"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.10",
