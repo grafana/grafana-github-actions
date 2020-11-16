@@ -29,7 +29,7 @@ class UpdateChangelog extends Action_1.Action {
         const changelogFile = './CHANGELOG.md';
         const branchName = 'update-changelog-and-relase-notes';
         const releaseNotes = await builder.buildReleaseNotes(version);
-        console.log('releas notes', releaseNotes);
+        const title = `ReleaseNotes: Updated changelog and release notes for ${version}`;
         fileUpdater.loadFile(changelogFile);
         fileUpdater.update({
             version: version,
@@ -37,8 +37,16 @@ class UpdateChangelog extends Action_1.Action {
         });
         fileUpdater.writeFile(changelogFile);
         await git('switch', '--create', branchName);
-        await git('commit', '-am', `"Release: Updated changelog and release notes for ${version}`);
+        await git('commit', '-am', `"${title}`);
         await git('push', '--set-upstream', 'origin', branchName);
+        await octokit.octokit.pulls.create({
+            base: 'master',
+            body: 'This exciting, so much has changed!',
+            head: branchName,
+            owner,
+            repo,
+            title,
+        });
     }
 }
 const git = async (...args) => {
