@@ -2,7 +2,12 @@ import dotenv from 'dotenv'
 import { Query } from '../api/api'
 import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
-import { ReleaseNotesBuilder, CHANGELOG_LABEL } from './ReleaseNotesBuilder'
+import {
+	ReleaseNotesBuilder,
+	CHANGELOG_LABEL,
+	GRAFANA_UI_LABEL,
+	BREAKING_CHANGE_LABEL,
+} from './ReleaseNotesBuilder'
 
 describe('ReleaseNotesBuilder', () => {
 	it('Should build correct release notes', async () => {
@@ -33,6 +38,26 @@ describe('ReleaseNotesBuilder', () => {
 					},
 				},
 				labels: [CHANGELOG_LABEL],
+			},
+			{
+				issue: {
+					title: 'Button: Changed prop name for button',
+					isPullRequest: true,
+					author: {
+						name: 'torkelo',
+					},
+				},
+				labels: [CHANGELOG_LABEL, GRAFANA_UI_LABEL],
+			},
+			{
+				issue: {
+					title: 'Dashboard: Issue with deprecation notice',
+					isPullRequest: true,
+					author: {
+						name: 'torkelo',
+					},
+				},
+				labels: [CHANGELOG_LABEL, BREAKING_CHANGE_LABEL],
 			},
 		]
 

@@ -1,27 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 exports.CHANGELOG_LABEL = 'add to changelog';
+exports.GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit';
+exports.GRAFANA_UI_LABEL = 'area/grafana/ui';
+exports.BREAKING_CHANGE_LABEL = 'breaking change';
 class ReleaseNotesBuilder {
     constructor(octokit) {
         this.octokit = octokit;
     }
     async getText(milestone) {
         const lines = [];
-        const issues = [];
+        const grafanaIssues = [];
+        const pluginDeveloperIssues = [];
         for await (const page of this.octokit.query({ q: `is:closed milestone:${milestone}` })) {
             for (const issue of page) {
                 const issueData = await issue.getIssue();
-                if (issueHasChangelogLabel(issueData)) {
-                    issues.push(issueData);
+                if (issueHasLabel(issueData, exports.CHANGELOG_LABEL)) {
+                    if (issueHasLabel(issueData, exports.GRAFANA_TOOLKIT_LABEL) ||
+                        issueHasLabel(issueData, exports.GRAFANA_UI_LABEL)) {
+                        pluginDeveloperIssues.push(issueData);
+                    }
+                    else {
+                        grafanaIssues.push(issueData);
+                    }
                 }
             }
         }
-        lines.push(...this.createPackageSectionNotes('Grafana', issues));
+        lines.push(...this.getGrafanaReleaseNotes(grafanaIssues));
+        lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
         return lines.join('\r\n');
     }
-    createPackageSectionNotes(packageName, issues) {
+    getPluginDevelopmentNotes(issues) {
+        if (issues.length === 0) {
+            return [];
+        }
+        const lines = ['### Plugin development fixes & changes'];
+        for (const issue of issues) {
+            lines.push(this.getMarkdownLineForIssue(issue));
+        }
+        return lines;
+    }
+    getGrafanaReleaseNotes(issues) {
         if (issues.length === 0) {
             return [];
         }
@@ -67,8 +88,8 @@ class ReleaseNotesBuilder {
     }
 }
 exports.ReleaseNotesBuilder = ReleaseNotesBuilder;
-function issueHasChangelogLabel(issue) {
-    return issue.labels && issue.labels.indexOf(exports.CHANGELOG_LABEL) !== -1;
+function issueHasLabel(issue, label) {
+    return issue.labels && issue.labels.indexOf(label) !== -1;
 }
 function isBugFix(item) {
     if (item.title.match(/fix|fixes/i)) {

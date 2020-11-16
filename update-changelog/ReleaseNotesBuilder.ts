@@ -2,29 +2,55 @@ import { GitHub, Issue } from '../api/api'
 import { sortBy, difference } from 'lodash'
 
 export const CHANGELOG_LABEL = 'add to changelog'
+export const GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit'
+export const GRAFANA_UI_LABEL = 'area/grafana/ui'
+export const BREAKING_CHANGE_LABEL = 'breaking change'
 
 export class ReleaseNotesBuilder {
 	constructor(private octokit: GitHub) {}
 
 	async getText(milestone: string): Promise<string> {
 		const lines: string[] = []
-		const issues: Issue[] = []
+		const grafanaIssues: Issue[] = []
+		const pluginDeveloperIssues: Issue[] = []
 
 		for await (const page of this.octokit.query({ q: `is:closed milestone:${milestone}` })) {
 			for (const issue of page) {
 				const issueData = await issue.getIssue()
-				if (issueHasChangelogLabel(issueData)) {
-					issues.push(issueData)
+				if (issueHasLabel(issueData, CHANGELOG_LABEL)) {
+					if (
+						issueHasLabel(issueData, GRAFANA_TOOLKIT_LABEL) ||
+						issueHasLabel(issueData, GRAFANA_UI_LABEL)
+					) {
+						pluginDeveloperIssues.push(issueData)
+					} else {
+						grafanaIssues.push(issueData)
+					}
 				}
 			}
 		}
 
-		lines.push(...this.createPackageSectionNotes('Grafana', issues))
+		lines.push(...this.getGrafanaReleaseNotes(grafanaIssues))
+		lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues))
 
 		return lines.join('\r\n')
 	}
 
-	private createPackageSectionNotes(packageName: string, issues: Issue[]): string[] {
+	private getPluginDevelopmentNotes(issues: Issue[]): string[] {
+		if (issues.length === 0) {
+			return []
+		}
+
+		const lines: string[] = ['### Plugin development fixes & changes']
+
+		for (const issue of issues) {
+			lines.push(this.getMarkdownLineForIssue(issue))
+		}
+
+		return lines
+	}
+
+	private getGrafanaReleaseNotes(issues: Issue[]): string[] {
 		if (issues.length === 0) {
 			return []
 		}
@@ -80,8 +106,8 @@ export class ReleaseNotesBuilder {
 	}
 }
 
-function issueHasChangelogLabel(issue: Issue) {
-	return issue.labels && issue.labels.indexOf(CHANGELOG_LABEL) !== -1
+function issueHasLabel(issue: Issue, label: string) {
+	return issue.labels && issue.labels.indexOf(label) !== -1
 }
 
 function isBugFix(item: Issue) {
