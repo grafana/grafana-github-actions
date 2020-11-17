@@ -6,19 +6,26 @@ exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 ### Features / Enhancements
 
 * **Dashboard**: Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+* **Dashboard**: Issue with deprecation notice. (Enterprise)
 * **Login**: New feature. [#1](https://github.com/grafana/grafana/issues/1)
+* **Login**: New feature. (Enterprise)
 
 ### Bug Fixes
 
 * **API**: Fixed api issue. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+* **API**: Fixed api issue. (Enterprise)
 * **Alerting**: Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
+* **Alerting**: Fixed really bad issue. (Enterprise)
 
 ### Breaking changes
+
+Here is the content of this breaking change notice. Issue [#1](https://github.com/grafana/grafana/issues/1)
 
 Here is the content of this breaking change notice. Issue [#1](https://github.com/grafana/grafana/issues/1)
 
 ### Plugin development fixes & changes
 
 * **Button**: Changed prop name for button. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+* **Button**: Changed prop name for button. (Enterprise)
 "
 `;

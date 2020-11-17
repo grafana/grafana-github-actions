@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.BREAKING_SECTION_START = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.BREAKING_SECTION_START = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
@@ -8,10 +8,12 @@ exports.GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit';
 exports.GRAFANA_UI_LABEL = 'area/grafana/ui';
 exports.BREAKING_CHANGE_LABEL = 'breaking change';
 exports.BREAKING_SECTION_START = 'Release notice breaking change';
+exports.ENTERPRISE_LABEL = 'enterprise';
 const githubGrafanaUrl = 'https://github.com/grafana/grafana';
 class ReleaseNotesBuilder {
-    constructor(octokit) {
+    constructor(octokit, enterprise) {
         this.octokit = octokit;
+        this.enterprise = enterprise;
     }
     async buildReleaseNotes(version) {
         const lines = [];
@@ -19,24 +21,20 @@ class ReleaseNotesBuilder {
         const pluginDeveloperIssues = [];
         const breakingChanges = [];
         let headerLine = null;
-        for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
-            for (const issue of page) {
-                const issueData = await issue.getIssue();
-                if (issueHasLabel(issueData, exports.CHANGELOG_LABEL)) {
-                    if (issueHasLabel(issueData, exports.GRAFANA_TOOLKIT_LABEL) ||
-                        issueHasLabel(issueData, exports.GRAFANA_UI_LABEL)) {
-                        pluginDeveloperIssues.push(issueData);
-                    }
-                    else {
-                        grafanaIssues.push(issueData);
-                    }
-                    if (issueHasLabel(issueData, exports.BREAKING_CHANGE_LABEL)) {
-                        breakingChanges.push(...this.getBreakingChangeNotice(issueData));
-                    }
+        for (const issue of await this.getIssuesForVersion(version)) {
+            if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
+                if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL) || issueHasLabel(issue, exports.GRAFANA_UI_LABEL)) {
+                    pluginDeveloperIssues.push(issue);
                 }
-                if (!headerLine) {
-                    headerLine = await this.getReleaseHeader(version, issueData.milestoneId);
+                else {
+                    grafanaIssues.push(issue);
                 }
+                if (issueHasLabel(issue, exports.BREAKING_CHANGE_LABEL)) {
+                    breakingChanges.push(...this.getBreakingChangeNotice(issue));
+                }
+            }
+            if (!headerLine) {
+                headerLine = await this.getReleaseHeader(version, issue.milestoneId);
             }
         }
         if (headerLine) {
@@ -51,6 +49,25 @@ class ReleaseNotesBuilder {
         }
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
         return lines.join('\n');
+    }
+    async getIssuesForVersion(version) {
+        const issueList = [];
+        for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
+            for (const issue of page) {
+                issueList.push(await issue.getIssue());
+            }
+        }
+        for await (const page of this.octokit.query({
+            q: `is:closed milestone:${version}`,
+            repo: 'grafana-enterprise',
+        })) {
+            for (const issue of page) {
+                const issueData = await issue.getIssue();
+                issueData.labels = [...issueData.labels, exports.ENTERPRISE_LABEL];
+                issueList.push(issueData);
+            }
+        }
+        return issueList;
     }
     async getReleaseHeader(version, milestoneNumber) {
         const milestone = await this.octokit.getMilestone(milestoneNumber);
@@ -124,6 +141,10 @@ class ReleaseNotesBuilder {
         title = title.trim();
         if (title[title.length - 1] === '.') {
             title = title.slice(0, -1);
+        }
+        if (issueHasLabel(item, exports.ENTERPRISE_LABEL)) {
+            markdown += `* ${title}. (Enterprise)`;
+            return markdown;
         }
         if (item.isPullRequest) {
             markdown += '* ' + title + '.';

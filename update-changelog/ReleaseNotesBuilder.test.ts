@@ -8,6 +8,7 @@ import {
 	GRAFANA_UI_LABEL,
 	BREAKING_CHANGE_LABEL,
 	BREAKING_SECTION_START,
+	ENTERPRISE_LABEL,
 } from './ReleaseNotesBuilder'
 
 describe('ReleaseNotesBuilder', () => {

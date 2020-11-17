@@ -102,6 +102,7 @@ export interface Query {
 	q: string
 	sort?: SortVar
 	order?: SortOrder
+	repo?: string
 }
 
 export interface Milestone {
