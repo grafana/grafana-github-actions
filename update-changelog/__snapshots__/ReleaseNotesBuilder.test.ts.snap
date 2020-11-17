@@ -3,14 +3,14 @@
 exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 "# 7.3.3 (2020-11-11)
 
-### Features / Enhancements
+### Features and enhancements
 
 * **Dashboard**: Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 * **Dashboard**: Issue with deprecation notice. (Enterprise)
 * **Login**: New feature. [#1](https://github.com/grafana/grafana/issues/1)
 * **Login**: New feature. (Enterprise)
 
-### Bug Fixes
+### Bug fixes
 
 * **API**: Fixed api issue. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 * **API**: Fixed api issue. (Enterprise)

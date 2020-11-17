@@ -116,7 +116,7 @@ class ReleaseNotesBuilder {
         const bugs = lodash_1.sortBy(issues.filter(isBugFix), 'title');
         const notBugs = lodash_1.sortBy(lodash_1.difference(issues, bugs), 'title');
         if (notBugs.length > 0) {
-            lines.push('### Features / Enhancements');
+            lines.push('### Features and enhancements');
             lines.push('');
             for (const item of notBugs) {
                 lines.push(this.getMarkdownLineForIssue(item));
@@ -124,7 +124,7 @@ class ReleaseNotesBuilder {
             lines.push('');
         }
         if (bugs.length > 0) {
-            lines.push('### Bug Fixes');
+            lines.push('### Bug fixes');
             lines.push('');
             for (const item of bugs) {
                 lines.push(this.getMarkdownLineForIssue(item));

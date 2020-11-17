@@ -139,7 +139,7 @@ export class ReleaseNotesBuilder {
 		const notBugs = sortBy(difference(issues, bugs), 'title')
 
 		if (notBugs.length > 0) {
-			lines.push('### Features / Enhancements')
+			lines.push('### Features and enhancements')
 			lines.push('')
 
 			for (const item of notBugs) {
@@ -150,7 +150,7 @@ export class ReleaseNotesBuilder {
 		}
 
 		if (bugs.length > 0) {
-			lines.push('### Bug Fixes')
+			lines.push('### Bug fixes')
 			lines.push('')
 
 			for (const item of bugs) {
