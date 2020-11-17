@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
-"### Features / Enhancements
+"# 7.3.3 (2020-11-11)
+
+### Features / Enhancements
 
 * **Dashboard**: Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 * **Login**: New feature. [#1](https://github.com/grafana/grafana/issues/1)

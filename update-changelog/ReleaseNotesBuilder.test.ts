@@ -74,7 +74,11 @@ Here is the content of this breaking change notice.`,
 			yield issues
 		}
 
-		const testbed = new Testbed({ queryRunner })
+		const testbed = new Testbed({
+			queryRunner,
+			milestone: { closed_at: '2020-11-11T17:15:26Z' },
+		})
+
 		const builder = new ReleaseNotesBuilder(testbed)
 		const text = await builder.buildReleaseNotes('7.3.3')
 		expect(text).toMatchSnapshot()
@@ -89,7 +93,7 @@ Here is the content of this breaking change notice.`,
 
 		const octokit = new OctoKit(token, { repo, owner })
 		const builder = new ReleaseNotesBuilder(octokit)
-		const text = await builder.buildReleaseNotes('7.4')
+		const text = await builder.buildReleaseNotes('7.3.2')
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

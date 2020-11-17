@@ -13,13 +13,14 @@ const githubGrafanaUrl = 'https://github.com/grafana/grafana'
 export class ReleaseNotesBuilder {
 	constructor(private octokit: GitHub) {}
 
-	async buildReleaseNotes(milestone: string): Promise<string> {
+	async buildReleaseNotes(version: string): Promise<string> {
 		const lines: string[] = []
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []
 		const breakingChanges: string[] = []
+		let headerLine: string | null = null
 
-		for await (const page of this.octokit.query({ q: `is:closed milestone:${milestone}` })) {
+		for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
 			for (const issue of page) {
 				const issueData = await issue.getIssue()
 				if (issueHasLabel(issueData, CHANGELOG_LABEL)) {
@@ -36,7 +37,16 @@ export class ReleaseNotesBuilder {
 						breakingChanges.push(...this.getBreakingChangeNotice(issueData))
 					}
 				}
+
+				if (!headerLine) {
+					headerLine = await this.getReleaseHeader(version, issueData.milestoneId!)
+				}
 			}
+		}
+
+		if (headerLine) {
+			lines.push(headerLine)
+			lines.push('')
 		}
 
 		lines.push(...this.getGrafanaReleaseNotes(grafanaIssues))
@@ -50,6 +60,17 @@ export class ReleaseNotesBuilder {
 		lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues))
 
 		return lines.join('\n')
+	}
+
+	async getReleaseHeader(version: string, milestoneNumber: number): Promise<string> {
+		const milestone = await this.octokit.getMilestone(milestoneNumber)
+
+		if (milestone.closed_at) {
+			const datePart = milestone.closed_at.split('T')[0]
+			return `# ${version} (${datePart})`
+		} else {
+			return `# ${version} (unreleased)`
+		}
 	}
 
 	private getBreakingChangeNotice(issue: Issue): string[] {

@@ -13,12 +13,13 @@ class ReleaseNotesBuilder {
     constructor(octokit) {
         this.octokit = octokit;
     }
-    async buildReleaseNotes(milestone) {
+    async buildReleaseNotes(version) {
         const lines = [];
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];
         const breakingChanges = [];
-        for await (const page of this.octokit.query({ q: `is:closed milestone:${milestone}` })) {
+        let headerLine = null;
+        for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
             for (const issue of page) {
                 const issueData = await issue.getIssue();
                 if (issueHasLabel(issueData, exports.CHANGELOG_LABEL)) {
@@ -33,7 +34,14 @@ class ReleaseNotesBuilder {
                         breakingChanges.push(...this.getBreakingChangeNotice(issueData));
                     }
                 }
+                if (!headerLine) {
+                    headerLine = await this.getReleaseHeader(version, issueData.milestoneId);
+                }
             }
+        }
+        if (headerLine) {
+            lines.push(headerLine);
+            lines.push('');
         }
         lines.push(...this.getGrafanaReleaseNotes(grafanaIssues));
         if (breakingChanges.length > 0) {
@@ -43,6 +51,16 @@ class ReleaseNotesBuilder {
         }
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
         return lines.join('\n');
+    }
+    async getReleaseHeader(version, milestoneNumber) {
+        const milestone = await this.octokit.getMilestone(milestoneNumber);
+        if (milestone.closed_at) {
+            const datePart = milestone.closed_at.split('T')[0];
+            return `# ${version} (${datePart})`;
+        }
+        else {
+            return `# ${version} (unreleased)`;
+        }
     }
     getBreakingChangeNotice(issue) {
         const noticeLines = [];

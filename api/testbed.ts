@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Comment, GitHub, GitHubIssue, Issue, Query, User } from './api'
+import { middleware } from 'yargs'
+import { Comment, GitHub, GitHubIssue, Issue, Milestone, Query, User } from './api'
 
 type TestbedConfig = {
 	globalLabels: string[]
 	configs: Record<string, any>
 	writers: string[]
+	milestone?: Milestone
 	releasedCommits: string[]
 	queryRunner: (query: Query) => AsyncIterableIterator<(TestbedIssueConstructorArgs | TestbedIssue)[]>
 }
@@ -23,6 +25,7 @@ export class Testbed implements GitHub {
 			globalLabels: config?.globalLabels ?? [],
 			configs: config?.configs ?? {},
 			writers: config?.writers ?? [],
+			milestone: config?.milestone,
 			releasedCommits: config?.releasedCommits ?? [],
 			queryRunner:
 				config?.queryRunner ??
@@ -34,7 +37,7 @@ export class Testbed implements GitHub {
 
 	async *query(query: Query): AsyncIterableIterator<GitHubIssue[]> {
 		for await (const page of this.config.queryRunner(query)) {
-			yield page.map((issue) =>
+			yield page.map(issue =>
 				issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue),
 			)
 		}
@@ -61,7 +64,7 @@ export class Testbed implements GitHub {
 	}
 
 	async deleteLabel(labelToDelete: string): Promise<void> {
-		this.config.globalLabels = this.config.globalLabels.filter((label) => label !== labelToDelete)
+		this.config.globalLabels = this.config.globalLabels.filter(label => label !== labelToDelete)
 	}
 
 	async releaseContainsCommit(_release: string, commit: string): Promise<'yes' | 'no' | 'unknown'> {
@@ -70,6 +73,10 @@ export class Testbed implements GitHub {
 
 	async dispatch(title: string): Promise<void> {
 		console.log('dispatching for', title)
+	}
+
+	async getMilestone(number: number): Promise<Milestone> {
+		return this.config.milestone!
 	}
 }
 
@@ -147,7 +154,7 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 	}
 
 	async deleteComment(id: number): Promise<void> {
-		this.issueConfig.comments = this.issueConfig.comments.filter((comment) => comment.id !== id)
+		this.issueConfig.comments = this.issueConfig.comments.filter(comment => comment.id !== id)
 	}
 
 	async *getComments(last?: boolean): AsyncIterableIterator<Comment[]> {
@@ -161,7 +168,7 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 	}
 
 	async removeLabel(labelToDelete: string): Promise<void> {
-		this.issueConfig.labels = this.issueConfig.labels.filter((label) => label !== labelToDelete)
+		this.issueConfig.labels = this.issueConfig.labels.filter(label => label !== labelToDelete)
 	}
 
 	async closeIssue(): Promise<void> {

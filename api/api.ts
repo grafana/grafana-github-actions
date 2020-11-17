@@ -19,6 +19,8 @@ export interface GitHub {
 	createIssue(owner: string, repo: string, title: string, body: string): Promise<void>
 
 	releaseContainsCommit(release: string, commit: string): Promise<'yes' | 'no' | 'unknown'>
+
+	getMilestone(number: number): Promise<Milestone>
 }
 
 export interface GitHubIssue extends GitHub {
@@ -70,12 +72,14 @@ export interface User {
 	name: string
 	isGitHubApp?: boolean
 }
+
 export interface Comment {
 	author: User
 	body: string
 	id: number
 	timestamp: number
 }
+
 export interface Issue {
 	author: User
 	body: string
@@ -93,8 +97,15 @@ export interface Issue {
 	closedAt?: number
 	isPullRequest?: boolean
 }
+
 export interface Query {
 	q: string
 	sort?: SortVar
 	order?: SortOrder
+}
+
+export interface Milestone {
+	closed_at: string | null
+	number: number
+	title: string
 }

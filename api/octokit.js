@@ -40,10 +40,10 @@ class OctoKit {
                 /* pass */
             }
             else if (pageNum < 4) {
-                await new Promise((resolve) => setTimeout(resolve, 3000));
+                await new Promise(resolve => setTimeout(resolve, 3000));
             }
             else {
-                await new Promise((resolve) => setTimeout(resolve, 30000));
+                await new Promise(resolve => setTimeout(resolve, 30000));
             }
         };
         for await (const pageResponse of this.octokit.paginate.iterator(options)) {
@@ -51,8 +51,20 @@ class OctoKit {
             numRequests++;
             const page = pageResponse.data;
             console.log(`Page ${++pageNum}: ${page.map(({ number }) => number).join(' ')}`);
-            yield page.map((issue) => new OctoKitIssue(this.token, this.params, this.octokitIssueToIssue(issue)));
+            yield page.map(issue => new OctoKitIssue(this.token, this.params, this.octokitIssueToIssue(issue)));
         }
+    }
+    async getMilestone(number) {
+        const res = await this.octokit.issues.getMilestone({
+            owner: this.params.owner,
+            repo: this.params.repo,
+            milestone_number: number,
+        });
+        return {
+            closed_at: res.data.closed_at,
+            title: res.data.title,
+            number,
+        };
     }
     async createIssue(owner, repo, title, body) {
         core_1.debug(`Creating issue \`${title}\` on ${owner}/${repo}`);
@@ -66,7 +78,7 @@ class OctoKit {
             body: issue.body,
             number: issue.number,
             title: issue.title,
-            labels: issue.labels.map((label) => label.name),
+            labels: issue.labels.map(label => label.name),
             open: issue.state === 'open',
             locked: issue.locked,
             numComments: issue.comments,
@@ -141,7 +153,7 @@ class OctoKit {
         }
     }
     async releaseContainsCommit(release, commit) {
-        return new Promise((resolve, reject) => child_process_1.exec(`git -C ./repo merge-base --is-ancestor ${commit} ${release}`, (err) => {
+        return new Promise((resolve, reject) => child_process_1.exec(`git -C ./repo merge-base --is-ancestor ${commit} ${release}`, err => {
             if (!err || err.code === 1) {
                 resolve(!err ? 'yes' : 'no');
             }
@@ -258,7 +270,7 @@ class OctoKitIssue extends OctoKit {
         }));
         for await (const page of response) {
             numRequests++;
-            yield page.data.map((comment) => ({
+            yield page.data.map(comment => ({
                 author: { name: comment.user.login, isGitHubApp: comment.user.type === 'Bot' },
                 body: comment.body,
                 id: comment.id,

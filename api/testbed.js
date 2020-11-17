@@ -12,6 +12,7 @@ class Testbed {
             globalLabels: (_a = config === null || config === void 0 ? void 0 : config.globalLabels) !== null && _a !== void 0 ? _a : [],
             configs: (_b = config === null || config === void 0 ? void 0 : config.configs) !== null && _b !== void 0 ? _b : {},
             writers: (_c = config === null || config === void 0 ? void 0 : config.writers) !== null && _c !== void 0 ? _c : [],
+            milestone: config === null || config === void 0 ? void 0 : config.milestone,
             releasedCommits: (_d = config === null || config === void 0 ? void 0 : config.releasedCommits) !== null && _d !== void 0 ? _d : [],
             queryRunner: (_e = config === null || config === void 0 ? void 0 : config.queryRunner) !== null && _e !== void 0 ? _e : async function* () {
                 yield [];
@@ -20,7 +21,7 @@ class Testbed {
     }
     async *query(query) {
         for await (const page of this.config.queryRunner(query)) {
-            yield page.map((issue) => issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue));
+            yield page.map(issue => issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue));
         }
     }
     async createIssue(_owner, _repo, _title, _body) {
@@ -39,13 +40,16 @@ class Testbed {
         this.config.globalLabels.push(label);
     }
     async deleteLabel(labelToDelete) {
-        this.config.globalLabels = this.config.globalLabels.filter((label) => label !== labelToDelete);
+        this.config.globalLabels = this.config.globalLabels.filter(label => label !== labelToDelete);
     }
     async releaseContainsCommit(_release, commit) {
         return this.config.releasedCommits.includes(commit) ? 'yes' : 'no';
     }
     async dispatch(title) {
         console.log('dispatching for', title);
+    }
+    async getMilestone(number) {
+        return this.config.milestone;
     }
 }
 exports.Testbed = Testbed;
@@ -104,7 +108,7 @@ class TestbedIssue extends Testbed {
         });
     }
     async deleteComment(id) {
-        this.issueConfig.comments = this.issueConfig.comments.filter((comment) => comment.id !== id);
+        this.issueConfig.comments = this.issueConfig.comments.filter(comment => comment.id !== id);
     }
     async *getComments(last) {
         yield last
@@ -115,7 +119,7 @@ class TestbedIssue extends Testbed {
         this.issueConfig.labels.push(label);
     }
     async removeLabel(labelToDelete) {
-        this.issueConfig.labels = this.issueConfig.labels.filter((label) => label !== labelToDelete);
+        this.issueConfig.labels = this.issueConfig.labels.filter(label => label !== labelToDelete);
     }
     async closeIssue() {
         this.issueConfig.issue.open = false;
