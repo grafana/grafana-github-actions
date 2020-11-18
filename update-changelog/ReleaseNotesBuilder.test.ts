@@ -80,9 +80,45 @@ Here is the content of this breaking change notice.`,
 			milestone: { closed_at: '2020-11-11T17:15:26Z' },
 		})
 
-		const builder = new ReleaseNotesBuilder(testbed)
-		const text = await builder.buildReleaseNotes('7.3.3')
+		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
+		const text = await builder.buildReleaseNotes({ useDocsHeader: false })
 		expect(text).toMatchSnapshot()
+	})
+
+	it('Should be able to get notes with docs header', async () => {
+		const issues: TestbedIssueConstructorArgs[] = [
+			{
+				issue: {
+					title: 'Alerting: Fixed really bad issue',
+				},
+				labels: [CHANGELOG_LABEL],
+			},
+		]
+
+		const queryRunner = async function* (
+			query: Query,
+		): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
+			yield issues
+		}
+
+		const testbed = new Testbed({
+			queryRunner,
+			milestone: { closed_at: '2020-11-11T17:15:26Z' },
+		})
+
+		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
+		const text = await builder.buildReleaseNotes({ useDocsHeader: true })
+		expect(text).toMatchInlineSnapshot(`
+		"# Release notes for Grafana 7.3.3
+
+		### Bug fixes
+
+		* **Alerting**: Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
+		* **Alerting**: Fixed really bad issue. (Enterprise)
+		"
+	`)
+
+		expect(builder.getTitle()).toBe('Release notes for Grafana 7.3.3')
 	})
 
 	it.skip('integration test', async () => {

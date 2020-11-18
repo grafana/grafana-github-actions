@@ -9,6 +9,7 @@ const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const FileUpdater_1 = require("./FileUpdater");
 const ReleaseNotesBuilder_1 = require("./ReleaseNotesBuilder");
+const writeDocsFiles_1 = require("./writeDocsFiles");
 class UpdateChangelog extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -25,19 +26,21 @@ class UpdateChangelog extends Action_1.Action {
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
-        const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit);
+        const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
         const changelogFile = './CHANGELOG.md';
         const branchName = 'update-changelog-and-relase-notes';
-        const releaseNotes = await builder.buildReleaseNotes(version);
+        const releaseNotes = await builder.buildReleaseNotes({ useDocsHeader: false });
         const title = `ReleaseNotes: Updated changelog and release notes for ${version}`;
+        // Update main changelog
         fileUpdater.loadFile(changelogFile);
         fileUpdater.update({
             version: version,
             content: releaseNotes,
         });
         fileUpdater.writeFile(changelogFile);
+        writeDocsFiles_1.writeDocsFiles({ version, builder });
         await git('switch', '--create', branchName);
-        await git('commit', '-am', `"${title}`);
+        await git('commit', '-am', `${title}`);
         await git('push', '--set-upstream', 'origin', branchName);
         await octokit.octokit.pulls.create({
             base: 'master',

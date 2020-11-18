@@ -10,6 +10,7 @@ import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 import { FileUpdater } from './FileUpdater'
 import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
+import { writeDocsFiles } from './writeDocsFiles'
 
 class UpdateChangelog extends Action {
 	id = 'UpdateChangelog'
@@ -29,22 +30,24 @@ class UpdateChangelog extends Action {
 		process.chdir(repo)
 
 		const fileUpdater = new FileUpdater()
-		const builder = new ReleaseNotesBuilder(octokit)
+		const builder = new ReleaseNotesBuilder(octokit, version)
 		const changelogFile = './CHANGELOG.md'
 		const branchName = 'update-changelog-and-relase-notes'
-		const releaseNotes = await builder.buildReleaseNotes(version)
+		const releaseNotes = await builder.buildReleaseNotes({ useDocsHeader: false })
 		const title = `ReleaseNotes: Updated changelog and release notes for ${version}`
 
+		// Update main changelog
 		fileUpdater.loadFile(changelogFile)
 		fileUpdater.update({
 			version: version,
 			content: releaseNotes,
 		})
-
 		fileUpdater.writeFile(changelogFile)
 
+		writeDocsFiles({ version, builder })
+
 		await git('switch', '--create', branchName)
-		await git('commit', '-am', `"${title}`)
+		await git('commit', '-am', `${title}`)
 		await git('push', '--set-upstream', 'origin', branchName)
 
 		await octokit.octokit.pulls.create({

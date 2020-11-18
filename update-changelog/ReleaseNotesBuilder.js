@@ -11,17 +11,17 @@ exports.BREAKING_SECTION_START = 'Release notice breaking change';
 exports.ENTERPRISE_LABEL = 'enterprise';
 const githubGrafanaUrl = 'https://github.com/grafana/grafana';
 class ReleaseNotesBuilder {
-    constructor(octokit, enterprise) {
+    constructor(octokit, version) {
         this.octokit = octokit;
-        this.enterprise = enterprise;
+        this.version = version;
     }
-    async buildReleaseNotes(version) {
+    async buildReleaseNotes(options) {
         const lines = [];
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];
         const breakingChanges = [];
         let headerLine = null;
-        for (const issue of await this.getIssuesForVersion(version)) {
+        for (const issue of await this.getIssuesForVersion()) {
             if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
                 if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL) || issueHasLabel(issue, exports.GRAFANA_UI_LABEL)) {
                     pluginDeveloperIssues.push(issue);
@@ -34,7 +34,7 @@ class ReleaseNotesBuilder {
                 }
             }
             if (!headerLine) {
-                headerLine = await this.getReleaseHeader(version, issue.milestoneId);
+                headerLine = await this.getReleaseHeader(issue.milestoneId, options.useDocsHeader);
             }
         }
         if (headerLine) {
@@ -50,34 +50,48 @@ class ReleaseNotesBuilder {
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
         return lines.join('\n');
     }
-    async getIssuesForVersion(version) {
-        const issueList = [];
-        for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
+    async getIssuesForVersion() {
+        if (this.issueList) {
+            return this.issueList;
+        }
+        this.issueList = [];
+        for await (const page of this.octokit.query({ q: `is:closed milestone:${this.version}` })) {
             for (const issue of page) {
-                issueList.push(await issue.getIssue());
+                this.issueList.push(await issue.getIssue());
             }
         }
         for await (const page of this.octokit.query({
-            q: `is:closed milestone:${version}`,
+            q: `is:closed milestone:${this.version}`,
             repo: 'grafana-enterprise',
         })) {
             for (const issue of page) {
                 const issueData = await issue.getIssue();
                 issueData.labels = [...issueData.labels, exports.ENTERPRISE_LABEL];
-                issueList.push(issueData);
+                this.issueList.push(issueData);
             }
         }
-        return issueList;
+        return this.issueList;
     }
-    async getReleaseHeader(version, milestoneNumber) {
+    async getReleaseHeader(milestoneNumber, useDocsHeader) {
         const milestone = await this.octokit.getMilestone(milestoneNumber);
+        let datePart = '';
         if (milestone.closed_at) {
-            const datePart = milestone.closed_at.split('T')[0];
-            return `# ${version} (${datePart})`;
+            datePart = ` (${milestone.closed_at.split('T')[0]})`;
         }
         else {
-            return `# ${version} (unreleased)`;
+            datePart = ' (unreleased)';
         }
+        // Need to store title so we can get this seperatly for the release notes docs file
+        if (useDocsHeader) {
+            this.title = `Release notes for Grafana ${this.version}`;
+        }
+        else {
+            this.title = `${this.version}${datePart}`;
+        }
+        return `# ${this.title}`;
+    }
+    getTitle() {
+        return this.title;
     }
     getBreakingChangeNotice(issue) {
         const noticeLines = [];

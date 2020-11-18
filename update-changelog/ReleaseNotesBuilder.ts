@@ -11,17 +11,24 @@ export const ENTERPRISE_LABEL = 'enterprise'
 
 const githubGrafanaUrl = 'https://github.com/grafana/grafana'
 
-export class ReleaseNotesBuilder {
-	constructor(private octokit: GitHub, private enterprise?: GitHub) {}
+export interface NotesBuilderOptions {
+	useDocsHeader?: boolean
+}
 
-	async buildReleaseNotes(version: string): Promise<string> {
+export class ReleaseNotesBuilder {
+	private issueList?: Issue[]
+	private title?: string
+
+	constructor(private octokit: GitHub, private version: string) {}
+
+	async buildReleaseNotes(options: NotesBuilderOptions): Promise<string> {
 		const lines: string[] = []
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []
 		const breakingChanges: string[] = []
 		let headerLine: string | null = null
 
-		for (const issue of await this.getIssuesForVersion(version)) {
+		for (const issue of await this.getIssuesForVersion()) {
 			if (issueHasLabel(issue, CHANGELOG_LABEL)) {
 				if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL) || issueHasLabel(issue, GRAFANA_UI_LABEL)) {
 					pluginDeveloperIssues.push(issue)
@@ -35,7 +42,7 @@ export class ReleaseNotesBuilder {
 			}
 
 			if (!headerLine) {
-				headerLine = await this.getReleaseHeader(version, issue.milestoneId!)
+				headerLine = await this.getReleaseHeader(issue.milestoneId!, options.useDocsHeader)
 			}
 		}
 
@@ -57,38 +64,55 @@ export class ReleaseNotesBuilder {
 		return lines.join('\n')
 	}
 
-	async getIssuesForVersion(version: string): Promise<Issue[]> {
-		const issueList: Issue[] = []
+	async getIssuesForVersion(): Promise<Issue[]> {
+		if (this.issueList) {
+			return this.issueList
+		}
 
-		for await (const page of this.octokit.query({ q: `is:closed milestone:${version}` })) {
+		this.issueList = []
+
+		for await (const page of this.octokit.query({ q: `is:closed milestone:${this.version}` })) {
 			for (const issue of page) {
-				issueList.push(await issue.getIssue())
+				this.issueList.push(await issue.getIssue())
 			}
 		}
 
 		for await (const page of this.octokit.query({
-			q: `is:closed milestone:${version}`,
+			q: `is:closed milestone:${this.version}`,
 			repo: 'grafana-enterprise',
 		})) {
 			for (const issue of page) {
 				const issueData = await issue.getIssue()
 				issueData.labels = [...issueData.labels, ENTERPRISE_LABEL]
-				issueList.push(issueData)
+				this.issueList.push(issueData)
 			}
 		}
 
-		return issueList
+		return this.issueList
 	}
 
-	async getReleaseHeader(version: string, milestoneNumber: number): Promise<string> {
+	async getReleaseHeader(milestoneNumber: number, useDocsHeader?: boolean): Promise<string> {
 		const milestone = await this.octokit.getMilestone(milestoneNumber)
+		let datePart = ''
 
 		if (milestone.closed_at) {
-			const datePart = milestone.closed_at.split('T')[0]
-			return `# ${version} (${datePart})`
+			datePart = ` (${milestone.closed_at.split('T')[0]})`
 		} else {
-			return `# ${version} (unreleased)`
+			datePart = ' (unreleased)'
 		}
+
+		// Need to store title so we can get this seperatly for the release notes docs file
+		if (useDocsHeader) {
+			this.title = `Release notes for Grafana ${this.version}`
+		} else {
+			this.title = `${this.version}${datePart}`
+		}
+
+		return `# ${this.title}`
+	}
+
+	public getTitle(): string {
+		return this.title!
 	}
 
 	private getBreakingChangeNotice(issue: Issue): string[] {
