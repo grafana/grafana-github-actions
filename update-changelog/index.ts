@@ -5,7 +5,6 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
-// import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 import { FileUpdater } from './FileUpdater'
@@ -44,7 +43,7 @@ class UpdateChangelog extends Action {
 		})
 		fileUpdater.writeFile(changelogFile)
 
-		writeDocsFiles({ version, builder })
+		await writeDocsFiles({ version, builder })
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')

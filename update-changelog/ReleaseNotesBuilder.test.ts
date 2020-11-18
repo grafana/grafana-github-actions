@@ -77,7 +77,7 @@ Here is the content of this breaking change notice.`,
 
 		const testbed = new Testbed({
 			queryRunner,
-			milestone: { closed_at: '2020-11-11T17:15:26Z' },
+			milestone: { closed_at: '2020-11-11T17:15:26Z', number: 123, title: '7.3.3' },
 		})
 
 		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
@@ -107,6 +107,8 @@ Here is the content of this breaking change notice.`,
 		})
 
 		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
+		// Calling this first as this is how  it's used from the action
+		await builder.buildReleaseNotes({ useDocsHeader: false })
 		const text = await builder.buildReleaseNotes({ useDocsHeader: true })
 		expect(text).toMatchInlineSnapshot(`
 		"# Release notes for Grafana 7.3.3

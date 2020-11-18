@@ -13,6 +13,7 @@ const githubGrafanaUrl = 'https://github.com/grafana/grafana'
 
 export interface NotesBuilderOptions {
 	useDocsHeader?: boolean
+	noHeader?: boolean
 }
 
 export class ReleaseNotesBuilder {
@@ -46,7 +47,7 @@ export class ReleaseNotesBuilder {
 			}
 		}
 
-		if (headerLine) {
+		if (headerLine && !options.noHeader) {
 			lines.push(headerLine)
 			lines.push('')
 		}

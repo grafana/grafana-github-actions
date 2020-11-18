@@ -37,7 +37,7 @@ class ReleaseNotesBuilder {
                 headerLine = await this.getReleaseHeader(issue.milestoneId, options.useDocsHeader);
             }
         }
-        if (headerLine) {
+        if (headerLine && !options.noHeader) {
             lines.push(headerLine);
             lines.push('');
         }
