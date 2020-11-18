@@ -88,9 +88,11 @@ class ReleaseNotesBuilder {
         else {
             this.title = `${this.version}${datePart}`;
         }
+        console.log('building title', this.title);
         return `# ${this.title}`;
     }
     getTitle() {
+        console.log('returning title', this.title);
         return this.title;
     }
     getBreakingChangeNotice(issue) {
