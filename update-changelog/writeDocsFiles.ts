@@ -22,6 +22,8 @@ ${notes}
 		`
 	const releaseNotesDocsPath = `./docs/sources/release-notes`
 	const filePath = `release-notes-${version.replace('.', '-')}.md`
+	const fullPath = `${releaseNotesDocsPath}/${filePath}`
 
-	fs.writeFileSync(`${releaseNotesDocsPath}/${filePath}`, content, { encoding: 'utf-8' })
+	console.log('writing to', fullPath)
+	fs.writeFileSync(fullPath, content, { encoding: 'utf-8' })
 }

@@ -20,7 +20,9 @@ ${notes}
 		`;
     const releaseNotesDocsPath = `./docs/sources/release-notes`;
     const filePath = `release-notes-${version.replace('.', '-')}.md`;
-    fs_1.default.writeFileSync(`${releaseNotesDocsPath}/${filePath}`, content, { encoding: 'utf-8' });
+    const fullPath = `${releaseNotesDocsPath}/${filePath}`;
+    console.log('writing to', fullPath);
+    fs_1.default.writeFileSync(fullPath, content, { encoding: 'utf-8' });
 }
 exports.writeDocsFiles = writeDocsFiles;
 //# sourceMappingURL=writeDocsFiles.js.map
