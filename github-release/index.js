@@ -17,7 +17,7 @@ class GitHubRelease extends Action_1.Action {
         }
         const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
         const tag = `v${version}`;
-        const notes = builder.buildReleaseNotes({ noHeader: true });
+        const notes = await builder.buildReleaseNotes({ noHeader: true });
         const title = builder.getTitle();
         const content = `
 [Download page](https://grafana.com/grafana/download/${version})
@@ -44,7 +44,9 @@ ${notes}
             });
         }
         catch (err) {
-            console.log('getReleaseByTag error', err);
+            if (err.status !== 404) {
+                console.log('getReleaseByTag error', err);
+            }
             console.log('Creating github release');
             octokit.octokit.repos.createRelease({
                 repo,
@@ -52,7 +54,6 @@ ${notes}
                 name: title,
                 body: content,
                 tag_name: tag,
-                draft: true,
             });
         }
     }

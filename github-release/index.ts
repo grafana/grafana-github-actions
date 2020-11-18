@@ -20,7 +20,7 @@ class GitHubRelease extends Action {
 
 		const builder = new ReleaseNotesBuilder(octokit, version)
 		const tag = `v${version}`
-		const notes = builder.buildReleaseNotes({ noHeader: true })
+		const notes = await builder.buildReleaseNotes({ noHeader: true })
 		const title = builder.getTitle()
 		const content = `
 [Download page](https://grafana.com/grafana/download/${version})
@@ -48,7 +48,10 @@ ${notes}
 				tag_name: tag,
 			})
 		} catch (err) {
-			console.log('getReleaseByTag error', err)
+			if (err.status !== 404) {
+				console.log('getReleaseByTag error', err)
+			}
+
 			console.log('Creating github release')
 
 			octokit.octokit.repos.createRelease({
@@ -57,7 +60,6 @@ ${notes}
 				name: title,
 				body: content,
 				tag_name: tag,
-				draft: true,
 			})
 		}
 	}
