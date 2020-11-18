@@ -29,17 +29,17 @@ class GitHubRelease extends Action {
 
 ${notes}
 `
-		const existingRelease = await octokit.octokit.repos.getReleaseByTag({
-			repo,
-			owner,
-			tag,
-		})
+		try {
+			const existingRelease = await octokit.octokit.repos.getReleaseByTag({
+				repo,
+				owner,
+				tag,
+			})
 
-		// if we have an existing reelase update it
-		if (existingRelease.status === 200 && existingRelease.data) {
 			console.log('Updating github release')
 
 			octokit.octokit.repos.updateRelease({
+				draft: existingRelease.data.draft,
 				release_id: existingRelease.data.id,
 				repo,
 				owner,
@@ -47,7 +47,8 @@ ${notes}
 				body: content,
 				tag_name: tag,
 			})
-		} else {
+		} catch (err) {
+			console.log('getReleaseByTag error', err)
 			console.log('Creating github release')
 
 			octokit.octokit.repos.createRelease({
@@ -56,6 +57,7 @@ ${notes}
 				name: title,
 				body: content,
 				tag_name: tag,
+				draft: true,
 			})
 		}
 	}
