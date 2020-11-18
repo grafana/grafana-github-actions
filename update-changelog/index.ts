@@ -48,7 +48,7 @@ class UpdateChangelog extends Action {
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
-		await git('commit', '-m', `"${title}"`)
+		await git('commit', '-m', `${title}`)
 		await git('push', '--set-upstream', 'origin', branchName)
 
 		await octokit.octokit.pulls.create({
