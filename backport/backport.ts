@@ -174,7 +174,7 @@ const getFailedBackportCommentBody = ({
 		'# Install dependencies for pre-commit hooks',
 		`yarn install --frozen-lockfile`,
 		'# Cherry-pick the merged commit of this pull request and resolve the conflicts',
-		`git cherry-pick --mainline 1 ${commitToBackport}`,
+		`git cherry-pick -x ${commitToBackport}`,
 		'# Push it to GitHub',
 		`git push --set-upstream origin ${head}`,
 		'# Go back to the original working tree',
