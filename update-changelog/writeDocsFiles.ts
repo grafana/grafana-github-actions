@@ -6,8 +6,8 @@ interface DocsReleaseNotesWriterOptions {
 	builder: ReleaseNotesBuilder
 }
 
-export function writeDocsFiles({ version, builder }: DocsReleaseNotesWriterOptions) {
-	const notes = builder.buildReleaseNotes({ useDocsHeader: true })
+export async function writeDocsFiles({ version, builder }: DocsReleaseNotesWriterOptions) {
+	const notes = await builder.buildReleaseNotes({ useDocsHeader: true })
 	const title = builder.getTitle()
 
 	const content = `+++

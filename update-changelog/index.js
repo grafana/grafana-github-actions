@@ -38,7 +38,7 @@ class UpdateChangelog extends Action_1.Action {
             content: releaseNotes,
         });
         fileUpdater.writeFile(changelogFile);
-        writeDocsFiles_1.writeDocsFiles({ version, builder });
+        await writeDocsFiles_1.writeDocsFiles({ version, builder });
         await git('switch', '--create', branchName);
         await git('add', '-A');
         await git('commit', '-m', `${title}`);

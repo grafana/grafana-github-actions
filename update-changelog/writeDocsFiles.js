@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeDocsFiles = void 0;
 const fs_1 = __importDefault(require("fs"));
-function writeDocsFiles({ version, builder }) {
-    const notes = builder.buildReleaseNotes({ useDocsHeader: true });
+async function writeDocsFiles({ version, builder }) {
+    const notes = await builder.buildReleaseNotes({ useDocsHeader: true });
     const title = builder.getTitle();
     const content = `+++
 title = "${title}"

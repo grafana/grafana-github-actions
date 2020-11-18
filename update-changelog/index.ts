@@ -44,7 +44,7 @@ class UpdateChangelog extends Action {
 		})
 		fileUpdater.writeFile(changelogFile)
 
-		writeDocsFiles({ version, builder })
+		await writeDocsFiles({ version, builder })
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
