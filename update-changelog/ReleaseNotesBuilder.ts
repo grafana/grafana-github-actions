@@ -3,6 +3,7 @@ import { sortBy, difference } from 'lodash'
 import { splitStringIntoLines } from '../common/utils'
 
 export const CHANGELOG_LABEL = 'add to changelog'
+export const BUG_LABEL = 'type/bug'
 export const GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit'
 export const GRAFANA_UI_LABEL = 'area/grafana/ui'
 export const BREAKING_CHANGE_LABEL = 'breaking change'
@@ -228,7 +229,7 @@ function isBugFix(item: Issue) {
 	if (item.title.match(/fix|fixes/i)) {
 		return true
 	}
-	if (item.labels.find((label: any) => label.name === 'type/bug')) {
+	if (item.labels.find((label: any) => label === BUG_LABEL)) {
 		return true
 	}
 	return false

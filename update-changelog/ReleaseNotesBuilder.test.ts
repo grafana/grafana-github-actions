@@ -4,11 +4,11 @@ import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
 import {
 	ReleaseNotesBuilder,
-	CHANGELOG_LABEL,
-	GRAFANA_UI_LABEL,
 	BREAKING_CHANGE_LABEL,
 	BREAKING_SECTION_START,
-	ENTERPRISE_LABEL,
+	BUG_LABEL,
+	CHANGELOG_LABEL,
+	GRAFANA_UI_LABEL,
 } from './ReleaseNotesBuilder'
 
 describe('ReleaseNotesBuilder', () => {
@@ -30,6 +30,12 @@ describe('ReleaseNotesBuilder', () => {
 					title: 'Login: New feature',
 				},
 				labels: [CHANGELOG_LABEL],
+			},
+			{
+				issue: {
+					title: 'Auth: Prevent errors from happening',
+				},
+				labels: [CHANGELOG_LABEL, BUG_LABEL],
 			},
 			{
 				issue: {
