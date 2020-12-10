@@ -229,7 +229,7 @@ function isBugFix(item: Issue) {
 	if (item.title.match(/fix|fixes/i)) {
 		return true
 	}
-	if (item.labels.find((label: any) => label === BUG_LABEL)) {
+	if (item.labels.find((label: string) => label === BUG_LABEL)) {
 		return true
 	}
 	return false
