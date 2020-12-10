@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.BREAKING_SECTION_START = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.BREAKING_SECTION_START = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
+exports.BUG_LABEL = 'type/bug';
 exports.GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit';
 exports.GRAFANA_UI_LABEL = 'area/grafana/ui';
 exports.BREAKING_CHANGE_LABEL = 'breaking change';
@@ -183,7 +184,7 @@ function isBugFix(item) {
     if (item.title.match(/fix|fixes/i)) {
         return true;
     }
-    if (item.labels.find((label) => label.name === 'type/bug')) {
+    if (item.labels.find((label) => label === exports.BUG_LABEL)) {
         return true;
     }
     return false;

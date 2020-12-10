@@ -28,7 +28,7 @@ class UpdateChangelog extends Action_1.Action {
         const fileUpdater = new FileUpdater_1.FileUpdater();
         const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
         const changelogFile = './CHANGELOG.md';
-        const branchName = 'update-changelog-and-relase-notes';
+        const branchName = 'update-changelog-and-release-notes';
         const releaseNotes = await builder.buildReleaseNotes({ useDocsHeader: false });
         const title = `ReleaseNotes: Updated changelog and release notes for ${version}`;
         // Update main changelog
