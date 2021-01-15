@@ -13,7 +13,7 @@ const telemetry_1 = require("./telemetry");
 class Action {
     constructor() {
         this.token = utils_1.getRequiredInput('token');
-        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then(v => v.data.name);
+        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name);
     }
     getToken() {
         return this.token;

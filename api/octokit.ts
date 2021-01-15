@@ -7,7 +7,6 @@ import { debug } from '@actions/core'
 import { GitHub as GitHubAPI } from '@actions/github'
 import { Octokit } from '@octokit/rest'
 import { exec } from 'child_process'
-import { reset } from 'yargs'
 import { Comment, GitHub, GitHubIssue, Issue, Milestone, Query, User } from './api'
 
 let numRequests = 0
@@ -49,9 +48,9 @@ export class OctoKit implements GitHub {
 			if (pageNum < 2) {
 				/* pass */
 			} else if (pageNum < 4) {
-				await new Promise(resolve => setTimeout(resolve, 3000))
+				await new Promise((resolve) => setTimeout(resolve, 3000))
 			} else {
-				await new Promise(resolve => setTimeout(resolve, 30000))
+				await new Promise((resolve) => setTimeout(resolve, 30000))
 			}
 		}
 
@@ -61,7 +60,7 @@ export class OctoKit implements GitHub {
 			const page: Array<Octokit.SearchIssuesAndPullRequestsResponseItemsItem> = pageResponse.data
 			console.log(`Page ${++pageNum}: ${page.map(({ number }) => number).join(' ')}`)
 			yield page.map(
-				issue => new OctoKitIssue(this.token, this.params, this.octokitIssueToIssue(issue)),
+				(issue) => new OctoKitIssue(this.token, this.params, this.octokitIssueToIssue(issue)),
 			)
 		}
 	}
@@ -93,7 +92,7 @@ export class OctoKit implements GitHub {
 			body: issue.body,
 			number: issue.number,
 			title: issue.title,
-			labels: (issue.labels as Octokit.IssuesGetLabelResponse[]).map(label => label.name),
+			labels: (issue.labels as Octokit.IssuesGetLabelResponse[]).map((label) => label.name),
 			open: issue.state === 'open',
 			locked: (issue as any).locked,
 			numComments: issue.comments,
@@ -174,7 +173,7 @@ export class OctoKit implements GitHub {
 
 	async releaseContainsCommit(release: string, commit: string): Promise<'yes' | 'no' | 'unknown'> {
 		return new Promise((resolve, reject) =>
-			exec(`git -C ./repo merge-base --is-ancestor ${commit} ${release}`, err => {
+			exec(`git -C ./repo merge-base --is-ancestor ${commit} ${release}`, (err) => {
 				if (!err || err.code === 1) {
 					resolve(!err ? 'yes' : 'no')
 				} else if (err.message.includes(`Not a valid commit name ${release}`)) {
@@ -310,7 +309,7 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 
 		for await (const page of response) {
 			numRequests++
-			yield (page.data as Octokit.IssuesListCommentsResponseItem[]).map(comment => ({
+			yield (page.data as Octokit.IssuesListCommentsResponseItem[]).map((comment) => ({
 				author: { name: comment.user.login, isGitHubApp: comment.user.type === 'Bot' },
 				body: comment.body,
 				id: comment.id,

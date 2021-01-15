@@ -9,11 +9,11 @@ class Backport extends Action {
 	id = 'Backport'
 
 	async onClosed(issue: OctoKitIssue) {
-		this.backport(issue)
+		return this.backport(issue)
 	}
 
 	async onLabeled(issue: OctoKitIssue, _label: string) {
-		this.backport(issue)
+		return this.backport(issue)
 	}
 
 	async backport(issue: OctoKitIssue) {
@@ -38,7 +38,7 @@ export const getLabelsToAdd = (input: string | undefined): string[] => {
 	}
 
 	const labels = input.split(',')
-	return labels.map(v => v.trim()).filter(v => v !== '')
+	return labels.map((v) => v.trim()).filter((v) => v !== '')
 }
 
 new Backport().run() // eslint-disable-line

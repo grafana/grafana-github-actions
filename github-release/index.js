@@ -33,7 +33,7 @@ ${notes}
                 tag,
             });
             console.log('Updating github release');
-            octokit.octokit.repos.updateRelease({
+            await octokit.octokit.repos.updateRelease({
                 draft: existingRelease.data.draft,
                 release_id: existingRelease.data.id,
                 repo,
@@ -48,7 +48,7 @@ ${notes}
                 console.log('getReleaseByTag error', err);
             }
             console.log('Creating github release');
-            octokit.octokit.repos.createRelease({
+            await octokit.octokit.repos.createRelease({
                 repo,
                 owner,
                 name: title,

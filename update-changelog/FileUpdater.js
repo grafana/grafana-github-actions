@@ -23,8 +23,8 @@ class FileUpdater {
         return this.lines;
     }
     update({ version, content }) {
-        const startMarker = new RegExp(`\<\!-- (.*) START`);
-        const endMarker = new RegExp(`\<\!-- ${lodash_1.escapeRegExp(version)} END`);
+        const startMarker = new RegExp(`<!-- (.*) START`);
+        const endMarker = new RegExp(`<!-- ${lodash_1.escapeRegExp(version)} END`);
         let startIndex = 0;
         let endIndex = 0;
         for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {

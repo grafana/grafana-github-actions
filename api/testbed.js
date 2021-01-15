@@ -21,7 +21,7 @@ class Testbed {
     }
     async *query(query) {
         for await (const page of this.config.queryRunner(query)) {
-            yield page.map(issue => issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue));
+            yield page.map((issue) => issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue));
         }
     }
     async createIssue(_owner, _repo, _title, _body) {
@@ -40,7 +40,7 @@ class Testbed {
         this.config.globalLabels.push(label);
     }
     async deleteLabel(labelToDelete) {
-        this.config.globalLabels = this.config.globalLabels.filter(label => label !== labelToDelete);
+        this.config.globalLabels = this.config.globalLabels.filter((label) => label !== labelToDelete);
     }
     async releaseContainsCommit(_release, commit) {
         return this.config.releasedCommits.includes(commit) ? 'yes' : 'no';
@@ -108,7 +108,7 @@ class TestbedIssue extends Testbed {
         });
     }
     async deleteComment(id) {
-        this.issueConfig.comments = this.issueConfig.comments.filter(comment => comment.id !== id);
+        this.issueConfig.comments = this.issueConfig.comments.filter((comment) => comment.id !== id);
     }
     async *getComments(last) {
         yield last
@@ -119,7 +119,7 @@ class TestbedIssue extends Testbed {
         this.issueConfig.labels.push(label);
     }
     async removeLabel(labelToDelete) {
-        this.issueConfig.labels = this.issueConfig.labels.filter(label => label !== labelToDelete);
+        this.issueConfig.labels = this.issueConfig.labels.filter((label) => label !== labelToDelete);
     }
     async closeIssue() {
         this.issueConfig.issue.open = false;

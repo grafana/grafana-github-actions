@@ -62,7 +62,7 @@ if (apiKey) {
 						tags,
 					},
 				]),
-			}).catch(e => {
+			}).catch((e) => {
 				console.log(e)
 			})
 		},
@@ -78,5 +78,5 @@ function getMetricsNamePrefix() {
 }
 
 export const trackEvent = async (issue: GitHubIssue, event: string, props?: Record<string, string>) => {
-	// console.log('tracking event', event, props)
+	console.log('tracking event', issue, event, props)
 }

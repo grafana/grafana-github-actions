@@ -41,7 +41,7 @@ const getBackportBaseToHead = ({
 }): { [base: string]: string } => {
 	const baseToHead: { [base: string]: string } = {}
 
-	getLabelNames({ action, label, labels }).forEach(labelName => {
+	getLabelNames({ action, label, labels }).forEach((labelName) => {
 		const matches = labelRegExp.exec(labelName)
 
 		if (matches !== null) {
@@ -115,7 +115,7 @@ const backportOnce = async ({
 
 	// Remove default reviewers
 	if (createRsp.data.requested_reviewers) {
-		const reviewers = createRsp.data.requested_reviewers.map(user => user.login)
+		const reviewers = createRsp.data.requested_reviewers.map((user) => user.login)
 		await github.pulls.deleteReviewRequest({
 			pull_number: pullRequestNumber,
 			repo,
@@ -155,7 +155,6 @@ const getFailedBackportCommentBody = ({
 	errorMessage: string
 	head: string
 }) => {
-	const worktreePath = `.worktrees/backport-${base}`
 	return [
 		`The backport to \`${base}\` failed:`,
 		'```',

@@ -4,7 +4,6 @@ import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
 import {
 	ReleaseNotesBuilder,
-	ENTERPRISE_LABEL,
 	BREAKING_SECTION_START,
 	DEPRECATION_SECTION_START,
 	BUG_LABEL,
@@ -92,9 +91,7 @@ Variables have been deprecated`,
 			},
 		]
 
-		const queryRunner = async function* (
-			query: Query,
-		): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
+		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}
 
@@ -118,9 +115,7 @@ Variables have been deprecated`,
 			},
 		]
 
-		const queryRunner = async function* (
-			query: Query,
-		): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
+		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}
 
@@ -154,8 +149,8 @@ Variables have been deprecated`,
 		const owner = process.env.OWNER
 
 		const octokit = new OctoKit(token, { repo, owner })
-		const builder = new ReleaseNotesBuilder(octokit)
-		const text = await builder.buildReleaseNotes('7.3.2')
+		const builder = new ReleaseNotesBuilder(octokit, '1.0.0')
+		const text = await builder.buildReleaseNotes({})
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

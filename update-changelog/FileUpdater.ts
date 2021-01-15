@@ -20,8 +20,8 @@ export class FileUpdater {
 	}
 
 	update({ version, content }: { version: string; content: string }) {
-		const startMarker = new RegExp(`\<\!-- (.*) START`)
-		const endMarker = new RegExp(`\<\!-- ${escapeRegExp(version)} END`)
+		const startMarker = new RegExp(`<!-- (.*) START`)
+		const endMarker = new RegExp(`<!-- ${escapeRegExp(version)} END`)
 
 		let startIndex = 0
 		let endIndex = 0
