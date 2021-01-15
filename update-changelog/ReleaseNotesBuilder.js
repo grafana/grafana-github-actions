@@ -1,12 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_RUNTIME_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
 exports.BUG_LABEL = 'type/bug';
 exports.GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit';
 exports.GRAFANA_UI_LABEL = 'area/grafana/ui';
+exports.GRAFANA_RUNTIME_LABEL = 'area/grafana/runtime';
 exports.BREAKING_SECTION_START = 'Release notice breaking change';
 exports.DEPRECATION_SECTION_START = 'Deprecation notice';
 exports.ENTERPRISE_LABEL = 'enterprise';
@@ -25,7 +26,7 @@ class ReleaseNotesBuilder {
         let headerLine = null;
         for (const issue of await this.getIssuesForVersion()) {
             if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
-                if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL) || issueHasLabel(issue, exports.GRAFANA_UI_LABEL)) {
+                if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL, exports.GRAFANA_UI_LABEL, exports.GRAFANA_RUNTIME_LABEL)) {
                     pluginDeveloperIssues.push(issue);
                 }
                 else {
@@ -182,8 +183,8 @@ exports.ReleaseNotesBuilder = ReleaseNotesBuilder;
 function linkToIssue(item) {
     return `[#${item.number}](${githubGrafanaUrl}/issues/${item.number})`;
 }
-function issueHasLabel(issue, label) {
-    return issue.labels && issue.labels.indexOf(label) !== -1;
+function issueHasLabel(issue, ...labels) {
+    return labels.find((label) => issue.labels && issue.labels.indexOf(label) !== -1);
 }
 function isBugFix(item) {
     if (item.title.match(/fix|fixes/i)) {

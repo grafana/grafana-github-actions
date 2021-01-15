@@ -6,6 +6,7 @@ export const CHANGELOG_LABEL = 'add to changelog'
 export const BUG_LABEL = 'type/bug'
 export const GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit'
 export const GRAFANA_UI_LABEL = 'area/grafana/ui'
+export const GRAFANA_RUNTIME_LABEL = 'area/grafana/runtime'
 export const BREAKING_SECTION_START = 'Release notice breaking change'
 export const DEPRECATION_SECTION_START = 'Deprecation notice'
 export const ENTERPRISE_LABEL = 'enterprise'
@@ -33,7 +34,7 @@ export class ReleaseNotesBuilder {
 
 		for (const issue of await this.getIssuesForVersion()) {
 			if (issueHasLabel(issue, CHANGELOG_LABEL)) {
-				if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL) || issueHasLabel(issue, GRAFANA_UI_LABEL)) {
+				if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL, GRAFANA_UI_LABEL, GRAFANA_RUNTIME_LABEL)) {
 					pluginDeveloperIssues.push(issue)
 				} else {
 					grafanaIssues.push(issue)
@@ -227,8 +228,8 @@ function linkToIssue(item: Issue): string {
 	return `[#${item.number}](${githubGrafanaUrl}/issues/${item.number})`
 }
 
-function issueHasLabel(issue: Issue, label: string) {
-	return issue.labels && issue.labels.indexOf(label) !== -1
+function issueHasLabel(issue: Issue, ...labels: string[]) {
+	return labels.find((label) => issue.labels && issue.labels.indexOf(label) !== -1)
 }
 
 function isBugFix(item: Issue) {
