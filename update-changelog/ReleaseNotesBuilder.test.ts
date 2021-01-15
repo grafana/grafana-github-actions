@@ -4,8 +4,9 @@ import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
 import {
 	ReleaseNotesBuilder,
-	BREAKING_CHANGE_LABEL,
+	ENTERPRISE_LABEL,
 	BREAKING_SECTION_START,
+	DEPRECATION_SECTION_START,
 	BUG_LABEL,
 	CHANGELOG_LABEL,
 	GRAFANA_UI_LABEL,
@@ -71,7 +72,23 @@ Here is the content of this breaking change notice.`,
 						name: 'torkelo',
 					},
 				},
-				labels: [CHANGELOG_LABEL, BREAKING_CHANGE_LABEL],
+				labels: [CHANGELOG_LABEL],
+			},
+			{
+				issue: {
+					title: 'Variables: Variables deprecated',
+					body: `
+asdasd
+asdasd
+
+### ${DEPRECATION_SECTION_START}
+Variables have been deprecated`,
+					isPullRequest: true,
+					author: {
+						name: 'torkelo',
+					},
+				},
+				labels: [CHANGELOG_LABEL],
 			},
 		]
 

@@ -6,8 +6,8 @@ export const CHANGELOG_LABEL = 'add to changelog'
 export const BUG_LABEL = 'type/bug'
 export const GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit'
 export const GRAFANA_UI_LABEL = 'area/grafana/ui'
-export const BREAKING_CHANGE_LABEL = 'breaking change'
 export const BREAKING_SECTION_START = 'Release notice breaking change'
+export const DEPRECATION_SECTION_START = 'Deprecation notice'
 export const ENTERPRISE_LABEL = 'enterprise'
 
 const githubGrafanaUrl = 'https://github.com/grafana/grafana'
@@ -28,6 +28,7 @@ export class ReleaseNotesBuilder {
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []
 		const breakingChanges: string[] = []
+		const deprecationChanges: string[] = []
 		let headerLine: string | null = null
 
 		for (const issue of await this.getIssuesForVersion()) {
@@ -38,9 +39,8 @@ export class ReleaseNotesBuilder {
 					grafanaIssues.push(issue)
 				}
 
-				if (issueHasLabel(issue, BREAKING_CHANGE_LABEL)) {
-					breakingChanges.push(...this.getBreakingChangeNotice(issue))
-				}
+				breakingChanges.push(...this.getChangeLogNotice(issue, BREAKING_SECTION_START))
+				deprecationChanges.push(...this.getChangeLogNotice(issue, DEPRECATION_SECTION_START))
 			}
 
 			if (!headerLine) {
@@ -59,6 +59,12 @@ export class ReleaseNotesBuilder {
 			lines.push('### Breaking changes')
 			lines.push('')
 			lines.push(...breakingChanges)
+		}
+
+		if (deprecationChanges.length > 0) {
+			lines.push('### Deprecations')
+			lines.push('')
+			lines.push(...deprecationChanges)
 		}
 
 		lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues))
@@ -117,7 +123,7 @@ export class ReleaseNotesBuilder {
 		return this.title!
 	}
 
-	private getBreakingChangeNotice(issue: Issue): string[] {
+	private getChangeLogNotice(issue: Issue, sectionMarker: string): string[] {
 		const noticeLines: string[] = []
 		let startFound = false
 
@@ -126,7 +132,7 @@ export class ReleaseNotesBuilder {
 				noticeLines.push(line)
 			}
 
-			if (line.indexOf(BREAKING_SECTION_START) >= 0) {
+			if (line.indexOf(sectionMarker) >= 0) {
 				startFound = true
 			}
 		}
