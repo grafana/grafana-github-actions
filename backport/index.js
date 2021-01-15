@@ -11,10 +11,10 @@ class Backport extends Action_1.Action {
         this.id = 'Backport';
     }
     async onClosed(issue) {
-        this.backport(issue);
+        return this.backport(issue);
     }
     async onLabeled(issue, _label) {
-        this.backport(issue);
+        return this.backport(issue);
     }
     async backport(issue) {
         try {
@@ -37,7 +37,7 @@ exports.getLabelsToAdd = (input) => {
         return [];
     }
     const labels = input.split(',');
-    return labels.map(v => v.trim()).filter(v => v !== '');
+    return labels.map((v) => v.trim()).filter((v) => v !== '');
 };
 new Backport().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

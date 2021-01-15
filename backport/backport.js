@@ -22,7 +22,7 @@ const getLabelNames = ({ action, label, labels, }) => {
 };
 const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) => {
     const baseToHead = {};
-    getLabelNames({ action, label, labels }).forEach(labelName => {
+    getLabelNames({ action, label, labels }).forEach((labelName) => {
         const matches = labelRegExp.exec(labelName);
         if (matches !== null) {
             const [, base, head = `backport-${pullRequestNumber}-to-${base}`] = matches;
@@ -65,7 +65,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     }
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
-        const reviewers = createRsp.data.requested_reviewers.map(user => user.login);
+        const reviewers = createRsp.data.requested_reviewers.map((user) => user.login);
         await github.pulls.deleteReviewRequest({
             pull_number: pullRequestNumber,
             repo,
@@ -92,7 +92,6 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     }
 };
 const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, head, }) => {
-    const worktreePath = `.worktrees/backport-${base}`;
     return [
         `The backport to \`${base}\` failed:`,
         '```',

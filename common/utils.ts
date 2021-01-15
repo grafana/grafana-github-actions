@@ -71,7 +71,7 @@ export const daysAgoToHumanReadbleDate = (days: number) =>
 export const getRateLimit = async (token: string) => {
 	const usageData = (await new GitHub(token).rateLimit.get()).data.resources
 	const usage = {} as { core: number; graphql: number; search: number }
-	;(['core', 'graphql', 'search'] as const).forEach(async category => {
+	;(['core', 'graphql', 'search'] as const).forEach(async (category) => {
 		usage[category] = 1 - usageData[category].remaining / usageData[category].limit
 	})
 	return usage
@@ -97,7 +97,7 @@ export const errorLoggingIssue = (() => {
 
 export const logErrorToIssue = async (message: string, ping: boolean, token: string): Promise<void> => {
 	// Attempt to wait out abuse detection timeout if present
-	await new Promise(resolve => setTimeout(resolve, 10000))
+	await new Promise((resolve) => setTimeout(resolve, 10000))
 	const dest = errorLoggingIssue
 	if (!dest) return console.log('no error logging repo defined. swallowing error:', message)
 

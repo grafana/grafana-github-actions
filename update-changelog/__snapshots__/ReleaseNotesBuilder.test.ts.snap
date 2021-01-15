@@ -9,6 +9,8 @@ exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 * **Dashboard**: Issue with deprecation notice. (Enterprise)
 * **Login**: New feature. [#1](https://github.com/grafana/grafana/issues/1)
 * **Login**: New feature. (Enterprise)
+* **Variables**: Variables deprecated. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+* **Variables**: Variables deprecated. (Enterprise)
 
 ### Bug fixes
 
@@ -24,6 +26,12 @@ exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 Here is the content of this breaking change notice. Issue [#1](https://github.com/grafana/grafana/issues/1)
 
 Here is the content of this breaking change notice. Issue [#1](https://github.com/grafana/grafana/issues/1)
+
+### Deprecations
+
+Variables have been deprecated Issue [#1](https://github.com/grafana/grafana/issues/1)
+
+Variables have been deprecated Issue [#1](https://github.com/grafana/grafana/issues/1)
 
 ### Plugin development fixes & changes
 

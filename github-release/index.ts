@@ -1,7 +1,5 @@
 import { context } from '@actions/github'
 import { Action } from '../common/Action'
-import { exec } from '@actions/exec'
-import { cloneRepo } from '../common/git'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 import { ReleaseNotesBuilder } from '../update-changelog/ReleaseNotesBuilder'
@@ -38,7 +36,7 @@ ${notes}
 
 			console.log('Updating github release')
 
-			octokit.octokit.repos.updateRelease({
+			await octokit.octokit.repos.updateRelease({
 				draft: existingRelease.data.draft,
 				release_id: existingRelease.data.id,
 				repo,
@@ -54,7 +52,7 @@ ${notes}
 
 			console.log('Creating github release')
 
-			octokit.octokit.repos.createRelease({
+			await octokit.octokit.repos.createRelease({
 				repo,
 				owner,
 				name: title,

@@ -9,7 +9,7 @@ class MetricsCollector extends Action {
 	async onClosed(issue: OctoKitIssue) {
 		const issueData = await issue.getIssue()
 
-		const typeLabel = issueData.labels.find(label => label.startsWith('type/'))
+		const typeLabel = issueData.labels.find((label) => label.startsWith('type/'))
 		const labels: Record<string, string> = {}
 
 		if (typeLabel) {

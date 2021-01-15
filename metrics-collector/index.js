@@ -10,7 +10,7 @@ class MetricsCollector extends Action_1.Action {
     }
     async onClosed(issue) {
         const issueData = await issue.getIssue();
-        const typeLabel = issueData.labels.find(label => label.startsWith('type/'));
+        const typeLabel = issueData.labels.find((label) => label.startsWith('type/'));
         const labels = {};
         if (typeLabel) {
             labels['type'] = typeLabel.substr(5);

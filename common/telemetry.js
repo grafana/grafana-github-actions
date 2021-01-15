@@ -49,7 +49,7 @@ if (apiKey) {
                         tags,
                     },
                 ]),
-            }).catch(e => {
+            }).catch((e) => {
                 console.log(e);
             });
         },
@@ -63,6 +63,6 @@ function getMetricsNamePrefix() {
     return `repo_stats.${github_1.context.repo.repo}`;
 }
 exports.trackEvent = async (issue, event, props) => {
-    // console.log('tracking event', event, props)
+    console.log('tracking event', issue, event, props);
 };
 //# sourceMappingURL=telemetry.js.map

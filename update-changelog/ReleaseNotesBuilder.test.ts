@@ -4,8 +4,8 @@ import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
 import {
 	ReleaseNotesBuilder,
-	BREAKING_CHANGE_LABEL,
 	BREAKING_SECTION_START,
+	DEPRECATION_SECTION_START,
 	BUG_LABEL,
 	CHANGELOG_LABEL,
 	GRAFANA_UI_LABEL,
@@ -71,13 +71,27 @@ Here is the content of this breaking change notice.`,
 						name: 'torkelo',
 					},
 				},
-				labels: [CHANGELOG_LABEL, BREAKING_CHANGE_LABEL],
+				labels: [CHANGELOG_LABEL],
+			},
+			{
+				issue: {
+					title: 'Variables: Variables deprecated',
+					body: `
+asdasd
+asdasd
+
+### ${DEPRECATION_SECTION_START}
+Variables have been deprecated`,
+					isPullRequest: true,
+					author: {
+						name: 'torkelo',
+					},
+				},
+				labels: [CHANGELOG_LABEL],
 			},
 		]
 
-		const queryRunner = async function* (
-			query: Query,
-		): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
+		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}
 
@@ -101,9 +115,7 @@ Here is the content of this breaking change notice.`,
 			},
 		]
 
-		const queryRunner = async function* (
-			query: Query,
-		): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
+		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}
 
@@ -137,8 +149,8 @@ Here is the content of this breaking change notice.`,
 		const owner = process.env.OWNER
 
 		const octokit = new OctoKit(token, { repo, owner })
-		const builder = new ReleaseNotesBuilder(octokit)
-		const text = await builder.buildReleaseNotes('7.3.2')
+		const builder = new ReleaseNotesBuilder(octokit, '1.0.0')
+		const text = await builder.buildReleaseNotes({})
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

@@ -99,7 +99,7 @@ exports.errorLoggingIssue = (() => {
 })();
 exports.logErrorToIssue = async (message, ping, token) => {
     // Attempt to wait out abuse detection timeout if present
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
     const dest = exports.errorLoggingIssue;
     if (!dest)
         return console.log('no error logging repo defined. swallowing error:', message);

@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.BREAKING_SECTION_START = exports.BREAKING_CHANGE_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
 exports.BUG_LABEL = 'type/bug';
 exports.GRAFANA_TOOLKIT_LABEL = 'area/grafana/toolkit';
 exports.GRAFANA_UI_LABEL = 'area/grafana/ui';
-exports.BREAKING_CHANGE_LABEL = 'breaking change';
 exports.BREAKING_SECTION_START = 'Release notice breaking change';
+exports.DEPRECATION_SECTION_START = 'Deprecation notice';
 exports.ENTERPRISE_LABEL = 'enterprise';
 const githubGrafanaUrl = 'https://github.com/grafana/grafana';
 class ReleaseNotesBuilder {
@@ -21,6 +21,7 @@ class ReleaseNotesBuilder {
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];
         const breakingChanges = [];
+        const deprecationChanges = [];
         let headerLine = null;
         for (const issue of await this.getIssuesForVersion()) {
             if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
@@ -30,9 +31,8 @@ class ReleaseNotesBuilder {
                 else {
                     grafanaIssues.push(issue);
                 }
-                if (issueHasLabel(issue, exports.BREAKING_CHANGE_LABEL)) {
-                    breakingChanges.push(...this.getBreakingChangeNotice(issue));
-                }
+                breakingChanges.push(...this.getChangeLogNotice(issue, exports.BREAKING_SECTION_START));
+                deprecationChanges.push(...this.getChangeLogNotice(issue, exports.DEPRECATION_SECTION_START));
             }
             if (!headerLine) {
                 headerLine = await this.getReleaseHeader(issue.milestoneId, options.useDocsHeader);
@@ -47,6 +47,11 @@ class ReleaseNotesBuilder {
             lines.push('### Breaking changes');
             lines.push('');
             lines.push(...breakingChanges);
+        }
+        if (deprecationChanges.length > 0) {
+            lines.push('### Deprecations');
+            lines.push('');
+            lines.push(...deprecationChanges);
         }
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
         return lines.join('\n');
@@ -94,14 +99,14 @@ class ReleaseNotesBuilder {
     getTitle() {
         return this.title;
     }
-    getBreakingChangeNotice(issue) {
+    getChangeLogNotice(issue, sectionMarker) {
         const noticeLines = [];
         let startFound = false;
         for (const line of utils_1.splitStringIntoLines(issue.body)) {
             if (startFound) {
                 noticeLines.push(line);
             }
-            if (line.indexOf(exports.BREAKING_SECTION_START) >= 0) {
+            if (line.indexOf(sectionMarker) >= 0) {
                 startFound = true;
             }
         }
