@@ -16,17 +16,17 @@ describe('FileUpdater', () => {
 			updater.loadFile(`${__dirname}/testdata/changelog1.md`)
 
 			updater.update({
-				version: '8.1.0',
-				content: `Updated content`,
+				version: '8.1.0-beta1',
+				content: `Updated content\n`,
 			})
 
 			expect(updater.getContent()).toMatchInlineSnapshot(`
 			"
-			<!-- 8.1.0 START -->
+			<!-- 8.1.0-beta1 START -->
 
 			Updated content
 
-			<!-- 8.1.0 END -->
+			<!-- 8.1.0-beta1 END -->
 
 			<!-- 8.0.0 START -->
 
@@ -57,7 +57,7 @@ describe('FileUpdater', () => {
 
 			updater.update({
 				version: '7.3.3',
-				content: `Updated content`,
+				content: `Updated content\n`,
 			})
 
 			expect(updater.getContent()).toMatchInlineSnapshot(`
@@ -91,14 +91,13 @@ describe('FileUpdater', () => {
 	})
 
 	describe('When updating a release', () => {
-		it.only('should only update the correct release', () => {
+		it('should only update the correct release', () => {
 			const updater = new FileUpdater()
 			updater.loadFile(`${__dirname}/testdata/changelog1.md`)
 
 			updater.update({
 				version: '7.3.2',
-				content: `Updated content
-				`,
+				content: `Updated content\n`,
 			})
 
 			expect(updater.getContent()).toMatchInlineSnapshot(`
@@ -112,7 +111,7 @@ describe('FileUpdater', () => {
 			<!-- 7.3.2 START -->
 
 			Updated content
-							
+
 			<!-- 7.3.2 END -->
 
 			<!-- 7.3.1 START -->
