@@ -27,7 +27,7 @@ class BumpVersion extends Action {
 		process.chdir(repo)
 
 		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
-		const prBranch = `version-bump-${version}`
+		const prBranch = `bump-version-${version}`
 
 		// create branch
 		await git('switch', base)

@@ -23,7 +23,7 @@ class BumpVersion extends Action_1.Action {
         await git_1.cloneRepo({ token, owner, repo });
         process.chdir(repo);
         const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
-        const prBranch = `version-bump-${version}`;
+        const prBranch = `bump-version-${version}`;
         // create branch
         await git('switch', base);
         await git('switch', '--create', prBranch);
