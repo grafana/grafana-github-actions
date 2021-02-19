@@ -55,7 +55,7 @@ class Testbed {
 exports.Testbed = Testbed;
 class TestbedIssue extends Testbed {
     constructor(globalConfig, issueConfig) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         super(globalConfig);
         issueConfig = issueConfig !== null && issueConfig !== void 0 ? issueConfig : {};
         issueConfig.comments = (_a = issueConfig === null || issueConfig === void 0 ? void 0 : issueConfig.comments) !== null && _a !== void 0 ? _a : [];
@@ -84,7 +84,8 @@ class TestbedIssue extends Testbed {
             updatedAt: +new Date(),
             ...issueConfig.issue,
         };
-        this.issueConfig = issueConfig;
+        (issueConfig.pullRequestFilenames = (_d = issueConfig === null || issueConfig === void 0 ? void 0 : issueConfig.pullRequestFilenames) !== null && _d !== void 0 ? _d : []),
+            (this.issueConfig = issueConfig);
     }
     async addAssignee(assignee) {
         this.issueConfig.issue.assignee = assignee;
@@ -129,6 +130,9 @@ class TestbedIssue extends Testbed {
     }
     async getClosingInfo() {
         return this.issueConfig.closingCommit;
+    }
+    async listPullRequestFilenames() {
+        return this.issueConfig.pullRequestFilenames;
     }
 }
 exports.TestbedIssue = TestbedIssue;

@@ -394,6 +394,19 @@ class OctoKitIssue extends OctoKit {
         console.log(`Got ${JSON.stringify(closingCommit)} as closing commit of ${this.issueData.number}`);
         return closingCommit;
     }
+    async listPullRequestFilenames() {
+        const options = this.octokit.pulls.listFiles.endpoint.merge({
+            ...this.params,
+            pull_number: (await this.getIssue()).number,
+        });
+        let filenames = [];
+        for await (const resp of this.octokit.paginate.iterator(options)) {
+            numRequests++;
+            const items = resp.data;
+            filenames.push(...items.map((i) => i.filename));
+        }
+        return filenames;
+    }
 }
 exports.OctoKitIssue = OctoKitIssue;
 function isIssue(object) {

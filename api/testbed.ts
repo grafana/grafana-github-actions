@@ -84,6 +84,7 @@ type TestbedIssueConfig = {
 	comments: Comment[]
 	labels: string[]
 	closingCommit: { hash: string | undefined; timestamp: number } | undefined
+	pullRequestFilenames: string[]
 }
 
 export type TestbedIssueConstructorArgs = Partial<Omit<TestbedIssueConfig, 'issue'>> & {
@@ -122,8 +123,8 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 			updatedAt: +new Date(),
 			...issueConfig.issue,
 		}
-
-		this.issueConfig = issueConfig as TestbedIssueConfig
+		;(issueConfig.pullRequestFilenames = issueConfig?.pullRequestFilenames ?? []),
+			(this.issueConfig = issueConfig as TestbedIssueConfig)
 	}
 
 	async addAssignee(assignee: string): Promise<void> {
@@ -180,5 +181,9 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 
 	async getClosingInfo(): Promise<{ hash: string | undefined; timestamp: number } | undefined> {
 		return this.issueConfig.closingCommit
+	}
+
+	async listPullRequestFilenames(): Promise<string[]> {
+		return this.issueConfig.pullRequestFilenames
 	}
 }

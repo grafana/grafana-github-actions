@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Commands = void 0;
+const globmatcher_1 = require("../common/globmatcher");
 const telemetry_1 = require("../common/telemetry");
 /* eslint-enable */
 class Commands {
@@ -13,7 +14,7 @@ class Commands {
         this.config = config;
         this.action = action;
     }
-    async matches(command, issue) {
+    async matches(command, issue, changedFiles) {
         if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
             return false;
         }
@@ -23,7 +24,7 @@ class Commands {
         if ('label' in this.action) {
             return command.type === 'label' && this.action.label === command.name;
         }
-        else {
+        if ('comment' in this.action) {
             return (command.type === 'comment' &&
                 !!this.action.comment.match(new RegExp(`(/|\\\\)${escapeRegExp(command.name)}(\\s|$)`, 'i')) &&
                 ((await this.github.hasWriteAccess(this.action.user)) ||
@@ -31,10 +32,30 @@ class Commands {
                     command.allowUsers.includes('*') ||
                     (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
         }
+        if (command.type === 'changedfiles' && command.matches) {
+            let matchCfg = {
+                all: [],
+                any: [],
+            };
+            if (typeof command.matches === 'string') {
+                matchCfg.any = [command.matches];
+            }
+            else if ('any' in command.matches) {
+                matchCfg.any = command.matches.any;
+            }
+            else if ('all' in command.matches) {
+                matchCfg.all = command.matches.all;
+            }
+            else {
+                matchCfg.any = command.matches;
+            }
+            return globmatcher_1.checkMatch(changedFiles, matchCfg);
+        }
+        return false;
     }
-    async perform(command, issue) {
+    async perform(command, issue, changedFiles) {
         var _a, _b;
-        if (!(await this.matches(command, issue)))
+        if (!(await this.matches(command, issue, changedFiles)))
             return;
         console.log(`Running command ${command.name}:`);
         await telemetry_1.trackEvent(this.github, 'command', { name: command.name });
@@ -92,7 +113,11 @@ class Commands {
     }
     async run() {
         const issue = await this.github.getIssue();
-        return Promise.all(this.config.map((command) => this.perform(command, issue)));
+        let changedFiles = [];
+        if (this.config.find((cmd) => cmd.type === 'changedfiles') !== undefined) {
+            changedFiles = await this.github.listPullRequestFilenames();
+        }
+        return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)));
     }
 }
 exports.Commands = Commands;

@@ -42,6 +42,8 @@ export interface GitHubIssue extends GitHub {
 	removeAssignee(assignee: string): Promise<void>
 
 	getClosingInfo(): Promise<{ hash: string | undefined; timestamp: number } | undefined>
+
+	listPullRequestFilenames(): Promise<string[]>
 }
 
 type SortVar =

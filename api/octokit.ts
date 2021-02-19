@@ -459,6 +459,23 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 		console.log(`Got ${JSON.stringify(closingCommit)} as closing commit of ${this.issueData.number}`)
 		return closingCommit
 	}
+
+	async listPullRequestFilenames(): Promise<string[]> {
+		const options = this.octokit.pulls.listFiles.endpoint.merge({
+			...this.params,
+			pull_number: (await this.getIssue()).number,
+		})
+
+		let filenames: string[] = []
+
+		for await (const resp of this.octokit.paginate.iterator(options)) {
+			numRequests++
+			const items = resp.data as Octokit.PullsListFilesResponseItem[]
+			filenames.push(...items.map((i) => i.filename))
+		}
+
+		return filenames
+	}
 }
 
 function isIssue(object: any): object is Issue {

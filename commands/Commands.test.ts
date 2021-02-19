@@ -287,4 +287,76 @@ describe('Commands', () => {
 			expect(comments[0]).to.be.undefined
 		})
 	})
+
+	describe('Files changed', () => {
+		it('Labels with matched files changed', async () => {
+			const pullRequestFilenames = [
+				'backend/backend.go',
+				'backend/a/b/c/c.go',
+				'src/app.ts',
+				'src/app.ts/a/b/c/c.ts',
+			]
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+				},
+				{
+					labels: ['old', 'veryOld'],
+					pullRequestFilenames,
+				},
+			)
+			const commands: Command[] = [
+				{
+					type: 'changedfiles',
+					name: 'area/backend',
+					matches: ['backend/**/*'],
+					addLabel: 'new',
+					removeLabel: 'old',
+				},
+			]
+
+			expect((await testbed.getIssue()).labels).to.contain('old')
+			expect((await testbed.getIssue()).labels).not.to.contain('new')
+
+			await new Commands(testbed, commands, {}).run()
+
+			expect((await testbed.getIssue()).labels).not.to.contain('old')
+			expect((await testbed.getIssue()).labels).to.contain('new')
+		})
+
+		it('Labels without matched files changed', async () => {
+			const pullRequestFilenames = [
+				'backend/backend.go',
+				'backend/a/b/c/c.go',
+				'src/app.ts',
+				'src/app.ts/a/b/c/c.ts',
+			]
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+				},
+				{
+					labels: ['old', 'veryOld'],
+					pullRequestFilenames,
+				},
+			)
+			const commands: Command[] = [
+				{
+					type: 'changedfiles',
+					name: 'area/backend',
+					matches: ['frontend/**/*'],
+					addLabel: 'new',
+					removeLabel: 'old',
+				},
+			]
+
+			expect((await testbed.getIssue()).labels).to.contain('old')
+			expect((await testbed.getIssue()).labels).not.to.contain('new')
+
+			await new Commands(testbed, commands, {}).run()
+
+			expect((await testbed.getIssue()).labels).to.contain('old')
+			expect((await testbed.getIssue()).labels).not.to.contain('new')
+		})
+	})
 })
