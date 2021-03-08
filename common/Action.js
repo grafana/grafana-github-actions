@@ -80,6 +80,9 @@ class Action {
                             case 'milestoned':
                                 await this.onMilestoned(octokit);
                                 break;
+                            case 'synchronize':
+                                await this.onSynchronized(octokit);
+                                break;
                             default:
                                 throw Error('Unexpected action: ' + github_1.context.payload.action);
                         }
@@ -144,6 +147,9 @@ ID: ${details.id}
         throw Error('not implemented');
     }
     async onCommented(_issue, _comment, _actor) {
+        throw Error('not implemented');
+    }
+    async onSynchronized(_issue) {
         throw Error('not implemented');
     }
 }
