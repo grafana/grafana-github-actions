@@ -49,7 +49,13 @@ class Commands {
             else {
                 matchCfg.any = command.matches;
             }
-            return globmatcher_1.checkMatch(changedFiles, matchCfg);
+            const matches = globmatcher_1.checkMatch(changedFiles, matchCfg);
+            if (!matches && command.addLabel !== undefined && command.removeLabel === undefined) {
+                command.removeLabel = command.addLabel;
+                command.addLabel = undefined;
+                return true;
+            }
+            return matches;
         }
         return false;
     }
