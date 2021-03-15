@@ -67,7 +67,14 @@ export class Commands {
 				matchCfg.any = command.matches
 			}
 
-			return checkMatch(changedFiles, matchCfg)
+			const matches = checkMatch(changedFiles, matchCfg)
+			if (!matches && command.addLabel !== undefined && command.removeLabel === undefined) {
+				command.removeLabel = command.addLabel
+				command.addLabel = undefined
+				return true
+			}
+
+			return matches
 		}
 
 		return false
