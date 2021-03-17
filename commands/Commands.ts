@@ -52,6 +52,9 @@ export class Commands {
 		}
 
 		if (command.type === 'changedfiles' && command.matches) {
+			if (!command.name) {
+				command.name = 'changedfiles'
+			}
 			let matchCfg: MatchConfig = {
 				all: [],
 				any: [],
@@ -67,14 +70,7 @@ export class Commands {
 				matchCfg.any = command.matches
 			}
 
-			const matches = checkMatch(changedFiles, matchCfg)
-			if (!matches && command.addLabel !== undefined && command.removeLabel === undefined) {
-				command.removeLabel = command.addLabel
-				command.addLabel = undefined
-				return true
-			}
-
-			return matches
+			return checkMatch(changedFiles, matchCfg)
 		}
 
 		return false
@@ -162,7 +158,9 @@ export class Commands {
 		let changedFiles: string[] = []
 
 		if (this.config.find((cmd) => cmd.type === 'changedfiles') !== undefined) {
+			console.log('Found changedfiles commands, listing pull request filenames...')
 			changedFiles = await this.github.listPullRequestFilenames()
+			console.log('Got pull request filenames', changedFiles)
 		}
 
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))

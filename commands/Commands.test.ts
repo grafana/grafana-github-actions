@@ -358,39 +358,5 @@ describe('Commands', () => {
 			expect((await testbed.getIssue()).labels).to.contain('old')
 			expect((await testbed.getIssue()).labels).not.to.contain('new')
 		})
-
-		it('Labels without matched files changed should remove label that have been configured to be added', async () => {
-			const pullRequestFilenames = [
-				'backend/backend.go',
-				'backend/a/b/c/c.go',
-				'src/app.ts',
-				'src/app.ts/a/b/c/c.ts',
-			]
-			const testbed = new TestbedIssue(
-				{
-					writers: ['JacksonKearl'],
-				},
-				{
-					labels: ['old', 'veryOld', 'new'],
-					pullRequestFilenames,
-				},
-			)
-			const commands: Command[] = [
-				{
-					type: 'changedfiles',
-					name: 'area/backend',
-					matches: ['frontend/**/*'],
-					addLabel: 'new',
-				},
-			]
-
-			expect((await testbed.getIssue()).labels).to.contain('old')
-			expect((await testbed.getIssue()).labels).to.contain('new')
-
-			await new Commands(testbed, commands, {}).run()
-
-			expect((await testbed.getIssue()).labels).to.contain('old')
-			expect((await testbed.getIssue()).labels).not.to.contain('new')
-		})
 	})
 })

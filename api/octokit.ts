@@ -461,18 +461,23 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 	}
 
 	async listPullRequestFilenames(): Promise<string[]> {
+		const pullNumber = (await this.getIssue()).number
+		debug('Listing pull request files for pr #' + pullNumber)
 		const options = this.octokit.pulls.listFiles.endpoint.merge({
 			...this.params,
-			pull_number: (await this.getIssue()).number,
+			pull_number: pullNumber,
 		})
 
 		let filenames: string[] = []
 
 		for await (const resp of this.octokit.paginate.iterator(options)) {
+			console.log('Got listPullRequestFilenames response', resp)
 			numRequests++
 			const items = resp.data as Octokit.PullsListFilesResponseItem[]
 			filenames.push(...items.map((i) => i.filename))
 		}
+
+		console.log(`Got filenames for PR #${pullNumber}`, filenames)
 
 		return filenames
 	}

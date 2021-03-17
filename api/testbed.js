@@ -48,7 +48,7 @@ class Testbed {
     async dispatch(title) {
         console.log('dispatching for', title);
     }
-    async getMilestone(number) {
+    async getMilestone(_number) {
         return this.config.milestone;
     }
 }
