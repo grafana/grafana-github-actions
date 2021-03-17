@@ -471,7 +471,6 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 		let filenames: string[] = []
 
 		for await (const resp of this.octokit.paginate.iterator(options)) {
-			console.log('Got listPullRequestFilenames response', resp)
 			numRequests++
 			const items = resp.data as Octokit.PullsListFilesResponseItem[]
 			filenames.push(...items.map((i) => i.filename))
