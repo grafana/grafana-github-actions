@@ -33,12 +33,13 @@ class Commands {
                     (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
         }
         if (command.type === 'changedfiles' && command.matches) {
+            console.log('changedfiles command', command);
             if (!command.name) {
                 command.name = 'changedfiles';
             }
             let matchCfg = {
-                all: [],
-                any: [],
+                all: undefined,
+                any: undefined,
             };
             if (typeof command.matches === 'string') {
                 matchCfg.any = [command.matches];
@@ -52,6 +53,7 @@ class Commands {
             else {
                 matchCfg.any = command.matches;
             }
+            console.log('checking changedfiles matches match configuration', changedFiles, matchCfg);
             return globmatcher_1.checkMatch(changedFiles, matchCfg);
         }
         return false;
@@ -120,7 +122,6 @@ class Commands {
         if (this.config.find((cmd) => cmd.type === 'changedfiles') !== undefined) {
             console.log('Found changedfiles commands, listing pull request filenames...');
             changedFiles = await this.github.listPullRequestFilenames();
-            console.log('Got pull request filenames', changedFiles);
         }
         return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)));
     }
