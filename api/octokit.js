@@ -403,8 +403,8 @@ class OctoKitIssue extends OctoKit {
         });
         let filenames = [];
         for await (const resp of this.octokit.paginate.iterator(options)) {
-            if (resp.status !== 200)
-                numRequests++;
+            console.log('Got listPullRequestFilenames response', resp);
+            numRequests++;
             const items = resp.data;
             filenames.push(...items.map((i) => i.filename));
         }
