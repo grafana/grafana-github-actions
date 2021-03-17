@@ -23,11 +23,11 @@ exports.checkMatch = void 0;
 const micromatch = __importStar(require("micromatch"));
 function isMatch(input, matchers) {
     for (const matcher of matchers) {
-        if (!matcher(input)) {
-            return false;
+        if (matcher(input)) {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 // equivalent to "Array.some()" but expanded for debugging and clarity
 function checkAny(inputs, globs) {
