@@ -395,16 +395,20 @@ class OctoKitIssue extends OctoKit {
         return closingCommit;
     }
     async listPullRequestFilenames() {
+        const pullNumber = (await this.getIssue()).number;
+        core_1.debug('Listing pull request files for pr #' + pullNumber);
         const options = this.octokit.pulls.listFiles.endpoint.merge({
             ...this.params,
-            pull_number: (await this.getIssue()).number,
+            pull_number: pullNumber,
         });
         let filenames = [];
         for await (const resp of this.octokit.paginate.iterator(options)) {
-            numRequests++;
+            if (resp.status !== 200)
+                numRequests++;
             const items = resp.data;
             filenames.push(...items.map((i) => i.filename));
         }
+        console.log(`Got filenames for PR #${pullNumber}`, filenames);
         return filenames;
     }
 }

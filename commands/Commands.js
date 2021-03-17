@@ -33,6 +33,9 @@ class Commands {
                     (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
         }
         if (command.type === 'changedfiles' && command.matches) {
+            if (!command.name) {
+                command.name = 'changedfiles';
+            }
             let matchCfg = {
                 all: [],
                 any: [],
@@ -49,13 +52,7 @@ class Commands {
             else {
                 matchCfg.any = command.matches;
             }
-            const matches = globmatcher_1.checkMatch(changedFiles, matchCfg);
-            if (!matches && command.addLabel !== undefined && command.removeLabel === undefined) {
-                command.removeLabel = command.addLabel;
-                command.addLabel = undefined;
-                return true;
-            }
-            return matches;
+            return globmatcher_1.checkMatch(changedFiles, matchCfg);
         }
         return false;
     }
@@ -121,7 +118,9 @@ class Commands {
         const issue = await this.github.getIssue();
         let changedFiles = [];
         if (this.config.find((cmd) => cmd.type === 'changedfiles') !== undefined) {
+            console.log('Found changedfiles commands, listing pull request filenames...');
             changedFiles = await this.github.listPullRequestFilenames();
+            console.log('Got pull request filenames', changedFiles);
         }
         return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)));
     }

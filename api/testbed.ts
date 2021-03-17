@@ -74,7 +74,7 @@ export class Testbed implements GitHub {
 		console.log('dispatching for', title)
 	}
 
-	async getMilestone(number: number): Promise<Milestone> {
+	async getMilestone(_number: number): Promise<Milestone> {
 		return this.config.milestone!
 	}
 }
