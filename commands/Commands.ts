@@ -52,7 +52,6 @@ export class Commands {
 		}
 
 		if (command.type === 'changedfiles' && command.matches) {
-			console.log('changedfiles command', command)
 			if (!command.name) {
 				command.name = 'changedfiles'
 			}
@@ -70,8 +69,6 @@ export class Commands {
 			} else {
 				matchCfg.any = command.matches
 			}
-
-			console.log('checking changedfiles matches match configuration', changedFiles, matchCfg)
 
 			return checkMatch(changedFiles, matchCfg)
 		}

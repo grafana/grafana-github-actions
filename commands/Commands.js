@@ -33,7 +33,6 @@ class Commands {
                     (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
         }
         if (command.type === 'changedfiles' && command.matches) {
-            console.log('changedfiles command', command);
             if (!command.name) {
                 command.name = 'changedfiles';
             }
@@ -53,7 +52,6 @@ class Commands {
             else {
                 matchCfg.any = command.matches;
             }
-            console.log('checking changedfiles matches match configuration', changedFiles, matchCfg);
             return globmatcher_1.checkMatch(changedFiles, matchCfg);
         }
         return false;

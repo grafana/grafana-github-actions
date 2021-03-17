@@ -7,12 +7,12 @@ export interface MatchConfig {
 
 function isMatch(input: string, matchers: ((str: string) => boolean)[]): boolean {
 	for (const matcher of matchers) {
-		if (!matcher(input)) {
-			return false
+		if (matcher(input)) {
+			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 // equivalent to "Array.some()" but expanded for debugging and clarity

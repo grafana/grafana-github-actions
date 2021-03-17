@@ -31,6 +31,13 @@ describe('glob matching', () => {
 			)
 			expect(result).toBeFalsy()
 		})
+
+		it('should match any changed file with multiple match configurations', () => {
+			const result = checkMatch(['docs/sources/developers/contribute.md', 'pkg/api/dataproxy.go'], {
+				any: ['docs/**/*', 'contribute/**/*'],
+			})
+			expect(result).toBeTruthy()
+		})
 	})
 
 	describe('all', () => {
@@ -62,6 +69,13 @@ describe('glob matching', () => {
 				},
 			)
 			expect(result).toBeFalsy()
+		})
+
+		it('should match all changed files with multiple match configurations', () => {
+			const result = checkMatch(['docs/sources/developers/contribute.md', 'contribute/readme.md'], {
+				all: ['docs/**/*', 'contribute/**/*'],
+			})
+			expect(result).toBeTruthy()
 		})
 	})
 })
