@@ -2,7 +2,7 @@ name: Commands
 description: Respond to commands given in the form of either labels or comments by contributors or authorized community members
 inputs:
   token:
-    description: GitHub token with issue, comment, and label read/write permissions
+    description: GitHub token with issue, comment, and label read/write permissions. Requires metadata permissions to be able to check whether author is member of organization.
     default: ${{ github.token }}
   configPath:
     description: Name of .json file (no extension) in .github/ directory of repo holding configuration for this action

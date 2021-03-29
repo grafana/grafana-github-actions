@@ -18,6 +18,7 @@ class OctoKit {
         // when in readonly mode, record labels just-created so at to not throw unneccesary errors
         this.mockLabels = new Set();
         this.writeAccessCache = {};
+        this.orgMembersCache = {};
         this._octokit = new github_1.GitHub(token);
     }
     get octokit() {
@@ -178,6 +179,21 @@ class OctoKit {
     }
     async getRepoInfo() {
         return await this.octokit.repos.get({ owner: this.params.owner, repo: this.params.repo });
+    }
+    async isUserMemberOfOrganization(org, username) {
+        if (org in this.orgMembersCache) {
+            if (username in this.orgMembersCache[org]) {
+                core_1.debug('Got user  ' + username + ' is member of organization ' + org + ' from cache');
+                return this.orgMembersCache[org][username];
+            }
+        }
+        core_1.debug('Checking if user ' + username + ' is member of organization ' + org);
+        const resp = await this.octokit.orgs.checkMembership({ org, username });
+        core_1.debug('isUserMemberOfOrganization response status ' + resp.status);
+        this.orgMembersCache[org] = {};
+        // 204 is the response if requester is an organization member and user is a member
+        this.orgMembersCache[org][username] = resp.status === 204;
+        return this.orgMembersCache[org][username];
     }
 }
 exports.OctoKit = OctoKit;
