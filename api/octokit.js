@@ -181,19 +181,29 @@ class OctoKit {
         return await this.octokit.repos.get({ owner: this.params.owner, repo: this.params.repo });
     }
     async isUserMemberOfOrganization(org, username) {
-        if (org in this.orgMembersCache) {
-            if (username in this.orgMembersCache[org]) {
-                core_1.debug('Got user  ' + username + ' is member of organization ' + org + ' from cache');
-                return this.orgMembersCache[org][username];
-            }
+        if (org in this.orgMembersCache && username in this.orgMembersCache[org]) {
+            core_1.debug('Got user  ' + username + ' is member of organization ' + org + ' from cache');
+            return this.orgMembersCache[org][username];
+        }
+        if (!(org in this.orgMembersCache)) {
+            this.orgMembersCache[org] = {};
         }
         core_1.debug('Checking if user ' + username + ' is member of organization ' + org);
-        const resp = await this.octokit.orgs.checkMembership({ org, username });
-        core_1.debug('isUserMemberOfOrganization response status ' + resp.status);
-        this.orgMembersCache[org] = {};
-        // 204 is the response if requester is an organization member and user is a member
-        this.orgMembersCache[org][username] = resp.status === 204;
-        return this.orgMembersCache[org][username];
+        try {
+            const resp = await this.octokit.orgs.checkMembership({ org, username });
+            core_1.debug('isUserMemberOfOrganization response status ' + resp.status);
+            // 204 is the response if requester is an organization member and user is a member
+            this.orgMembersCache[org][username] = resp.status === 204;
+            return this.orgMembersCache[org][username];
+        }
+        catch (err) {
+            core_1.debug('isUserMemberOfOrganization error response status' + err.status);
+            if (err.status === 404) {
+                this.orgMembersCache[org][username] = false;
+                return this.orgMembersCache[org][username];
+            }
+            throw err;
+        }
     }
 }
 exports.OctoKit = OctoKit;
