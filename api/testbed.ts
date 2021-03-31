@@ -12,6 +12,7 @@ type TestbedConfig = {
 	milestone?: Milestone
 	releasedCommits: string[]
 	queryRunner: (query: Query) => AsyncIterableIterator<(TestbedIssueConstructorArgs | TestbedIssue)[]>
+	userMemberOfOrganization: boolean
 }
 
 export type TestbedConstructorArgs = Partial<TestbedConfig>
@@ -31,6 +32,7 @@ export class Testbed implements GitHub {
 				async function* () {
 					yield []
 				},
+			userMemberOfOrganization: config?.userMemberOfOrganization ?? false,
 		}
 	}
 
@@ -76,6 +78,10 @@ export class Testbed implements GitHub {
 
 	async getMilestone(_number: number): Promise<Milestone> {
 		return this.config.milestone!
+	}
+
+	async isUserMemberOfOrganization(org: string, username: string): Promise<boolean> {
+		return this.config.userMemberOfOrganization
 	}
 }
 

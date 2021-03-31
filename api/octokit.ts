@@ -198,6 +198,35 @@ export class OctoKit implements GitHub {
 	async getRepoInfo(): Promise<Octokit.Response<Octokit.ReposGetResponse>> {
 		return await this.octokit.repos.get({ owner: this.params.owner, repo: this.params.repo })
 	}
+
+	private orgMembersCache: Record<string, Record<string, boolean>> = {}
+	async isUserMemberOfOrganization(org: string, username: string): Promise<boolean> {
+		if (org in this.orgMembersCache && username in this.orgMembersCache[org]) {
+			debug('Got user  ' + username + ' is member of organization ' + org + ' from cache')
+			return this.orgMembersCache[org][username]
+		}
+
+		if (!(org in this.orgMembersCache)) {
+			this.orgMembersCache[org] = {}
+		}
+
+		debug('Checking if user ' + username + ' is member of organization ' + org)
+
+		try {
+			const resp = await this.octokit.orgs.checkMembership({ org, username })
+			debug('isUserMemberOfOrganization response status ' + resp.status)
+			// 204 is the response if requester is an organization member and user is a member
+			this.orgMembersCache[org][username] = resp.status === 204
+			return this.orgMembersCache[org][username]
+		} catch (err) {
+			debug('isUserMemberOfOrganization error response status' + err.status)
+			if (err.status === 404) {
+				this.orgMembersCache[org][username] = false
+				return this.orgMembersCache[org][username]
+			}
+			throw err
+		}
+	}
 }
 
 export class OctoKitIssue extends OctoKit implements GitHubIssue {

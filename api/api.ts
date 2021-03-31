@@ -21,6 +21,8 @@ export interface GitHub {
 	releaseContainsCommit(release: string, commit: string): Promise<'yes' | 'no' | 'unknown'>
 
 	getMilestone(number: number): Promise<Milestone>
+
+	isUserMemberOfOrganization(org: string, username: string): Promise<boolean>
 }
 
 export interface GitHubIssue extends GitHub {

@@ -13,6 +13,8 @@ export type Command = { name: string } & (
 	| { type: 'comment'; allowUsers: string[] }
 	| { type: 'label' }
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
+	| { type: 'author'; memberOf: { org: string } }
+	| { type: 'author'; notMemberOf: { org: string } }
 ) & {
 		action?: 'close'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
@@ -71,6 +73,21 @@ export class Commands {
 			}
 
 			return checkMatch(changedFiles, matchCfg)
+		}
+
+		if (command.type === 'author' && 'memberOf' in command) {
+			if (command.memberOf && 'org' in command.memberOf && command.memberOf?.org.length > 0) {
+				return await this.github.isUserMemberOfOrganization(command.memberOf.org, issue.author.name)
+			}
+		}
+
+		if (command.type === 'author' && 'notMemberOf' in command) {
+			if (command.notMemberOf && 'org' in command.notMemberOf && command.notMemberOf?.org.length > 0) {
+				return !(await this.github.isUserMemberOfOrganization(
+					command.notMemberOf.org,
+					issue.author.name,
+				))
+			}
 		}
 
 		return false
