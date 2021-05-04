@@ -107,7 +107,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `git cherry-pick -x ${commitToBackport}`,
         '# Push it to GitHub',
         `git push --set-upstream origin ${head}`,
-        `git switch master`,
+        `git switch main`,
         '# Remove the local backport branch',
         `git branch -D ${head}`,
         '```',
