@@ -51,7 +51,7 @@ class UpdateChangelog extends Action {
 		await git('push', '--set-upstream', 'origin', branchName)
 
 		await octokit.octokit.pulls.create({
-			base: 'master',
+			base: 'main',
 			body: 'This exciting! So much has changed!',
 			head: branchName,
 			owner,
