@@ -198,7 +198,7 @@ export class ReleaseNotesBuilder {
 
 	private getMarkdownLineForIssue(item: Issue) {
 		let markdown = ''
-		let title: string = item.title.replace(/^([^:]*)/, (_match: any, g1: any) => {
+		let title: string = item.title.replace(/^([^:]*:)/, (_match: any, g1: any) => {
 			return `**${g1}**`
 		})
 		title = title.trim()

@@ -156,7 +156,7 @@ class ReleaseNotesBuilder {
     }
     getMarkdownLineForIssue(item) {
         let markdown = '';
-        let title = item.title.replace(/^([^:]*)/, (_match, g1) => {
+        let title = item.title.replace(/^([^:]*:)/, (_match, g1) => {
             return `**${g1}**`;
         });
         title = title.trim();

@@ -133,8 +133,8 @@ Variables have been deprecated`,
 
 		### Bug fixes
 
-		* **Alerting**: Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
-		* **Alerting**: Fixed really bad issue. (Enterprise)
+		* **Alerting:** Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
+		* **Alerting:** Fixed really bad issue. (Enterprise)
 		"
 	`)
 
