@@ -207,16 +207,16 @@ export class ReleaseNotesBuilder {
 		}
 
 		if (issueHasLabel(item, ENTERPRISE_LABEL)) {
-			markdown += `* ${title}. (Enterprise)`
+			markdown += `- ${title}. (Enterprise)`
 			return markdown
 		}
 
 		if (item.isPullRequest) {
-			markdown += '* ' + title + '.'
+			markdown += '- ' + title + '.'
 			markdown += ` [#${item.number}](${githubGrafanaUrl}/pull/${item.number})`
 			markdown += `, [@${item.author.name}](https://github.com/${item.author.name})`
 		} else {
-			markdown += '* ' + title + '.'
+			markdown += '- ' + title + '.'
 			markdown += ` ${linkToIssue(item)}`
 		}
 

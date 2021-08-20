@@ -5,21 +5,21 @@ exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
 
 ### Features and enhancements
 
-* **Dashboard:** Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
-* **Dashboard:** Issue with deprecation notice. (Enterprise)
-* **Login:** New feature. [#1](https://github.com/grafana/grafana/issues/1)
-* **Login:** New feature. (Enterprise)
-* **Variables:** Variables deprecated. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
-* **Variables:** Variables deprecated. (Enterprise)
+- **Dashboard:** Issue with deprecation notice. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+- **Dashboard:** Issue with deprecation notice. (Enterprise)
+- **Login:** New feature. [#1](https://github.com/grafana/grafana/issues/1)
+- **Login:** New feature. (Enterprise)
+- **Variables:** Variables deprecated. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+- **Variables:** Variables deprecated. (Enterprise)
 
 ### Bug fixes
 
-* **API:** Fixed api issue. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
-* **API:** Fixed api issue. (Enterprise)
-* **Alerting:** Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
-* **Alerting:** Fixed really bad issue. (Enterprise)
-* **Auth:** Prevent errors from happening. [#1](https://github.com/grafana/grafana/issues/1)
-* **Auth:** Prevent errors from happening. (Enterprise)
+- **API:** Fixed api issue. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+- **API:** Fixed api issue. (Enterprise)
+- **Alerting:** Fixed really bad issue. [#1](https://github.com/grafana/grafana/issues/1)
+- **Alerting:** Fixed really bad issue. (Enterprise)
+- **Auth:** Prevent errors from happening. [#1](https://github.com/grafana/grafana/issues/1)
+- **Auth:** Prevent errors from happening. (Enterprise)
 
 ### Breaking changes
 
@@ -35,7 +35,7 @@ Variables have been deprecated Issue [#1](https://github.com/grafana/grafana/iss
 
 ### Plugin development fixes & changes
 
-* **Button:** Changed prop name for button. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
-* **Button:** Changed prop name for button. (Enterprise)
+- **Button:** Changed prop name for button. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+- **Button:** Changed prop name for button. (Enterprise)
 "
 `;
