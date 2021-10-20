@@ -44,6 +44,7 @@ class UpdateChangelog extends Action {
 		fileUpdater.writeFile(changelogFile)
 
 		await writeDocsFiles({ version, builder })
+		await npx('prettier', '--list-different', '**/*.{md}', '--write')
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
@@ -64,6 +65,10 @@ class UpdateChangelog extends Action {
 const git = async (...args: string[]) => {
 	// await exec('git', args, { cwd: repo })
 	await exec('git', args)
+}
+
+const npx = async (...args: string[]) => {
+	await exec('npx', args)
 }
 
 new UpdateChangelog().run() // eslint-disable-line
