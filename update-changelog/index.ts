@@ -44,7 +44,7 @@ class UpdateChangelog extends Action {
 		fileUpdater.writeFile(changelogFile)
 
 		await writeDocsFiles({ version, builder })
-		await npx('prettier', '--list-different', '**/*.md', '--write')
+		await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write')
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
