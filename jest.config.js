@@ -7,6 +7,5 @@ module.exports = {
 	testRegex: '(\\.|/)(test)\\.(jsx?|tsx?)$',
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 	globals: { 'ts-jest': { isolatedModules: true } },
-	watchPathIgnorePatterns: ['<rootDir>/node_modules/'],
-    setupFilesAfterEnv: ["<rootDir>/__tests__/setup.js"],
+	watchPathIgnorePatterns: ['<rootDir>/node_modules/'],    
 }
