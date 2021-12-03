@@ -123,3 +123,7 @@ ${JSON.stringify(context, null, 2)
 export function splitStringIntoLines(content: string) {
 	return content.split(/\r?\n/)
 }
+
+export const isPreRelease = (version: string) => {
+	return !version.match(/[vV]{1}\d{1,3}\.\d{1,3}\.\d{1,3}$/g)
+}
