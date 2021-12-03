@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { debug } from 'console'
 import { GitHubIssue, Issue, User } from '../api/api'
 import { checkMatch, MatchConfig } from '../common/globmatcher'
 import { trackEvent } from '../common/telemetry'
@@ -15,10 +16,12 @@ export type Command = { name: string } & (
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
 	| { type: 'author'; memberOf: { org: string } }
 	| { type: 'author'; notMemberOf: { org: string } }
+	| { type: 'addToProject' }
 ) & {
 		action?: 'close'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
 	Partial<{ requireLabel: string; disallowLabel: string }>
+	& Partial< { projectId: number; org?: string } >
 /* eslint-enable */
 
 export class Commands {
@@ -34,10 +37,6 @@ export class Commands {
 		}
 		if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
 			return false
-		}
-
-		if ('label' in this.action) {
-			return command.type === 'label' && this.action.label === command.name
 		}
 
 		if ('comment' in this.action) {
@@ -90,12 +89,30 @@ export class Commands {
 			}
 		}
 
+		/* if not enough parameters are specified, we will just silenty skip the command */
+		if (
+			command.type === 'addToProject' &&
+			command.name &&
+			command.projectId &&
+			issue.labels.includes(command.name)
+		) {
+			return true
+		}
+
+		if ('label' in this.action) {
+			return command.type === 'label' && this.action.label === command.name
+		}
+
 		return false
 	}
 
 	private async perform(command: Command, issue: Issue, changedFiles: string[]) {
-		if (!(await this.matches(command, issue, changedFiles))) return
-		console.log(`Running command ${command.name}:`)
+		debug('Would perform command:', command, ' on issue:', issue)
+		if (!(await this.matches(command, issue, changedFiles))) {
+			debug('Command ', JSON.stringify(command), ' did not match any criteria')
+			return
+		}
+		console.log('Running command', command)
 
 		await trackEvent(this.github, 'command', { name: command.name })
 
@@ -165,6 +182,10 @@ export class Commands {
 
 		if (command.removeLabel) {
 			tasks.push(this.github.removeLabel(command.removeLabel))
+		}
+
+		if (command.type === 'addToProject' && command.projectId) {
+			tasks.push(this.github.addIssueToProject(command.projectId, issue))
 		}
 
 		await Promise.all(tasks)

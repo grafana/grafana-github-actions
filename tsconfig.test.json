@@ -10,6 +10,7 @@
 		]
 	},
 	"include": [
-		"**/*.test.ts"
+		"**/*.test.ts",
+		"__mocks__/**/*.ts"
 	]
 }

@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Commands = void 0;
+const console_1 = require("console");
 const globmatcher_1 = require("../common/globmatcher");
 const telemetry_1 = require("../common/telemetry");
 /* eslint-enable */
@@ -21,9 +22,6 @@ class Commands {
         }
         if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
             return false;
-        }
-        if ('label' in this.action) {
-            return command.type === 'label' && this.action.label === command.name;
         }
         if ('comment' in this.action) {
             return (command.type === 'comment' &&
@@ -65,13 +63,26 @@ class Commands {
                 return !(await this.github.isUserMemberOfOrganization(command.notMemberOf.org, issue.author.name));
             }
         }
+        /* if not enough parameters are specified, we will just silenty skip the command */
+        if (command.type === 'addToProject' &&
+            command.name &&
+            command.projectId &&
+            issue.labels.includes(command.name)) {
+            return true;
+        }
+        if ('label' in this.action) {
+            return command.type === 'label' && this.action.label === command.name;
+        }
         return false;
     }
     async perform(command, issue, changedFiles) {
         var _a, _b;
-        if (!(await this.matches(command, issue, changedFiles)))
+        console_1.debug('Would perform command:', command, ' on issue:', issue);
+        if (!(await this.matches(command, issue, changedFiles))) {
+            console_1.debug('Command ', JSON.stringify(command), ' did not match any criteria');
             return;
-        console.log(`Running command ${command.name}:`);
+        }
+        console.log('Running command', command);
         await telemetry_1.trackEvent(this.github, 'command', { name: command.name });
         const tasks = [];
         if ('comment' in this.action && (command.name === 'label' || command.name === 'assign')) {
@@ -122,6 +133,9 @@ class Commands {
         }
         if (command.removeLabel) {
             tasks.push(this.github.removeLabel(command.removeLabel));
+        }
+        if (command.type === 'addToProject' && command.projectId) {
+            tasks.push(this.github.addIssueToProject(command.projectId, issue));
         }
         await Promise.all(tasks);
     }

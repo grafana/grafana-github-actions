@@ -13,6 +13,7 @@ type TestbedConfig = {
 	releasedCommits: string[]
 	queryRunner: (query: Query) => AsyncIterableIterator<(TestbedIssueConstructorArgs | TestbedIssue)[]>
 	userMemberOfOrganization: boolean
+	projectNodeId?: string
 }
 
 export type TestbedConstructorArgs = Partial<TestbedConfig>
@@ -33,6 +34,7 @@ export class Testbed implements GitHub {
 					yield []
 				},
 			userMemberOfOrganization: config?.userMemberOfOrganization ?? false,
+			projectNodeId: config?.projectNodeId ?? 'TESTPROJECTID',
 		}
 	}
 
@@ -80,8 +82,18 @@ export class Testbed implements GitHub {
 		return this.config.milestone!
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
 	async isUserMemberOfOrganization(org: string, username: string): Promise<boolean> {
 		return this.config.userMemberOfOrganization
+	}
+
+	async getProjectNodeId(_projectId: number, _org?: string): Promise<string | undefined> {
+		return this.config.projectNodeId
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+	async addIssueToProject(_project: number, _issue: Issue, org?: string): Promise<void> {
+		// pass...
 	}
 }
 

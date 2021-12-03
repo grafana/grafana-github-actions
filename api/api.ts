@@ -23,6 +23,10 @@ export interface GitHub {
 	getMilestone(number: number): Promise<Milestone>
 
 	isUserMemberOfOrganization(org: string, username: string): Promise<boolean>
+
+	getProjectNodeId(projectId: number, org?: string): Promise<string | undefined>
+
+	addIssueToProject(project: number, issue: Issue, org?: string): Promise<void>
 }
 
 export interface GitHubIssue extends GitHub {
@@ -100,6 +104,7 @@ export interface Issue {
 	updatedAt: number
 	closedAt?: number
 	isPullRequest?: boolean
+	nodeId: string
 }
 
 export interface Query {

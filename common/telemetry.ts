@@ -78,5 +78,5 @@ function getMetricsNamePrefix() {
 }
 
 export const trackEvent = async (issue: GitHubIssue, event: string, props?: Record<string, string>) => {
-	console.log('tracking event', issue, event, props)
+	console.debug('tracking event', issue, event, props)
 }

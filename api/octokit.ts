@@ -6,19 +6,24 @@
 import { debug } from '@actions/core'
 import { GitHub as GitHubAPI } from '@actions/github'
 import { Octokit } from '@octokit/rest'
+import { graphql } from '@octokit/graphql'
 import { exec } from 'child_process'
 import { Comment, GitHub, GitHubIssue, Issue, Milestone, Query, User } from './api'
+import type { GraphQlQueryResponseData } from '@octokit/graphql'
 
 let numRequests = 0
 export const getNumRequests = () => numRequests
 
 export class OctoKit implements GitHub {
 	private _octokit: GitHubAPI
+	private _octokitGraphQL: typeof graphql
 	public get octokit(): GitHubAPI {
 		numRequests++
 		return this._octokit
 	}
-
+	public get octokitGraphQL() {
+		return this._octokitGraphQL
+	}
 	// when in readonly mode, record labels just-created so at to not throw unneccesary errors
 	protected mockLabels: Set<string> = new Set()
 
@@ -27,7 +32,15 @@ export class OctoKit implements GitHub {
 		protected params: { repo: string; owner: string },
 		protected options: { readonly: boolean } = { readonly: false },
 	) {
+		console.debug('Constructor OctoKit init')
+
 		this._octokit = new GitHubAPI(token)
+		this._octokitGraphQL = graphql.defaults({
+			headers: {
+				authorization: `token ${token}`,
+			},
+		})
+		console.debug('Constructor OctoKit end')
 	}
 
 	// TODO: just iterate over the issues in a page here instead of making caller do it
@@ -103,6 +116,7 @@ export class OctoKit implements GitHub {
 			updatedAt: +new Date(issue.updated_at),
 			closedAt: issue.closed_at ? +new Date((issue.closed_at as unknown) as string) : undefined,
 			isPullRequest: !!issue.pull_request,
+			nodeId: issue.node_id,
 		}
 	}
 
@@ -225,6 +239,68 @@ export class OctoKit implements GitHub {
 				return this.orgMembersCache[org][username]
 			}
 			throw err
+		}
+	}
+
+	async getProjectNodeId(projectId: number, org: string): Promise<string | undefined> {
+		console.debug('Running getProjectNodeId for project ' + projectId)
+
+		try {
+			const result = (await this._octokitGraphQL({
+				query: `query getProjectNodeId($org: String!, $projectId: Int!) {
+				organization(login:$org){
+				  projectNext(number:$projectId) {
+						id
+					  }
+				}
+				}`,
+				projectId: Math.floor(projectId),
+				org,
+			})) as GraphQlQueryResponseData
+			console.debug('getProjectNodeId result ' + JSON.stringify(result))
+			return result.organization.projectNext?.id
+		} catch (error) {
+			console.error('Could not get project node id ' + error)
+		}
+		return undefined
+	}
+
+	async addIssueToProject(projectId: number, issue: Issue, org = 'grafana'): Promise<void> {
+		console.debug('Running addIssueToProject for: ' + projectId)
+
+		const projectNodeId = await this.getProjectNodeId(projectId, org)
+
+		if (!projectNodeId) {
+			console.log('Could not find project node id for project ' + projectId)
+			return
+		}
+
+		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`
+
+		console.debug(
+			'Trying to add issue to project via mutation ',
+			mutation,
+			' with variables: ',
+			' projectNodeId: ' + projectNodeId,
+			' issueNodeId: ' + issue.nodeId,
+		)
+		try {
+			const mutationResponse = await this._octokitGraphQL({
+				query: mutation,
+				projectNodeId,
+				issueNodeId: issue.nodeId,
+			})
+			console.debug(
+				'Successfully added issue to project. Mutation response: ' + JSON.stringify(mutationResponse),
+			)
+		} catch (error) {
+			console.error('Mutation did not work ' + error)
 		}
 	}
 }
