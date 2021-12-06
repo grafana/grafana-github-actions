@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.splitStringIntoLines = exports.logErrorToIssue = exports.errorLoggingIssue = exports.getRateLimit = exports.daysAgoToHumanReadbleDate = exports.daysAgoToTimestamp = exports.loadLatestRelease = exports.normalizeIssue = exports.getRequiredInput = exports.getInput = void 0;
+exports.isPreRelease = exports.splitStringIntoLines = exports.logErrorToIssue = exports.errorLoggingIssue = exports.getRateLimit = exports.daysAgoToHumanReadbleDate = exports.daysAgoToTimestamp = exports.loadLatestRelease = exports.normalizeIssue = exports.getRequiredInput = exports.getInput = void 0;
 const core = __importStar(require("@actions/core"));
 const github_1 = require("@actions/github");
 const axios_1 = __importDefault(require("axios"));
@@ -125,4 +125,7 @@ function splitStringIntoLines(content) {
     return content.split(/\r?\n/);
 }
 exports.splitStringIntoLines = splitStringIntoLines;
+exports.isPreRelease = (version) => {
+    return !version.match(/[vV]{1}\d{1,3}\.\d{1,3}\.\d{1,3}$/g);
+};
 //# sourceMappingURL=utils.js.map

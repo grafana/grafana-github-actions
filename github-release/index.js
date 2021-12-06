@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const ReleaseNotesBuilder_1 = require("../update-changelog/ReleaseNotesBuilder");
+const utils_1 = require("../common/utils");
 class GitHubRelease extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -54,6 +55,7 @@ ${notes}
                 name: title,
                 body: content,
                 tag_name: tag,
+                prerelease: utils_1.isPreRelease(tag),
             });
         }
     }
