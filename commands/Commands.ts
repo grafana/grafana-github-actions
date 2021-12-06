@@ -199,7 +199,7 @@ export class Commands {
 			console.log('Found changedfiles commands, listing pull request filenames...')
 			changedFiles = await this.github.listPullRequestFilenames()
 		}
-
+		console.debug('Would perform commands:', this.config)
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))
 	}
 }
