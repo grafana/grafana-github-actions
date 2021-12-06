@@ -3,7 +3,7 @@ import { Action } from '../common/Action'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 import { ReleaseNotesBuilder } from '../update-changelog/ReleaseNotesBuilder'
-
+import { isPreRelease } from '../common/utils'
 class GitHubRelease extends Action {
 	id = 'GitHubRelease'
 
@@ -58,6 +58,7 @@ ${notes}
 				name: title,
 				body: content,
 				tag_name: tag,
+				prerelease: isPreRelease(tag),
 			})
 		}
 	}

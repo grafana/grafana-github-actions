@@ -132,3 +132,7 @@ export const getProjectIdFromUrl = (url: string) => {
 	}
 	return null
 }
+
+export const isPreRelease = (version: string) => {
+	return !version.match(/[vV]{1}\d{1,3}\.\d{1,3}\.\d{1,3}$/g)
+}
