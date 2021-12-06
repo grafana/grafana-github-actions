@@ -480,7 +480,7 @@ describe('Commands', () => {
 	})
 
 	describe('Add Issue to Project', () => {
-		it.only('Expect the getProjectNodeId and addIssueToProject to be called with right project id and org', async () => {
+		it('Expect the getProjectNodeId and addIssueToProject to be called with right project id and org', async () => {
 			// arrange
 			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
 			const testProjectId = 76

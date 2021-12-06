@@ -64,15 +64,6 @@ class Commands {
                 return !(await this.github.isUserMemberOfOrganization(command.notMemberOf.org, issue.author.name));
             }
         }
-        /* if not enough parameters are specified, we will just silenty skip the command */
-        /*		if (
-            command.type === 'addToProject' &&
-            command.name &&
-            command.projectId &&
-            issue.labels.includes(command.name)
-        ) {
-            return true
-        }*/
         if ('label' in this.action) {
             return command.type === 'label' && this.action.label === command.name;
         }
@@ -137,7 +128,10 @@ class Commands {
         if (command.removeLabel) {
             tasks.push(this.github.removeLabel(command.removeLabel));
         }
-        if (command.action === 'addToProject' && command.addToProject && command.addToProject.url) {
+        if (command.action === 'addToProject' &&
+            command.addToProject &&
+            command.addToProject.url &&
+            issue.labels.includes(command.name)) {
             const projectId = utils_1.getProjectIdFromUrl(command.addToProject.url);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue));
