@@ -17,7 +17,7 @@ class Commands {
         this.action = action;
     }
     async matches(command, issue, changedFiles) {
-        var _a, _b;
+        var _a, _b, _c;
         if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
             return false;
         }
@@ -54,14 +54,14 @@ class Commands {
             }
             return globmatcher_1.checkMatch(changedFiles, matchCfg);
         }
-        if (command.type === 'author' && 'memberOf' in command) {
-            if (command.memberOf && 'org' in command.memberOf && ((_a = command.memberOf) === null || _a === void 0 ? void 0 : _a.org.length) > 0) {
-                return await this.github.isUserMemberOfOrganization(command.memberOf.org, issue.author.name);
+        if (command.type === 'author') {
+            const org = ((_a = command.memberOf) === null || _a === void 0 ? void 0 : _a.org) || ((_b = command.notMemberOf) === null || _b === void 0 ? void 0 : _b.org);
+            if (((_c = command.ignoreList) === null || _c === void 0 ? void 0 : _c.length) && command.ignoreList.includes(issue.author.name)) {
+                return false;
             }
-        }
-        if (command.type === 'author' && 'notMemberOf' in command) {
-            if (command.notMemberOf && 'org' in command.notMemberOf && ((_b = command.notMemberOf) === null || _b === void 0 ? void 0 : _b.org.length) > 0) {
-                return !(await this.github.isUserMemberOfOrganization(command.notMemberOf.org, issue.author.name));
+            if (org) {
+                const isMember = await this.github.isUserMemberOfOrganization(org, issue.author.name);
+                return 'memberOf' in command ? isMember : !isMember;
             }
         }
         if ('label' in this.action) {
