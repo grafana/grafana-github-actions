@@ -476,5 +476,35 @@ describe('Commands', () => {
 			expect((await testbed.getIssue()).labels).not.to.contain('old')
 			expect((await testbed.getIssue()).labels).to.contain('new')
 		})
+
+		it('Labels not when author is in the ignoreList', async () => {
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+					userMemberOfOrganization: false,
+				},
+				{
+					labels: ['old', 'veryOld'],
+				},
+			)
+			const commands: Command[] = [
+				{
+					type: 'author',
+					name: 'Grafana author',
+					notMemberOf: { org: 'grafana' },
+					ignoreList: ['JacksonKearl'],
+					addLabel: 'new',
+					removeLabel: 'old',
+				},
+			]
+
+			expect((await testbed.getIssue()).labels).to.contain('old')
+			expect((await testbed.getIssue()).labels).not.to.contain('new')
+
+			await new Commands(testbed, commands, {}).run()
+
+			expect((await testbed.getIssue()).labels).to.contain('old')
+			expect((await testbed.getIssue()).labels).not.to.contain('new')
+		})
 	})
 })

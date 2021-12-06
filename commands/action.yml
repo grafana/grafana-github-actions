@@ -8,7 +8,7 @@ inputs:
     description: Name of .json file (no extension) in .github/ directory of repo holding configuration for this action
     required: true
   metricsWriteAPIKey:
-    description: Grfanaa Cloud metrics api key
+    description: Grafana Cloud metrics api key
     required: false
 runs:
   using: 'node12'
