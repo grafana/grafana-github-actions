@@ -123,3 +123,12 @@ ${JSON.stringify(context, null, 2)
 export function splitStringIntoLines(content: string) {
 	return content.split(/\r?\n/)
 }
+
+export const getProjectIdFromUrl = (url: string) => {
+	const projectIdPattern = /(?<=projects\/)\d+/g
+	const projectId = url.match(projectIdPattern)
+	if (projectId) {
+		return parseInt(projectId[0])
+	}
+	return null
+}

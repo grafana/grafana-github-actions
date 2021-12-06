@@ -480,9 +480,10 @@ describe('Commands', () => {
 	})
 
 	describe('Add Issue to Project', () => {
-		it('Expect the getProjectNodeId and addIssueToProject to be called with right project id and org', async () => {
+		it.only('Expect the getProjectNodeId and addIssueToProject to be called with right project id and org', async () => {
 			// arrange
-			const testProjectId = 71
+			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
+			const testProjectId = 76
 			const testOrgName = 'testOrg'
 			const testLabel = 'plugins-platform'
 			const testbed = new TestbedIssue(
@@ -500,13 +501,16 @@ describe('Commands', () => {
 			// act
 			const commands: Command[] = [
 				{
-					type: 'addToProject',
-					projectId: testProjectId,
+					type: 'label',
+					action: 'addToProject',
+					addToProject: {
+						url: testProjectUrl,
+					},
 					org: testOrgName,
 					name: testLabel,
 				},
 			]
-			await new Commands(testbed, commands, { testLabel }).run()
+			await new Commands(testbed, commands, { label: testLabel }).run()
 
 			// assert
 			jestExpect(spyAddIssueToProject).toHaveBeenCalledWith(testProjectId, await testbed.getIssue())
@@ -515,7 +519,7 @@ describe('Commands', () => {
 
 		it('Expect the to skip adding project if labels are not matching', async () => {
 			// arrange
-			const testProjectId = 71
+			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
 			const testOrgName = 'testOrg'
 			const testLabel = 'plugins-platform'
 			const testbed = new TestbedIssue(
@@ -533,13 +537,16 @@ describe('Commands', () => {
 			// act
 			const commands: Command[] = [
 				{
-					type: 'addToProject',
-					projectId: testProjectId,
+					type: 'label',
+					action: 'addToProject',
+					addToProject: {
+						url: testProjectUrl,
+					},
 					org: testOrgName,
 					name: 'plugins-platform',
 				},
 			]
-			await new Commands(testbed, commands, { testLabel }).run()
+			await new Commands(testbed, commands, { label: testLabel }).run()
 
 			// assert
 			jestExpect(spyAddIssueToProject).toHaveBeenCalledTimes(0)
