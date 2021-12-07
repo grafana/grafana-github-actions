@@ -45,6 +45,8 @@ class BumpVersion extends Action {
 			'--exact',
 			'--yes',
 		])
+		//regenerate yarn.lock file
+		await exec('yarn')
 
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 
@@ -54,6 +56,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 npm version ${version} --no-git-tag-version\n
 npx lerna version ${version} --no-push --not-git-tag-version --force-publish --exact --yes
+yarn
 `
 		await octokit.octokit.pulls.create({
 			base,
