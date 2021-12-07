@@ -81,6 +81,9 @@ class Action {
                             case 'milestoned':
                                 await this.onMilestoned(octokit);
                                 break;
+                            case 'demilestoned':
+                                await this.onDemilestoned(octokit);
+                                break;
                             case 'synchronize':
                                 await this.onSynchronized(octokit);
                                 break;
@@ -146,6 +149,9 @@ ID: ${details.id}
         throw Error('not implemented');
     }
     async onMilestoned(_issue) {
+        throw Error('not implemented');
+    }
+    async onDemilestoned(_issue) {
         throw Error('not implemented');
     }
     async onCommented(_issue, _comment, _actor) {

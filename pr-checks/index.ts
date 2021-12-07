@@ -16,6 +16,10 @@ class PRChecksAction extends Action {
 		await this.onAction(issue)
 	}
 
+	async onDemilestoned(issue: OctoKitIssue): Promise<void> {
+		await this.onAction(issue)
+	}
+
 	async onSynchronized(issue: OctoKitIssue): Promise<void> {
 		await this.onAction(issue)
 	}

@@ -15,6 +15,9 @@ class PRChecksAction extends Action_1.Action {
     async onMilestoned(issue) {
         await this.onAction(issue);
     }
+    async onDemilestoned(issue) {
+        await this.onAction(issue);
+    }
     async onSynchronized(issue) {
         await this.onAction(issue);
     }

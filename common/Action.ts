@@ -92,6 +92,9 @@ export abstract class Action {
 							case 'milestoned':
 								await this.onMilestoned(octokit)
 								break
+							case 'demilestoned':
+								await this.onDemilestoned(octokit)
+								break
 							case 'synchronize':
 								await this.onSynchronized(octokit)
 								break
@@ -162,6 +165,9 @@ ID: ${details.id}
 		throw Error('not implemented')
 	}
 	protected async onMilestoned(_issue: OctoKitIssue): Promise<void> {
+		throw Error('not implemented')
+	}
+	protected async onDemilestoned(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
 	protected async onCommented(_issue: OctoKitIssue, _comment: string, _actor: string): Promise<void> {
