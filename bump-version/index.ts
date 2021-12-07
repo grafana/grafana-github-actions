@@ -45,8 +45,12 @@ class BumpVersion extends Action {
 			'--exact',
 			'--yes',
 		])
-		//regenerate yarn.lock file
-		await exec('yarn')
+		try {
+			//regenerate yarn.lock file
+			await exec('yarn')
+		} catch (e) {
+			console.error('yarn failed', e)
+		}
 
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 
