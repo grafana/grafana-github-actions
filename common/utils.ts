@@ -124,6 +124,15 @@ export function splitStringIntoLines(content: string) {
 	return content.split(/\r?\n/)
 }
 
+export const getProjectIdFromUrl = (url: string) => {
+	const projectIdPattern = /(?<=projects\/)\d+/g
+	const projectId = url.match(projectIdPattern)
+	if (projectId) {
+		return parseInt(projectId[0])
+	}
+	return null
+}
+
 export const isPreRelease = (version: string) => {
 	return !version.match(/[vV]{1}\d{1,3}\.\d{1,3}\.\d{1,3}$/g)
 }

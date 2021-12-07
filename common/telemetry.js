@@ -63,6 +63,6 @@ function getMetricsNamePrefix() {
     return `repo_stats.${github_1.context.repo.repo}`;
 }
 exports.trackEvent = async (issue, event, props) => {
-    console.log('tracking event', issue, event, props);
+    console.debug('tracking event', issue, event, props);
 };
 //# sourceMappingURL=telemetry.js.map

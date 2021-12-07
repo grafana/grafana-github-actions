@@ -7,7 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestbedIssue = exports.Testbed = void 0;
 class Testbed {
     constructor(config) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g;
         this.config = {
             globalLabels: (_a = config === null || config === void 0 ? void 0 : config.globalLabels) !== null && _a !== void 0 ? _a : [],
             configs: (_b = config === null || config === void 0 ? void 0 : config.configs) !== null && _b !== void 0 ? _b : {},
@@ -18,6 +18,7 @@ class Testbed {
                 yield [];
             },
             userMemberOfOrganization: (_f = config === null || config === void 0 ? void 0 : config.userMemberOfOrganization) !== null && _f !== void 0 ? _f : false,
+            projectNodeId: (_g = config === null || config === void 0 ? void 0 : config.projectNodeId) !== null && _g !== void 0 ? _g : 'TESTPROJECTID',
         };
     }
     async *query(query) {
@@ -52,8 +53,16 @@ class Testbed {
     async getMilestone(_number) {
         return this.config.milestone;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
     async isUserMemberOfOrganization(org, username) {
         return this.config.userMemberOfOrganization;
+    }
+    async getProjectNodeId(_projectId, _org) {
+        return this.config.projectNodeId;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    async addIssueToProject(_project, _issue, org) {
+        // pass...
     }
 }
 exports.Testbed = Testbed;

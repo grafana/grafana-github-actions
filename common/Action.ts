@@ -8,6 +8,7 @@ import { context, GitHub } from '@actions/github'
 import { getRequiredInput, logErrorToIssue, getRateLimit, errorLoggingIssue } from './utils'
 import { getInput, setFailed } from '@actions/core'
 import { aiHandle } from './telemetry'
+import { debug } from 'console'
 
 export abstract class Action {
 	abstract id: string
@@ -24,7 +25,7 @@ export abstract class Action {
 	}
 
 	public async trackMetric(telemetry: { name: string; value: number }) {
-		console.log('tracking metric:', telemetry)
+		console.log('tracking metrics:', telemetry)
 		if (aiHandle) {
 			aiHandle.trackMetric(telemetry)
 		}
@@ -114,6 +115,7 @@ export abstract class Action {
 	}
 
 	private async error(error: Error) {
+		debug('Error when running action: ', error)
 		const details: any = {
 			message: `${error.message}\n${error.stack}`,
 			id: this.id,

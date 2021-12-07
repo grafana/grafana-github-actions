@@ -5,8 +5,10 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Commands = void 0;
+const console_1 = require("console");
 const globmatcher_1 = require("../common/globmatcher");
 const telemetry_1 = require("../common/telemetry");
+const utils_1 = require("../common/utils");
 /* eslint-enable */
 class Commands {
     constructor(github, config, action) {
@@ -21,9 +23,6 @@ class Commands {
         }
         if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
             return false;
-        }
-        if ('label' in this.action) {
-            return command.type === 'label' && this.action.label === command.name;
         }
         if ('comment' in this.action) {
             return (command.type === 'comment' &&
@@ -65,13 +64,19 @@ class Commands {
                 return 'memberOf' in command ? isMember : !isMember;
             }
         }
+        if ('label' in this.action) {
+            return command.type === 'label' && this.action.label === command.name;
+        }
         return false;
     }
     async perform(command, issue, changedFiles) {
         var _a, _b;
-        if (!(await this.matches(command, issue, changedFiles)))
+        console_1.debug('Would perform command:', command, ' on issue:', issue);
+        if (!(await this.matches(command, issue, changedFiles))) {
+            console_1.debug('Command ', JSON.stringify(command), ' did not match any criteria');
             return;
-        console.log(`Running command ${command.name}:`);
+        }
+        console.log('Running command', command);
         await telemetry_1.trackEvent(this.github, 'command', { name: command.name });
         const tasks = [];
         if ('comment' in this.action && (command.name === 'label' || command.name === 'assign')) {
@@ -123,6 +128,18 @@ class Commands {
         if (command.removeLabel) {
             tasks.push(this.github.removeLabel(command.removeLabel));
         }
+        if (command.action === 'addToProject' &&
+            command.addToProject &&
+            command.addToProject.url &&
+            issue.labels.includes(command.name)) {
+            const projectId = utils_1.getProjectIdFromUrl(command.addToProject.url);
+            if (projectId) {
+                tasks.push(this.github.addIssueToProject(projectId, issue));
+            }
+            else {
+                console.debug('Could not parse project id from the provided URL', command.addToProject.url);
+            }
+        }
         await Promise.all(tasks);
     }
     async run() {
@@ -132,6 +149,7 @@ class Commands {
             console.log('Found changedfiles commands, listing pull request filenames...');
             changedFiles = await this.github.listPullRequestFilenames();
         }
+        console.debug('Would perform commands:', this.config);
         return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)));
     }
 }

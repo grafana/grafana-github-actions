@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OctoKitIssue = exports.OctoKit = exports.getNumRequests = void 0;
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
+const graphql_1 = require("@octokit/graphql");
 const child_process_1 = require("child_process");
 let numRequests = 0;
 exports.getNumRequests = () => numRequests;
@@ -19,11 +20,21 @@ class OctoKit {
         this.mockLabels = new Set();
         this.writeAccessCache = {};
         this.orgMembersCache = {};
+        console.debug('Constructor OctoKit init');
         this._octokit = new github_1.GitHub(token);
+        this._octokitGraphQL = graphql_1.graphql.defaults({
+            headers: {
+                authorization: `token ${token}`,
+            },
+        });
+        console.debug('Constructor OctoKit end');
     }
     get octokit() {
         numRequests++;
         return this._octokit;
+    }
+    get octokitGraphQL() {
+        return this._octokitGraphQL;
     }
     // TODO: just iterate over the issues in a page here instead of making caller do it
     async *query(query) {
@@ -91,6 +102,7 @@ class OctoKit {
             updatedAt: +new Date(issue.updated_at),
             closedAt: issue.closed_at ? +new Date(issue.closed_at) : undefined,
             isPullRequest: !!issue.pull_request,
+            nodeId: issue.node_id,
         };
     }
     async hasWriteAccess(user) {
@@ -203,6 +215,56 @@ class OctoKit {
                 return this.orgMembersCache[org][username];
             }
             throw err;
+        }
+    }
+    async getProjectNodeId(projectId, org) {
+        var _a;
+        console.debug('Running getProjectNodeId for project ' + projectId);
+        try {
+            const result = (await this._octokitGraphQL({
+                query: `query getProjectNodeId($org: String!, $projectId: Int!) {
+				organization(login:$org){
+				  projectNext(number:$projectId) {
+						id
+					  }
+				}
+				}`,
+                projectId: Math.floor(projectId),
+                org,
+            }));
+            console.debug('getProjectNodeId result ' + JSON.stringify(result));
+            return (_a = result.organization.projectNext) === null || _a === void 0 ? void 0 : _a.id;
+        }
+        catch (error) {
+            console.error('Could not get project node id ' + error);
+        }
+        return undefined;
+    }
+    async addIssueToProject(projectId, issue, org = 'grafana') {
+        console.debug('Running addIssueToProject for: ' + projectId);
+        const projectNodeId = await this.getProjectNodeId(projectId, org);
+        if (!projectNodeId) {
+            console.log('Could not find project node id for project ' + projectId);
+            return;
+        }
+        const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`;
+        console.debug('Trying to add issue to project via mutation ', mutation, ' with variables: ', ' projectNodeId: ' + projectNodeId, ' issueNodeId: ' + issue.nodeId);
+        try {
+            const mutationResponse = await this._octokitGraphQL({
+                query: mutation,
+                projectNodeId,
+                issueNodeId: issue.nodeId,
+            });
+            console.debug('Successfully added issue to project. Mutation response: ' + JSON.stringify(mutationResponse));
+        }
+        catch (error) {
+            console.error('Mutation did not work ' + error);
         }
     }
 }

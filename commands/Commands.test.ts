@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from 'chai'
+import { expect as jestExpect } from '@jest/globals'
 import { TestbedIssue } from '../api/testbed'
 import { Command, Commands } from './Commands'
 
@@ -505,6 +506,80 @@ describe('Commands', () => {
 
 			expect((await testbed.getIssue()).labels).to.contain('old')
 			expect((await testbed.getIssue()).labels).not.to.contain('new')
+		})
+	})
+
+	describe('Add Issue to Project', () => {
+		it('Expect the getProjectNodeId and addIssueToProject to be called with right project id and org', async () => {
+			// arrange
+			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
+			const testProjectId = 76
+			const testOrgName = 'testOrg'
+			const testLabel = 'plugins-platform'
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+				},
+				{
+					labels: ['some-other-label', 'plugins-platform'],
+				},
+			)
+			const spyAddIssueToProject = jest
+				.spyOn(testbed, 'addIssueToProject')
+				.mockReturnValue(Promise.resolve())
+
+			// act
+			const commands: Command[] = [
+				{
+					type: 'label',
+					action: 'addToProject',
+					addToProject: {
+						url: testProjectUrl,
+					},
+					org: testOrgName,
+					name: testLabel,
+				},
+			]
+			await new Commands(testbed, commands, { label: testLabel }).run()
+
+			// assert
+			jestExpect(spyAddIssueToProject).toHaveBeenCalledWith(testProjectId, await testbed.getIssue())
+			jestExpect(spyAddIssueToProject).toHaveBeenCalledTimes(1)
+		})
+
+		it('Expect the to skip adding project if labels are not matching', async () => {
+			// arrange
+			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
+			const testOrgName = 'testOrg'
+			const testLabel = 'plugins-platform'
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+				},
+				{
+					labels: ['some-other-label', 'another-label'],
+				},
+			)
+			const spyAddIssueToProject = jest
+				.spyOn(testbed, 'addIssueToProject')
+				.mockReturnValue(Promise.resolve())
+
+			// act
+			const commands: Command[] = [
+				{
+					type: 'label',
+					action: 'addToProject',
+					addToProject: {
+						url: testProjectUrl,
+					},
+					org: testOrgName,
+					name: 'plugins-platform',
+				},
+			]
+			await new Commands(testbed, commands, { label: testLabel }).run()
+
+			// assert
+			jestExpect(spyAddIssueToProject).toHaveBeenCalledTimes(0)
 		})
 	})
 })

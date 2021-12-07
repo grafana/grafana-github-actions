@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { debug } from 'console'
 import { GitHubIssue, Issue, User } from '../api/api'
 import { checkMatch, MatchConfig } from '../common/globmatcher'
 import { trackEvent } from '../common/telemetry'
+import { getProjectIdFromUrl } from '../common/utils'
 
 /* eslint-disable */
 // confusing when eslint formats
@@ -15,9 +17,10 @@ export type Command = { name: string } & (
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
 	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[] }
 ) & {
-		action?: 'close'
+		action?: 'close' | 'addToProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
 	Partial<{ requireLabel: string; disallowLabel: string }>
+	& Partial<{ addToProject: { url: string } }>
 /* eslint-enable */
 
 export class Commands {
@@ -33,10 +36,6 @@ export class Commands {
 		}
 		if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
 			return false
-		}
-
-		if ('label' in this.action) {
-			return command.type === 'label' && this.action.label === command.name
 		}
 
 		if ('comment' in this.action) {
@@ -88,12 +87,20 @@ export class Commands {
 			}
 		}
 
+		if ('label' in this.action) {
+			return command.type === 'label' && this.action.label === command.name
+		}
+
 		return false
 	}
 
 	private async perform(command: Command, issue: Issue, changedFiles: string[]) {
-		if (!(await this.matches(command, issue, changedFiles))) return
-		console.log(`Running command ${command.name}:`)
+		debug('Would perform command:', command, ' on issue:', issue)
+		if (!(await this.matches(command, issue, changedFiles))) {
+			debug('Command ', JSON.stringify(command), ' did not match any criteria')
+			return
+		}
+		console.log('Running command', command)
 
 		await trackEvent(this.github, 'command', { name: command.name })
 
@@ -165,6 +172,19 @@ export class Commands {
 			tasks.push(this.github.removeLabel(command.removeLabel))
 		}
 
+		if (
+			command.action === 'addToProject' &&
+			command.addToProject &&
+			command.addToProject.url &&
+			issue.labels.includes(command.name)
+		) {
+			const projectId = getProjectIdFromUrl(command.addToProject.url)
+			if (projectId) {
+				tasks.push(this.github.addIssueToProject(projectId, issue))
+			} else {
+				console.debug('Could not parse project id from the provided URL', command.addToProject.url)
+			}
+		}
 		await Promise.all(tasks)
 	}
 
@@ -176,7 +196,7 @@ export class Commands {
 			console.log('Found changedfiles commands, listing pull request filenames...')
 			changedFiles = await this.github.listPullRequestFilenames()
 		}
-
+		console.debug('Would perform commands:', this.config)
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))
 	}
 }

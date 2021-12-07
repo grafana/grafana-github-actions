@@ -10,6 +10,7 @@ const github_1 = require("@actions/github");
 const utils_1 = require("./utils");
 const core_1 = require("@actions/core");
 const telemetry_1 = require("./telemetry");
+const console_1 = require("console");
 class Action {
     constructor() {
         this.token = utils_1.getRequiredInput('token');
@@ -19,7 +20,7 @@ class Action {
         return this.token;
     }
     async trackMetric(telemetry) {
-        console.log('tracking metric:', telemetry);
+        console.log('tracking metrics:', telemetry);
         if (telemetry_1.aiHandle) {
             telemetry_1.aiHandle.trackMetric(telemetry);
         }
@@ -102,6 +103,7 @@ class Action {
         await this.trackMetric({ name: 'usage_search', value: usage.search });
     }
     async error(error) {
+        console_1.debug('Error when running action: ', error);
         const details = {
             message: `${error.message}\n${error.stack}`,
             id: this.id,
