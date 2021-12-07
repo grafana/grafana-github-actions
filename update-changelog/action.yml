@@ -8,5 +8,5 @@ inputs:
     description: Grafana Cloud metrics api key
     required: false
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'index.js'

@@ -13,7 +13,7 @@ const telemetry_1 = require("./telemetry");
 const console_1 = require("console");
 class Action {
     constructor() {
-        this.token = utils_1.getRequiredInput('token');
+        this.token = (0, utils_1.getRequiredInput)('token');
         this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name);
     }
     getToken() {
@@ -26,14 +26,13 @@ class Action {
         }
     }
     async run() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         console.log('running ', this.id, 'with context', {
             ...github_1.context,
             payload: {
-                issue: (_b = (_a = github_1.context.payload) === null || _a === void 0 ? void 0 : _a.issue) === null || _b === void 0 ? void 0 : _b.number,
-                label: (_d = (_c = github_1.context.payload) === null || _c === void 0 ? void 0 : _c.label) === null || _d === void 0 ? void 0 : _d.name,
-                repository: (_f = (_e = github_1.context.payload) === null || _e === void 0 ? void 0 : _e.repository) === null || _f === void 0 ? void 0 : _f.html_url,
-                sender: (_j = (_h = (_g = github_1.context.payload) === null || _g === void 0 ? void 0 : _g.sender) === null || _h === void 0 ? void 0 : _h.login) !== null && _j !== void 0 ? _j : (_l = (_k = github_1.context.payload) === null || _k === void 0 ? void 0 : _k.sender) === null || _l === void 0 ? void 0 : _l.type,
+                issue: github_1.context.payload?.issue?.number,
+                label: github_1.context.payload?.label?.name,
+                repository: github_1.context.payload?.repository?.html_url,
+                sender: github_1.context.payload?.sender?.login ?? github_1.context.payload?.sender?.type,
                 action: github_1.context.payload.action,
                 contextIssue: github_1.context.issue,
             },
@@ -42,14 +41,14 @@ class Action {
             const { repo, issue, owner } = utils_1.errorLoggingIssue;
             if (github_1.context.repo.repo === repo &&
                 github_1.context.repo.owner === owner &&
-                ((_m = github_1.context.payload.issue) === null || _m === void 0 ? void 0 : _m.number) === issue) {
+                github_1.context.payload.issue?.number === issue) {
                 return console.log('refusing to run on error logging issue to prevent cascading errors');
             }
         }
         try {
-            const token = utils_1.getRequiredInput('token');
-            const readonly = !!core_1.getInput('readonly');
-            const issue = (_o = github_1.context === null || github_1.context === void 0 ? void 0 : github_1.context.issue) === null || _o === void 0 ? void 0 : _o.number;
+            const token = (0, utils_1.getRequiredInput)('token');
+            const readonly = !!(0, core_1.getInput)('readonly');
+            const issue = github_1.context?.issue?.number;
             if (issue) {
                 const octokit = new octokit_1.OctoKitIssue(token, github_1.context.repo, { number: issue }, { readonly });
                 switch (github_1.context.eventName) {
@@ -94,16 +93,18 @@ class Action {
             }
         }
         catch (e) {
-            await this.error(e);
+            if (e instanceof Error) {
+                await this.error(e);
+            }
         }
-        await this.trackMetric({ name: 'octokit_request_count', value: octokit_1.getNumRequests() });
-        const usage = await utils_1.getRateLimit(this.token);
+        await this.trackMetric({ name: 'octokit_request_count', value: (0, octokit_1.getNumRequests)() });
+        const usage = await (0, utils_1.getRateLimit)(this.token);
         await this.trackMetric({ name: 'usage_core', value: usage.core });
         await this.trackMetric({ name: 'usage_graphql', value: usage.graphql });
         await this.trackMetric({ name: 'usage_search', value: usage.search });
     }
     async error(error) {
-        console_1.debug('Error when running action: ', error);
+        (0, console_1.debug)('Error when running action: ', error);
         const details = {
             message: `${error.message}\n${error.stack}`,
             id: this.id,
@@ -118,11 +119,11 @@ Actor: ${details.user}
 
 ID: ${details.id}
 `;
-        await utils_1.logErrorToIssue(rendered, true, this.token);
+        await (0, utils_1.logErrorToIssue)(rendered, true, this.token);
         if (telemetry_1.aiHandle) {
             telemetry_1.aiHandle.trackException({ exception: error });
         }
-        core_1.setFailed(error.message);
+        (0, core_1.setFailed)(error.message);
     }
     async onTriggered(_octokit) {
         throw Error('not implemented');

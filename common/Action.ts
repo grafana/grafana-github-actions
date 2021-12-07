@@ -103,7 +103,9 @@ export abstract class Action {
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
 			}
 		} catch (e) {
-			await this.error(e)
+			if (e instanceof Error) {
+				await this.error(e)
+			}
 		}
 
 		await this.trackMetric({ name: 'octokit_request_count', value: getNumRequests() })
