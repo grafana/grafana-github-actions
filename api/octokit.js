@@ -105,6 +105,14 @@ class OctoKit {
             nodeId: issue.node_id,
         };
     }
+    octokitPullRequestToPullRequest(pr) {
+        var _a;
+        return {
+            number: pr.number,
+            headSHA: pr.head.sha,
+            milestoneId: (_a = pr.milestone) === null || _a === void 0 ? void 0 : _a.number,
+        };
+    }
     async hasWriteAccess(user) {
         if (user.name in this.writeAccessCache) {
             core_1.debug('Got permissions from cache for ' + user);
@@ -267,6 +275,17 @@ class OctoKit {
             console.error('Mutation did not work ' + error);
         }
     }
+    async createStatus(sha, context, state, description, targetUrl) {
+        await this.octokit.repos.createStatus({
+            owner: this.params.owner,
+            repo: this.params.repo,
+            sha: sha,
+            context: context,
+            state: state,
+            target_url: targetUrl,
+            description: description,
+        });
+    }
 }
 exports.OctoKit = OctoKit;
 class OctoKitIssue extends OctoKit {
@@ -274,6 +293,7 @@ class OctoKitIssue extends OctoKit {
         super(token, params, options);
         this.params = params;
         this.issueData = issueData;
+        this.prData = null;
     }
     async addAssignee(assignee) {
         core_1.debug('Adding assignee ' + assignee + ' to ' + this.issueData.number);
@@ -321,6 +341,18 @@ class OctoKitIssue extends OctoKit {
             mediaType: { previews: ['squirrel-girl'] },
         })).data;
         return (this.issueData = this.octokitIssueToIssue(issue));
+    }
+    async getPullRequest() {
+        if (this.prData) {
+            core_1.debug('Got cached pr data from query result ' + this.prData.number);
+            return this.prData;
+        }
+        console.log('Fetching pull request ' + this.issueData.number);
+        const pr = (await this.octokit.pulls.get({
+            ...this.params,
+            pull_number: this.issueData.number,
+        })).data;
+        return (this.prData = this.octokitPullRequestToPullRequest(pr));
     }
     async postComment(body) {
         core_1.debug(`Posting comment ${body} on ${this.issueData.number}`);

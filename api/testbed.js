@@ -64,6 +64,9 @@ class Testbed {
     async addIssueToProject(_project, _issue, org) {
         // pass...
     }
+    async createStatus(_sha, _context, _state, _description, _targetUrl) {
+        return;
+    }
 }
 exports.Testbed = Testbed;
 class TestbedIssue extends Testbed {
@@ -112,6 +115,9 @@ class TestbedIssue extends Testbed {
     async getIssue() {
         const labels = [...this.issueConfig.labels];
         return { ...this.issueConfig.issue, labels };
+    }
+    async getPullRequest() {
+        return { ...this.issueConfig.pullRequest };
     }
     async postComment(body, author) {
         this.issueConfig.comments.push({

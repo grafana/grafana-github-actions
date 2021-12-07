@@ -27,6 +27,13 @@ export interface GitHub {
 	getProjectNodeId(projectId: number, org?: string): Promise<string | undefined>
 
 	addIssueToProject(project: number, issue: Issue, org?: string): Promise<void>
+	createStatus(
+		sha: string,
+		context: string,
+		state: 'error' | 'failure' | 'pending' | 'success',
+		description?: string,
+		targetUrl?: string,
+	): Promise<void>
 }
 
 export interface GitHubIssue extends GitHub {
@@ -49,6 +56,7 @@ export interface GitHubIssue extends GitHub {
 
 	getClosingInfo(): Promise<{ hash: string | undefined; timestamp: number } | undefined>
 
+	getPullRequest(): Promise<PullRequest>
 	listPullRequestFilenames(): Promise<string[]>
 }
 
@@ -105,6 +113,12 @@ export interface Issue {
 	closedAt?: number
 	isPullRequest?: boolean
 	nodeId: string
+}
+
+export interface PullRequest {
+	number: number
+	milestoneId: number | null
+	headSHA: string
 }
 
 export interface Query {
