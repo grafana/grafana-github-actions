@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "es2020",
+		"target": "es2021",
 		"strict": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
@@ -8,7 +8,7 @@
 		"esModuleInterop": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
-		"lib": ["es2020"],
+		"lib": ["es2021"],
 		"skipLibCheck": true,
 	},
 	"exclude": ["**/*.test.ts", "**/vm-filesystem/**", "__mocks__/**/*"]
