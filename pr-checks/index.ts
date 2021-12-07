@@ -16,6 +16,10 @@ class PRChecksAction extends Action {
 		await this.onAction(issue)
 	}
 
+	async onSynchronized(issue: OctoKitIssue): Promise<void> {
+		await this.onAction(issue)
+	}
+
 	async onAction(issue: OctoKitIssue): Promise<void> {
 		const config = await issue.readConfig(getRequiredInput('configPath'))
 		await new Checks(issue, config).run()

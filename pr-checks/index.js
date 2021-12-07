@@ -15,6 +15,9 @@ class PRChecksAction extends Action_1.Action {
     async onMilestoned(issue) {
         await this.onAction(issue);
     }
+    async onSynchronized(issue) {
+        await this.onAction(issue);
+    }
     async onAction(issue) {
         const config = await issue.readConfig(utils_1.getRequiredInput('configPath'));
         await new Checks(issue, config).run();
