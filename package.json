@@ -1,6 +1,7 @@
 {
 	"name": "vscode-github-triage-actions",
 	"version": "1.0.0",
+	"private": true,
 	"description": "GitHub Actions used by VS Code for triaging issues",
 	"scripts": {
 		"test": "jest test",
