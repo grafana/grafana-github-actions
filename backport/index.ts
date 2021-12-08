@@ -26,8 +26,10 @@ class Backport extends Action {
 				token: this.getToken(),
 			})
 		} catch (error) {
-			logError(error)
-			setFailed(error.message)
+			if (error instanceof Error) {
+				logError(error)
+				setFailed(error.message)
+			}
 		}
 	}
 }

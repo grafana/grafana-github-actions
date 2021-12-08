@@ -33,7 +33,7 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
 };
 const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
     const git = async (...args) => {
-        await exec_1.exec('git', args, { cwd: repo });
+        await (0, exec_1.exec)('git', args, { cwd: repo });
     };
     await git('switch', base);
     await git('switch', '--create', head);
@@ -131,8 +131,8 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
     }
     // The merge commit SHA is actually not null.
     const commitToBackport = String(mergeCommitSha);
-    core_1.info(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
-    await git_1.cloneRepo({ token, owner, repo });
+    (0, core_1.info)(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
+    await (0, git_1.cloneRepo)({ token, owner, repo });
     for (const [base, head] of Object.entries(backportBaseToHead)) {
         const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
         let title = titleTemplate;
@@ -140,9 +140,9 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             base,
             originalTitle,
         }).forEach(([name, value]) => {
-            title = title.replace(new RegExp(lodash_escaperegexp_1.default(`{{${name}}}`), 'g'), value);
+            title = title.replace(new RegExp((0, lodash_escaperegexp_1.default)(`{{${name}}}`), 'g'), value);
         });
-        await core_1.group(`Backporting to ${base} on ${head}`, async () => {
+        await (0, core_1.group)(`Backporting to ${base} on ${head}`, async () => {
             try {
                 await backportOnce({
                     base,
@@ -159,8 +159,8 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                 });
             }
             catch (error) {
-                const errorMessage = error.message;
-                core_1.error(error);
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error while backporting';
+                (0, core_1.error)(errorMessage);
                 // Create comment
                 await github.issues.createComment({
                     body: getFailedBackportCommentBody({

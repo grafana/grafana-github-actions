@@ -17,14 +17,14 @@ class FileUpdater {
             throw new Error(`File not found ${filePath}`);
         }
         const fileContent = fs_1.default.readFileSync(filePath, 'utf-8');
-        this.lines = utils_1.splitStringIntoLines(fileContent);
+        this.lines = (0, utils_1.splitStringIntoLines)(fileContent);
     }
     getLines() {
         return this.lines;
     }
     update({ version, content }) {
         const startMarker = new RegExp(`<!-- (.*) START`);
-        const endMarker = new RegExp(`<!-- ${lodash_1.escapeRegExp(version)} END`);
+        const endMarker = new RegExp(`<!-- ${(0, lodash_1.escapeRegExp)(version)} END`);
         let startIndex = 0;
         let endIndex = 0;
         for (let lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
@@ -46,7 +46,7 @@ class FileUpdater {
                 break;
             }
         }
-        const newLines = utils_1.splitStringIntoLines(content);
+        const newLines = (0, utils_1.splitStringIntoLines)(content);
         if (endIndex === startIndex) {
             // Insert new lines
             this.lines.splice(startIndex, 0, ...['', `<!-- ${version} START -->`, '', ...newLines, `<!-- ${version} END -->`]);

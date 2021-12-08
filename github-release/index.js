@@ -4,6 +4,7 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const ReleaseNotesBuilder_1 = require("../update-changelog/ReleaseNotesBuilder");
 const utils_1 = require("../common/utils");
+const request_error_1 = require("@octokit/request-error");
 class GitHubRelease extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -45,7 +46,7 @@ ${notes}
             });
         }
         catch (err) {
-            if (err.status !== 404) {
+            if (err instanceof request_error_1.RequestError && err.status !== 404) {
                 console.log('getReleaseByTag error', err);
             }
             console.log('Creating github release');
@@ -55,7 +56,7 @@ ${notes}
                 name: title,
                 body: content,
                 tag_name: tag,
-                prerelease: utils_1.isPreRelease(tag),
+                prerelease: (0, utils_1.isPreRelease)(tag),
             });
         }
     }

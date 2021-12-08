@@ -4,3 +4,11 @@ classifier/issue_data.json
 classifier/issue_labels.json
 **/.DS_Store
 .env
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions

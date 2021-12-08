@@ -23,7 +23,7 @@ class UpdateChangelog extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
-        await git_1.cloneRepo({ token, owner, repo });
+        await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
         const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
@@ -38,7 +38,7 @@ class UpdateChangelog extends Action_1.Action {
             content: releaseNotes,
         });
         fileUpdater.writeFile(changelogFile);
-        await writeDocsFiles_1.writeDocsFiles({ version, builder });
+        await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
         await git('switch', '--create', branchName);
         await git('add', '-A');
@@ -56,10 +56,10 @@ class UpdateChangelog extends Action_1.Action {
 }
 const git = async (...args) => {
     // await exec('git', args, { cwd: repo })
-    await exec_1.exec('git', args);
+    await (0, exec_1.exec)('git', args);
 };
 const npx = async (...args) => {
-    await exec_1.exec('npx', args);
+    await (0, exec_1.exec)('npx', args);
 };
 new UpdateChangelog().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

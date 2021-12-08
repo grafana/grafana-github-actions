@@ -20,7 +20,7 @@ class BumpVersion extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
-        await git_1.cloneRepo({ token, owner, repo });
+        await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
         const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
         const prBranch = `bump-version-${version}`;
@@ -28,8 +28,8 @@ class BumpVersion extends Action_1.Action {
         await git('switch', base);
         await git('switch', '--create', prBranch);
         // Update version
-        await exec_1.exec('npm', ['version', version, '--no-git-tag-version']);
-        await exec_1.exec('npx', [
+        await (0, exec_1.exec)('npm', ['version', version, '--no-git-tag-version']);
+        await (0, exec_1.exec)('npx', [
             'lerna',
             'version',
             version,
@@ -41,7 +41,7 @@ class BumpVersion extends Action_1.Action {
         ]);
         try {
             //regenerate yarn.lock file
-            await exec_1.exec('yarn');
+            await (0, exec_1.exec)('yarn');
         }
         catch (e) {
             console.error('yarn failed', e);
@@ -66,7 +66,7 @@ yarn
 }
 const git = async (...args) => {
     // await exec('git', args, { cwd: repo })
-    await exec_1.exec('git', args);
+    await (0, exec_1.exec)('git', args);
 };
 new BumpVersion().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map
