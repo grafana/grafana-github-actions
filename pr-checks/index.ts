@@ -26,7 +26,7 @@ class PRChecksAction extends Action {
 
 	async onAction(issue: OctoKitIssue): Promise<void> {
 		const config = await issue.readConfig(getRequiredInput('configPath'))
-		await new Checks(issue, config).run()
+		return await new Checks(issue, config).run()
 	}
 }
 
@@ -59,7 +59,7 @@ class Checks {
 		const checkMilestone = this.config.find((c) => c.type === 'check-milestone')
 		if (checkMilestone) {
 			console.log('running check-milestone check')
-			await this.checkMilestone(checkMilestone)
+			return await this.checkMilestone(checkMilestone)
 		}
 	}
 
