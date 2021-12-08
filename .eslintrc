@@ -14,7 +14,7 @@
 	],
 	"extends": [
 		"eslint:recommended",
-		"prettier"
+		"plugin:prettier/recommended"
 	],
 	"ignorePatterns": [
 		"node_modules",
@@ -22,7 +22,7 @@
 	],
 	"rules": {
 		"no-unused-vars": "off",
-		"@typescript-eslint/no-unused-vars-experimental": "error",
+		"@typescript-eslint/no-unused-vars": "error",
 		"@typescript-eslint/no-floating-promises": "error",
 		"@typescript-eslint/no-misused-promises": [
 			"error",

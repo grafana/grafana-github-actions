@@ -114,7 +114,7 @@ export class OctoKit implements GitHub {
 			milestoneId: issue.milestone?.number ?? null,
 			createdAt: +new Date(issue.created_at),
 			updatedAt: +new Date(issue.updated_at),
-			closedAt: issue.closed_at ? +new Date((issue.closed_at as unknown) as string) : undefined,
+			closedAt: issue.closed_at ? +new Date(issue.closed_at as unknown as string) : undefined,
 			isPullRequest: !!issue.pull_request,
 			nodeId: issue.node_id,
 		}

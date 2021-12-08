@@ -26,6 +26,7 @@ class Testbed {
             yield page.map((issue) => issue instanceof TestbedIssue ? issue : new TestbedIssue(this.config, issue));
         }
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async createIssue(_owner, _repo, _title, _body) {
         // pass...
     }
@@ -38,6 +39,7 @@ class Testbed {
     async repoHasLabel(label) {
         return this.config.globalLabels.includes(label);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async createLabel(label, _color, _description) {
         this.config.globalLabels.push(label);
     }
@@ -50,17 +52,19 @@ class Testbed {
     async dispatch(title) {
         console.log('dispatching for', title);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getMilestone(_number) {
         return this.config.milestone;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async isUserMemberOfOrganization(org, username) {
         return this.config.userMemberOfOrganization;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async getProjectNodeId(_projectId, _org) {
         return this.config.projectNodeId;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async addIssueToProject(_project, _issue, org) {
         // pass...
     }

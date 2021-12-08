@@ -124,33 +124,43 @@ ID: ${details.id}
         }
         core_1.setFailed(error.message);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTriggered(_octokit) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onEdited(_issue) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onLabeled(_issue, _label) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onUnassigned(_issue, _label) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onOpened(_issue) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onReopened(_issue) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onClosed(_issue) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onMilestoned(_issue) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onCommented(_issue, _comment, _actor) {
         throw Error('not implemented');
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onSynchronized(_issue) {
         throw Error('not implemented');
     }
