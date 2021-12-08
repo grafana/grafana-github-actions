@@ -13,6 +13,7 @@ class Backport extends Action_1.Action {
     async onClosed(issue) {
         return this.backport(issue);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onLabeled(issue, _label) {
         return this.backport(issue);
     }

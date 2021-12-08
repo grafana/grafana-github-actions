@@ -18,7 +18,7 @@ class MetricsCollector extends Action {
 
 		aiHandle?.trackMetric({ name: 'issue.closed_count', value: 1, labels })
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async onOpened(_issue: OctoKitIssue) {
 		aiHandle?.trackMetric({ name: 'issue.opened_count', value: 1 })
 	}

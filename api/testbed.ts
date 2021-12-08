@@ -45,7 +45,7 @@ export class Testbed implements GitHub {
 			)
 		}
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async createIssue(_owner: string, _repo: string, _title: string, _body: string): Promise<void> {
 		// pass...
 	}
@@ -61,7 +61,7 @@ export class Testbed implements GitHub {
 	async repoHasLabel(label: string): Promise<boolean> {
 		return this.config.globalLabels.includes(label)
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async createLabel(label: string, _color: string, _description: string): Promise<void> {
 		this.config.globalLabels.push(label)
 	}
@@ -78,20 +78,22 @@ export class Testbed implements GitHub {
 		console.log('dispatching for', title)
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async getMilestone(_number: number): Promise<Milestone> {
 		return this.config.milestone!
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async isUserMemberOfOrganization(org: string, username: string): Promise<boolean> {
 		return this.config.userMemberOfOrganization
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async getProjectNodeId(_projectId: number, _org?: string): Promise<string | undefined> {
 		return this.config.projectNodeId
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars-experimental
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async addIssueToProject(_project: number, _issue: Issue, org?: string): Promise<void> {
 		// pass...
 	}

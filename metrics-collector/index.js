@@ -17,6 +17,7 @@ class MetricsCollector extends Action_1.Action {
         }
         telemetry_1.aiHandle?.trackMetric({ name: 'issue.closed_count', value: 1, labels });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onOpened(_issue) {
         telemetry_1.aiHandle?.trackMetric({ name: 'issue.opened_count', value: 1 });
     }

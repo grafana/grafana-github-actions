@@ -11,7 +11,7 @@ class Backport extends Action {
 	async onClosed(issue: OctoKitIssue) {
 		return this.backport(issue)
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async onLabeled(issue: OctoKitIssue, _label: string) {
 		return this.backport(issue)
 	}
