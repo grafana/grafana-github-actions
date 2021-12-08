@@ -17,7 +17,6 @@ class Commands {
         this.action = action;
     }
     async matches(command, issue, changedFiles) {
-        var _a, _b, _c;
         if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
             return false;
         }
@@ -52,11 +51,11 @@ class Commands {
             else {
                 matchCfg.any = command.matches;
             }
-            return globmatcher_1.checkMatch(changedFiles, matchCfg);
+            return (0, globmatcher_1.checkMatch)(changedFiles, matchCfg);
         }
         if (command.type === 'author') {
-            const org = ((_a = command.memberOf) === null || _a === void 0 ? void 0 : _a.org) || ((_b = command.notMemberOf) === null || _b === void 0 ? void 0 : _b.org);
-            if (((_c = command.ignoreList) === null || _c === void 0 ? void 0 : _c.length) && command.ignoreList.includes(issue.author.name)) {
+            const org = command.memberOf?.org || command.notMemberOf?.org;
+            if (command.ignoreList?.length && command.ignoreList.includes(issue.author.name)) {
                 return false;
             }
             if (org) {
@@ -70,18 +69,17 @@ class Commands {
         return false;
     }
     async perform(command, issue, changedFiles) {
-        var _a, _b;
-        console_1.debug('Would perform command:', command, ' on issue:', issue);
+        (0, console_1.debug)('Would perform command:', command, ' on issue:', issue);
         if (!(await this.matches(command, issue, changedFiles))) {
-            console_1.debug('Command ', JSON.stringify(command), ' did not match any criteria');
+            (0, console_1.debug)('Command ', JSON.stringify(command), ' did not match any criteria');
             return;
         }
         console.log('Running command', command);
-        await telemetry_1.trackEvent(this.github, 'command', { name: command.name });
+        await (0, telemetry_1.trackEvent)(this.github, 'command', { name: command.name });
         const tasks = [];
         if ('comment' in this.action && (command.name === 'label' || command.name === 'assign')) {
             const args = [];
-            let argList = ((_b = (_a = this.action.comment.match(new RegExp(String.raw `(?:\\|/)${command.name}(.*)(?:\r)?(?:\n|$)`))) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : '').trim();
+            let argList = (this.action.comment.match(new RegExp(String.raw `(?:\\|/)${command.name}(.*)(?:\r)?(?:\n|$)`))?.[1] ?? '').trim();
             while (argList) {
                 const task = argList[0] === '-' ? 'remove' : 'add';
                 if (task === 'remove')
@@ -132,7 +130,7 @@ class Commands {
             command.addToProject &&
             command.addToProject.url &&
             issue.labels.includes(command.name)) {
-            const projectId = utils_1.getProjectIdFromUrl(command.addToProject.url);
+            const projectId = (0, utils_1.getProjectIdFromUrl)(command.addToProject.url);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue));
             }

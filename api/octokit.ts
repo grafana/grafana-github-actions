@@ -5,6 +5,7 @@
 
 import { debug } from '@actions/core'
 import { GitHub as GitHubAPI } from '@actions/github'
+import { RequestError } from '@octokit/request-error'
 import { Octokit } from '@octokit/rest'
 import { graphql } from '@octokit/graphql'
 import { exec } from 'child_process'
@@ -141,7 +142,7 @@ export class OctoKit implements GitHub {
 			await this.octokit.issues.getLabel({ ...this.params, name })
 			return true
 		} catch (err) {
-			if (err.status === 404) {
+			if (err instanceof RequestError && err.status === 404) {
 				return this.options.readonly && this.mockLabels.has(name)
 			}
 			throw err
@@ -160,7 +161,7 @@ export class OctoKit implements GitHub {
 		try {
 			if (!this.options.readonly) await this.octokit.issues.deleteLabel({ ...this.params, name })
 		} catch (err) {
-			if (err.status === 404) {
+			if (err instanceof RequestError && err.status === 404) {
 				return
 			}
 			throw err
@@ -233,8 +234,8 @@ export class OctoKit implements GitHub {
 			this.orgMembersCache[org][username] = resp.status === 204
 			return this.orgMembersCache[org][username]
 		} catch (err) {
-			debug('isUserMemberOfOrganization error response status' + err.status)
-			if (err.status === 404) {
+			debug('isUserMemberOfOrganization error response ' + err)
+			if (err instanceof RequestError && err.status === 404) {
 				this.orgMembersCache[org][username] = false
 				return this.orgMembersCache[org][username]
 			}
@@ -474,7 +475,7 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 					name,
 				})
 		} catch (err) {
-			if (err.status === 404) {
+			if (err instanceof RequestError && err.status === 404) {
 				console.log(`Label ${name} not found on issue`)
 				return
 			}

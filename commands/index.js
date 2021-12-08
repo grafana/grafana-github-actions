@@ -13,23 +13,23 @@ class CommandsRunner extends Action_1.Action {
         this.id = 'Commands';
     }
     async onCommented(issue, comment, actor) {
-        const commands = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, { comment, user: { name: actor } }).run();
     }
     async onLabeled(issue, label) {
-        const commands = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, { label }).run();
     }
     async onOpened(issue) {
-        const commands = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, {}).run();
     }
     async onSynchronized(issue) {
-        const commands = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, {}).run();
     }
     async onReopened(issue) {
-        const commands = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, {}).run();
     }
 }

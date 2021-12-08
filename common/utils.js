@@ -18,7 +18,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -31,12 +31,14 @@ const core = __importStar(require("@actions/core"));
 const github_1 = require("@actions/github");
 const axios_1 = __importDefault(require("axios"));
 const octokit_1 = require("../api/octokit");
-exports.getInput = (name) => core.getInput(name) || undefined;
-exports.getRequiredInput = (name) => core.getInput(name, { required: true });
-exports.normalizeIssue = (issue) => {
+const getInput = (name) => core.getInput(name) || undefined;
+exports.getInput = getInput;
+const getRequiredInput = (name) => core.getInput(name, { required: true });
+exports.getRequiredInput = getRequiredInput;
+const normalizeIssue = (issue) => {
     let { body, title } = issue;
-    body = body !== null && body !== void 0 ? body : '';
-    title = title !== null && title !== void 0 ? title : '';
+    body = body ?? '';
+    title = title ?? '';
     const isBug = body.includes('bug_report_template') || /Issue Type:.*Bug.*/.test(body);
     const isFeatureRequest = body.includes('feature_request_template') || /Issue Type:.*Feature Request.*/.test(body);
     const cleanse = (str) => {
@@ -65,10 +67,14 @@ exports.normalizeIssue = (issue) => {
         issueType: isBug ? 'bug' : isFeatureRequest ? 'feature_request' : 'unknown',
     };
 };
-exports.loadLatestRelease = async (quality) => (await axios_1.default.get(`https://vscode-update.azurewebsites.net/api/update/darwin/${quality}/latest`)).data;
-exports.daysAgoToTimestamp = (days) => +new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-exports.daysAgoToHumanReadbleDate = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}\w$/, '');
-exports.getRateLimit = async (token) => {
+exports.normalizeIssue = normalizeIssue;
+const loadLatestRelease = async (quality) => (await axios_1.default.get(`https://vscode-update.azurewebsites.net/api/update/darwin/${quality}/latest`)).data;
+exports.loadLatestRelease = loadLatestRelease;
+const daysAgoToTimestamp = (days) => +new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+exports.daysAgoToTimestamp = daysAgoToTimestamp;
+const daysAgoToHumanReadbleDate = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}\w$/, '');
+exports.daysAgoToHumanReadbleDate = daysAgoToHumanReadbleDate;
+const getRateLimit = async (token) => {
     const usageData = (await new github_1.GitHub(token).rateLimit.get()).data.resources;
     const usage = {};
     ['core', 'graphql', 'search'].forEach(async (category) => {
@@ -76,6 +82,7 @@ exports.getRateLimit = async (token) => {
     });
     return usage;
 };
+exports.getRateLimit = getRateLimit;
 exports.errorLoggingIssue = (() => {
     try {
         const repo = github_1.context.repo.owner.toLowerCase() + '/' + github_1.context.repo.repo.toLowerCase();
@@ -85,8 +92,8 @@ exports.errorLoggingIssue = (() => {
         else if (/microsoft\//.test(repo)) {
             return { repo: 'vscode-internalbacklog', owner: 'Microsoft', issue: 974 };
         }
-        else if (exports.getInput('errorLogIssueNumber')) {
-            return { ...github_1.context.repo, issue: +exports.getRequiredInput('errorLogIssueNumber') };
+        else if ((0, exports.getInput)('errorLogIssueNumber')) {
+            return { ...github_1.context.repo, issue: +(0, exports.getRequiredInput)('errorLogIssueNumber') };
         }
         else {
             return undefined;
@@ -97,7 +104,7 @@ exports.errorLoggingIssue = (() => {
         return undefined;
     }
 })();
-exports.logErrorToIssue = async (message, ping, token) => {
+const logErrorToIssue = async (message, ping, token) => {
     // Attempt to wait out abuse detection timeout if present
     await new Promise((resolve) => setTimeout(resolve, 10000));
     const dest = exports.errorLoggingIssue;
@@ -121,11 +128,12 @@ ${JSON.stringify(github_1.context, null, 2)
 -->
 `);
 };
+exports.logErrorToIssue = logErrorToIssue;
 function splitStringIntoLines(content) {
     return content.split(/\r?\n/);
 }
 exports.splitStringIntoLines = splitStringIntoLines;
-exports.getProjectIdFromUrl = (url) => {
+const getProjectIdFromUrl = (url) => {
     const projectIdPattern = /(?<=projects\/)\d+/g;
     const projectId = url.match(projectIdPattern);
     if (projectId) {
@@ -133,7 +141,9 @@ exports.getProjectIdFromUrl = (url) => {
     }
     return null;
 };
-exports.isPreRelease = (version) => {
+exports.getProjectIdFromUrl = getProjectIdFromUrl;
+const isPreRelease = (version) => {
     return !version.match(/[vV]{1}\d{1,3}\.\d{1,3}\.\d{1,3}$/g);
 };
+exports.isPreRelease = isPreRelease;
 //# sourceMappingURL=utils.js.map
