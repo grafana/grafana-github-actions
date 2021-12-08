@@ -40,6 +40,7 @@ class BumpVersion extends Action_1.Action {
             '--yes',
         ]);
         try {
+            await (0, exec_1.exec)('npm install -g yarn');
             //regenerate yarn.lock file
             await (0, exec_1.exec)('yarn');
         }
