@@ -26,7 +26,7 @@ class PRChecksAction extends Action {
 
 	async onAction(issue: OctoKitIssue): Promise<void> {
 		const config = await issue.readConfig(getRequiredInput('configPath'))
-		return await new Checks(issue, config).run()
+		await new Checks(issue, config).run()
 	}
 }
 
@@ -59,7 +59,7 @@ class Checks {
 		const checkMilestone = this.config.find((c) => c.type === 'check-milestone')
 		if (checkMilestone) {
 			console.log('running check-milestone check')
-			return await this.checkMilestone(checkMilestone)
+			await this.checkMilestone(checkMilestone)
 		}
 	}
 
@@ -86,20 +86,6 @@ class Checks {
 			if (result.state === CheckState.Success) {
 				description = check.success ?? description
 			}
-
-			console.log(
-				'creating status',
-				'sha',
-				result.sha,
-				'title',
-				check.title,
-				'state',
-				result.state,
-				'description',
-				description,
-				'targetUrl',
-				targetURL,
-			)
 
 			await this.github.createStatus(result.sha, check.title, result.state, description, targetURL)
 		}

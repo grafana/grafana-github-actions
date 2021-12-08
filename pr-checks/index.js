@@ -23,7 +23,7 @@ class PRChecksAction extends Action_1.Action {
     }
     async onAction(issue) {
         const config = await issue.readConfig(utils_1.getRequiredInput('configPath'));
-        return await new Checks(issue, config).run();
+        await new Checks(issue, config).run();
     }
 }
 var CheckState;
@@ -42,7 +42,7 @@ class Checks {
         const checkMilestone = this.config.find((c) => c.type === 'check-milestone');
         if (checkMilestone) {
             console.log('running check-milestone check');
-            return await this.checkMilestone(checkMilestone);
+            await this.checkMilestone(checkMilestone);
         }
     }
     async checkMilestone(check) {
@@ -64,7 +64,6 @@ class Checks {
             if (result.state === CheckState.Success) {
                 description = (_d = check.success) !== null && _d !== void 0 ? _d : description;
             }
-            console.log('creating status', 'sha', result.sha, 'title', check.title, 'state', result.state, 'description', description, 'targetUrl', targetURL);
             await this.github.createStatus(result.sha, check.title, result.state, description, targetURL);
         }
     }
