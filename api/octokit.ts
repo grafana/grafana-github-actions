@@ -328,7 +328,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
-			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId) {
+			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
 				cardEdge {
 					node {
 					  id
