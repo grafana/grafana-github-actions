@@ -11,6 +11,7 @@ Type: `label`
 - `name`: defines which label to match on
 - `addToProject` - an object that is required when the `action` is `addToProject` and is optional otherwise.
 - `addToProject.url`: Absolute url of the project, the project `id` will be parsed.
+- `addToProject.column`: Column name to add the issues to, required for old type of projects
 
 **Syntax**:
 ```
@@ -19,7 +20,8 @@ Type: `label`
     "name": "plugins",
     "action": "addToProject",
     "addToProject": {
-      "url": "https://github.com/orgs/grafana/projects/76"
+      "url": "https://github.com/orgs/grafana/projects/76",
+      "column": "To Do"
     }
   }
 ```
