@@ -9,7 +9,17 @@ import { RequestError } from '@octokit/request-error'
 import { Octokit } from '@octokit/rest'
 import { graphql } from '@octokit/graphql'
 import { exec } from 'child_process'
-import { Comment, GitHub, GitHubIssue, Issue, Milestone, Query, User } from './api'
+import {
+	Comment,
+	GitHub,
+	GitHubIssue,
+	Issue,
+	Milestone,
+	ProjectAndColumnIds,
+	projectType,
+	Query,
+	User,
+} from './api'
 import type { GraphQlQueryResponseData } from '@octokit/graphql'
 
 let numRequests = 0
@@ -243,39 +253,91 @@ export class OctoKit implements GitHub {
 		}
 	}
 
-	async getProjectNodeId(projectId: number, org: string): Promise<string | undefined> {
+	async getProject(
+		projectId: number,
+		org: string,
+		columnName?: string,
+	): Promise<ProjectAndColumnIds | undefined> {
 		console.debug('Running getProjectNodeId for project ' + projectId)
 
 		try {
 			const result = (await this._octokitGraphQL({
 				query: `query getProjectNodeId($org: String!, $projectId: Int!) {
-				organization(login:$org){
-				  projectNext(number:$projectId) {
+					organization(login: $org) {
+					  projectNext(number: $projectId) {
 						id
+						fields(first: 100) {
+						  edges {
+							node {
+							  id
+							  name
+							}
+						  }
+						}
 					  }
-				}
-				}`,
+					  project(number: $projectId) {
+						id
+						state
+						columns(first: 100) {
+						  edges {
+							node {
+							  id
+							  name
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				`,
 				projectId: Math.floor(projectId),
 				org,
 			})) as GraphQlQueryResponseData
-			console.debug('getProjectNodeId result ' + JSON.stringify(result))
-			return result.organization.projectNext?.id
+			console.debug('getProject result ' + JSON.stringify(result))
+
+			if (result.organization.projectNext && result.organization.projectNext.id) {
+				return {
+					projectType: projectType.ProjectNext,
+					projectNodeId: result.organization.projectNext.id,
+				}
+			} else if (result.organization.project && result.organization.project.id && columnName) {
+				// try to find the right column
+				for (const column of result.organization.project.columns.edges) {
+					if (column.node.name === columnName) {
+						return {
+							projectType: projectType.Project,
+							projectNodeId: result.organization.project.id,
+							columnNodeId: column.node.id,
+						}
+					}
+				}
+
+				return undefined
+			}
 		} catch (error) {
 			console.error('Could not get project node id ' + error)
 		}
 		return undefined
 	}
 
-	async addIssueToProject(projectId: number, issue: Issue, org = 'grafana'): Promise<void> {
-		console.debug('Running addIssueToProject for: ' + projectId)
+	protected async addIssueToProjectOld(projectColumnId: string, issueNodeId: string) {
+		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
+			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId) {
+				cardEdge {
+					node {
+					  id
+					}
+				  }
+			}
+		  }`
+		return await this._octokitGraphQL({
+			query: mutation,
+			projectColumnId,
+			issueNodeId,
+		})
+	}
 
-		const projectNodeId = await this.getProjectNodeId(projectId, org)
-
-		if (!projectNodeId) {
-			console.log('Could not find project node id for project ' + projectId)
-			return
-		}
-
+	protected async addIssueToProjectNext(projectNodeId: string, issueNodeId: string) {
 		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
@@ -283,25 +345,36 @@ export class OctoKit implements GitHub {
 			  }
 			}
 		}`
+		return await this._octokitGraphQL({
+			query: mutation,
+			projectNodeId,
+			issueNodeId,
+		})
+	}
 
-		console.debug(
-			'Trying to add issue to project via mutation ',
-			mutation,
-			' with variables: ',
-			' projectNodeId: ' + projectNodeId,
-			' issueNodeId: ' + issue.nodeId,
-		)
+	async addIssueToProject(
+		projectId: number,
+		issue: Issue,
+		org = 'grafana',
+		columnName?: string,
+	): Promise<void> {
+		console.debug('Running addIssueToProject for: ' + projectId)
 		try {
-			const mutationResponse = await this._octokitGraphQL({
-				query: mutation,
-				projectNodeId,
-				issueNodeId: issue.nodeId,
-			})
-			console.debug(
-				'Successfully added issue to project. Mutation response: ' + JSON.stringify(mutationResponse),
-			)
+			const project = await this.getProject(projectId, org, columnName)
+
+			if (!project) {
+				console.log('Could not find project for project id: ' + projectId)
+				return
+			}
+			if (project.projectType === projectType.ProjectNext) {
+				await this.addIssueToProjectNext(project.projectNodeId, issue.nodeId)
+			} else if (project.projectType === projectType.Project && project.columnNodeId) {
+				await this.addIssueToProjectOld(project.columnNodeId, issue.nodeId)
+			} else {
+				console.error('Unknown project type or column name: ' + project)
+			}
 		} catch (error) {
-			console.error('Mutation did not work ' + error)
+			console.error('addIssueToProject failed: ' + error)
 		}
 	}
 }

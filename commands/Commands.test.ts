@@ -514,8 +514,8 @@ describe('Commands', () => {
 			// arrange
 			const testProjectUrl = 'https://github.com/orgs/grafana/projects/76'
 			const testProjectId = 76
-			const testOrgName = 'testOrg'
 			const testLabel = 'plugins-platform'
+			const testColumnName = 'To Do'
 			const testbed = new TestbedIssue(
 				{
 					writers: ['JacksonKearl'],
@@ -535,15 +535,20 @@ describe('Commands', () => {
 					action: 'addToProject',
 					addToProject: {
 						url: testProjectUrl,
+						column: testColumnName,
 					},
-					org: testOrgName,
 					name: testLabel,
 				},
 			]
 			await new Commands(testbed, commands, { label: testLabel }).run()
 
 			// assert
-			jestExpect(spyAddIssueToProject).toHaveBeenCalledWith(testProjectId, await testbed.getIssue())
+			jestExpect(spyAddIssueToProject).toHaveBeenCalledWith(
+				testProjectId,
+				await testbed.getIssue(),
+				undefined,
+				testColumnName,
+			)
 			jestExpect(spyAddIssueToProject).toHaveBeenCalledTimes(1)
 		})
 
@@ -571,8 +576,9 @@ describe('Commands', () => {
 					action: 'addToProject',
 					addToProject: {
 						url: testProjectUrl,
+						column: 'To Do',
+						org: testOrgName,
 					},
-					org: testOrgName,
 					name: 'plugins-platform',
 				},
 			]

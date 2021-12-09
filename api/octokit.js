@@ -10,6 +10,7 @@ const github_1 = require("@actions/github");
 const request_error_1 = require("@octokit/request-error");
 const graphql_1 = require("@octokit/graphql");
 const child_process_1 = require("child_process");
+const api_1 = require("./api");
 let numRequests = 0;
 const getNumRequests = () => numRequests;
 exports.getNumRequests = getNumRequests;
@@ -217,35 +218,84 @@ class OctoKit {
             throw err;
         }
     }
-    async getProjectNodeId(projectId, org) {
+    async getProject(projectId, org, columnName) {
         console.debug('Running getProjectNodeId for project ' + projectId);
         try {
             const result = (await this._octokitGraphQL({
                 query: `query getProjectNodeId($org: String!, $projectId: Int!) {
-				organization(login:$org){
-				  projectNext(number:$projectId) {
+					organization(login: $org) {
+					  projectNext(number: $projectId) {
 						id
+						fields(first: 100) {
+						  edges {
+							node {
+							  id
+							  name
+							}
+						  }
+						}
 					  }
-				}
-				}`,
+					  project(number: $projectId) {
+						id
+						state
+						columns(first: 100) {
+						  edges {
+							node {
+							  id
+							  name
+							}
+						  }
+						}
+					  }
+					}
+				  }
+				`,
                 projectId: Math.floor(projectId),
                 org,
             }));
-            console.debug('getProjectNodeId result ' + JSON.stringify(result));
-            return result.organization.projectNext?.id;
+            console.debug('getProject result ' + JSON.stringify(result));
+            if (result.organization.projectNext && result.organization.projectNext.id) {
+                return {
+                    projectType: api_1.projectType.ProjectNext,
+                    projectNodeId: result.organization.projectNext.id,
+                };
+            }
+            else if (result.organization.project && result.organization.project.id && columnName) {
+                // try to find the right column
+                for (const column of result.organization.project.columns.edges) {
+                    if (column.node.name === columnName) {
+                        return {
+                            projectType: api_1.projectType.Project,
+                            projectNodeId: result.organization.project.id,
+                            columnNodeId: column.node.id,
+                        };
+                    }
+                }
+                return undefined;
+            }
         }
         catch (error) {
             console.error('Could not get project node id ' + error);
         }
         return undefined;
     }
-    async addIssueToProject(projectId, issue, org = 'grafana') {
-        console.debug('Running addIssueToProject for: ' + projectId);
-        const projectNodeId = await this.getProjectNodeId(projectId, org);
-        if (!projectNodeId) {
-            console.log('Could not find project node id for project ' + projectId);
-            return;
-        }
+    async addIssueToProjectOld(projectColumnId, issueNodeId) {
+        const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
+			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId) {
+				cardEdge {
+					node {
+					  id
+					}
+				  }
+			}
+		  }`;
+        return await this._octokitGraphQL({
+            query: mutation,
+            projectColumnId,
+            issueNodeId,
+        });
+    }
+    async addIssueToProjectNext(projectNodeId, issueNodeId) {
         const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
@@ -253,17 +303,32 @@ class OctoKit {
 			  }
 			}
 		}`;
-        console.debug('Trying to add issue to project via mutation ', mutation, ' with variables: ', ' projectNodeId: ' + projectNodeId, ' issueNodeId: ' + issue.nodeId);
+        return await this._octokitGraphQL({
+            query: mutation,
+            projectNodeId,
+            issueNodeId,
+        });
+    }
+    async addIssueToProject(projectId, issue, org = 'grafana', columnName) {
+        console.debug('Running addIssueToProject for: ' + projectId);
         try {
-            const mutationResponse = await this._octokitGraphQL({
-                query: mutation,
-                projectNodeId,
-                issueNodeId: issue.nodeId,
-            });
-            console.debug('Successfully added issue to project. Mutation response: ' + JSON.stringify(mutationResponse));
+            const project = await this.getProject(projectId, org, columnName);
+            if (!project) {
+                console.log('Could not find project for project id: ' + projectId);
+                return;
+            }
+            if (project.projectType === api_1.projectType.ProjectNext) {
+                await this.addIssueToProjectNext(project.projectNodeId, issue.nodeId);
+            }
+            else if (project.projectType === api_1.projectType.Project && project.columnNodeId) {
+                await this.addIssueToProjectOld(project.columnNodeId, issue.nodeId);
+            }
+            else {
+                console.error('Unknown project type or column name: ' + project);
+            }
         }
         catch (error) {
-            console.error('Mutation did not work ' + error);
+            console.error('addIssueToProject failed: ' + error);
         }
     }
 }

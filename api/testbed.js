@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestbedIssue = exports.Testbed = void 0;
+const api_1 = require("./api");
 class Testbed {
     constructor(config) {
         this.config = {
@@ -60,10 +61,14 @@ class Testbed {
     async isUserMemberOfOrganization(org, username) {
         return this.config.userMemberOfOrganization;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async getProjectNodeId(_projectId, _org) {
-        return this.config.projectNodeId;
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    async getProject(_projectId, _org, _columnName) {
+        return {
+            projectNodeId: this.config.projectNodeId ?? 'TESTPROJECTID',
+            projectType: api_1.projectType.ProjectNext,
+        };
     }
+    /* eslint-enable @typescript-eslint/no-unused-vars */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async addIssueToProject(_project, _issue, org) {
         // pass...

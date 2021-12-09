@@ -24,9 +24,9 @@ export interface GitHub {
 
 	isUserMemberOfOrganization(org: string, username: string): Promise<boolean>
 
-	getProjectNodeId(projectId: number, org?: string): Promise<string | undefined>
+	getProject(projectId: number, org?: string, columnName?: string): Promise<ProjectAndColumnIds | undefined>
 
-	addIssueToProject(project: number, issue: Issue, org?: string): Promise<void>
+	addIssueToProject(project: number, issue: Issue, org?: string, columnName?: string): Promise<void>
 }
 
 export interface GitHubIssue extends GitHub {
@@ -118,4 +118,15 @@ export interface Milestone {
 	closed_at: string | null
 	number: number
 	title: string
+}
+
+export enum projectType {
+	Project,
+	ProjectNext,
+}
+
+export interface ProjectAndColumnIds {
+	columnNodeId?: string
+	projectNodeId: string
+	projectType: projectType
 }
