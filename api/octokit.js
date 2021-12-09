@@ -219,7 +219,7 @@ class OctoKit {
         }
     }
     async getProject(projectId, org, columnName) {
-        console.debug('Running getProjectNodeId for project ' + projectId);
+        console.debug('Running getProject for project ' + projectId);
         try {
             const result = (await this._octokitGraphQL({
                 query: `query getProjectNodeId($org: String!, $projectId: Int!) {
@@ -280,6 +280,7 @@ class OctoKit {
         return undefined;
     }
     async addIssueToProjectOld(projectColumnId, issueNodeId) {
+        console.log('Running addIssueToProjectOld with: projectColumnId: ', projectColumnId, ' issueNodeId: ', issueNodeId);
         const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId) {
 				cardEdge {
@@ -296,6 +297,7 @@ class OctoKit {
         });
     }
     async addIssueToProjectNext(projectNodeId, issueNodeId) {
+        console.log('Running addIssueToProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
         const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {

@@ -258,7 +258,7 @@ export class OctoKit implements GitHub {
 		org: string,
 		columnName?: string,
 	): Promise<ProjectAndColumnIds | undefined> {
-		console.debug('Running getProjectNodeId for project ' + projectId)
+		console.debug('Running getProject for project ' + projectId)
 
 		try {
 			const result = (await this._octokitGraphQL({
@@ -321,6 +321,12 @@ export class OctoKit implements GitHub {
 	}
 
 	protected async addIssueToProjectOld(projectColumnId: string, issueNodeId: string) {
+		console.log(
+			'Running addIssueToProjectOld with: projectColumnId: ',
+			projectColumnId,
+			' issueNodeId: ',
+			issueNodeId,
+		)
 		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId) {
 				cardEdge {
@@ -338,6 +344,13 @@ export class OctoKit implements GitHub {
 	}
 
 	protected async addIssueToProjectNext(projectNodeId: string, issueNodeId: string) {
+		console.log(
+			'Running addIssueToProjectNext with: projectNodeId: ',
+			projectNodeId,
+			' issueNodeId: ',
+			issueNodeId,
+		)
+
 		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
