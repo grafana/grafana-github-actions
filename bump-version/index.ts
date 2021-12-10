@@ -47,7 +47,7 @@ class BumpVersion extends Action {
 		])
 		try {
 			//regenerate yarn.lock file
-			await exec('YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn')
+			await exec('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } })
 		} catch (e) {
 			console.error('yarn failed', e)
 		}
