@@ -17,7 +17,10 @@ export abstract class Action {
 	private token = getRequiredInput('token')
 
 	constructor() {
-		this.username = new GitHub(this.token).users.getAuthenticated().then((v) => v.data.name)
+		this.username = new GitHub(this.token).users.getAuthenticated().then(
+			(v) => v.data.name,
+			() => 'unknown',
+		)
 	}
 
 	protected getToken() {
@@ -91,6 +94,9 @@ export abstract class Action {
 								break
 							case 'milestoned':
 								await this.onMilestoned(octokit)
+								break
+							case 'demilestoned':
+								await this.onDemilestoned(octokit)
 								break
 							case 'synchronize':
 								await this.onSynchronized(octokit)
@@ -171,6 +177,11 @@ ID: ${details.id}
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onMilestoned(_issue: OctoKitIssue): Promise<void> {
+		throw Error('not implemented')
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected async onDemilestoned(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

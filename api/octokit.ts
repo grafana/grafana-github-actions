@@ -9,8 +9,8 @@ import { RequestError } from '@octokit/request-error'
 import { Octokit } from '@octokit/rest'
 import { graphql } from '@octokit/graphql'
 import { exec } from 'child_process'
-import { Comment, GitHub, GitHubIssue, Issue, Milestone, Query, User } from './api'
 import type { GraphQlQueryResponseData } from '@octokit/graphql'
+import { Comment, GitHub, GitHubIssue, Issue, Milestone, PullRequest, Query, User } from './api'
 
 let numRequests = 0
 export const getNumRequests = () => numRequests
@@ -118,6 +118,14 @@ export class OctoKit implements GitHub {
 			closedAt: issue.closed_at ? +new Date(issue.closed_at as unknown as string) : undefined,
 			isPullRequest: !!issue.pull_request,
 			nodeId: issue.node_id,
+		}
+	}
+
+	protected octokitPullRequestToPullRequest(pr: Octokit.PullsGetResponse): PullRequest {
+		return {
+			number: pr.number,
+			headSHA: pr.head.sha,
+			milestoneId: pr.milestone?.number,
 		}
 	}
 
@@ -304,9 +312,29 @@ export class OctoKit implements GitHub {
 			console.error('Mutation did not work ' + error)
 		}
 	}
+
+	async createStatus(
+		sha: string,
+		context: string,
+		state: 'error' | 'failure' | 'pending' | 'success',
+		description?: string,
+		targetUrl?: string,
+	): Promise<void> {
+		await this.octokit.repos.createStatus({
+			owner: this.params.owner,
+			repo: this.params.repo,
+			sha: sha,
+			context: context,
+			state: state,
+			target_url: targetUrl,
+			description: description,
+		})
+	}
 }
 
 export class OctoKitIssue extends OctoKit implements GitHubIssue {
+	private prData: null | PullRequest = null
+
 	constructor(
 		token: string,
 		protected params: { repo: string; owner: string },
@@ -369,6 +397,22 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 			})
 		).data
 		return (this.issueData = this.octokitIssueToIssue(issue))
+	}
+
+	async getPullRequest(): Promise<PullRequest> {
+		if (this.prData) {
+			debug('Got cached pr data from query result ' + this.prData.number)
+			return this.prData
+		}
+
+		console.log('Fetching pull request ' + this.issueData.number)
+		const pr = (
+			await this.octokit.pulls.get({
+				...this.params,
+				pull_number: this.issueData.number,
+			})
+		).data
+		return (this.prData = this.octokitPullRequestToPullRequest(pr))
 	}
 
 	async postComment(body: string): Promise<void> {

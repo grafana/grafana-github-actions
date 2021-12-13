@@ -14,7 +14,7 @@ const console_1 = require("console");
 class Action {
     constructor() {
         this.token = (0, utils_1.getRequiredInput)('token');
-        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name);
+        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name, () => 'unknown');
     }
     getToken() {
         return this.token;
@@ -79,6 +79,9 @@ class Action {
                                 break;
                             case 'milestoned':
                                 await this.onMilestoned(octokit);
+                                break;
+                            case 'demilestoned':
+                                await this.onDemilestoned(octokit);
                                 break;
                             case 'synchronize':
                                 await this.onSynchronized(octokit);
@@ -155,6 +158,10 @@ ID: ${details.id}
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onMilestoned(_issue) {
+        throw Error('not implemented');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async onDemilestoned(_issue) {
         throw Error('not implemented');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,0 +1,15 @@
+name: PR Checks
+description: Mark commits with an error, failure, pending, or success state, which is then reflected in pull requests involving those commits.
+inputs:
+  token:
+    description: GitHub token with issue, comment, and label read/write permissions. Requires metadata permissions to be able to check whether author is member of organization.
+    default: ${{ github.token }}
+  configPath:
+    description: Name of .json file (no extension) in .github/ directory of repo holding configuration for this action
+    required: true
+  metricsWriteAPIKey:
+    description: Grafana Cloud metrics api key
+    required: false
+runs:
+  using: 'node16'
+  main: 'index.js'
