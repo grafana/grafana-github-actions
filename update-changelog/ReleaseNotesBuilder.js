@@ -103,7 +103,7 @@ class ReleaseNotesBuilder {
     getChangeLogNotice(issue, sectionMarker) {
         const noticeLines = [];
         let startFound = false;
-        for (const line of utils_1.splitStringIntoLines(issue.body)) {
+        for (const line of (0, utils_1.splitStringIntoLines)(issue.body)) {
             if (startFound) {
                 noticeLines.push(line);
             }
@@ -134,8 +134,8 @@ class ReleaseNotesBuilder {
             return [];
         }
         const lines = [];
-        const bugs = lodash_1.sortBy(issues.filter(isBugFix), 'title');
-        const notBugs = lodash_1.sortBy(lodash_1.difference(issues, bugs), 'title');
+        const bugs = (0, lodash_1.sortBy)(issues.filter(isBugFix), 'title');
+        const notBugs = (0, lodash_1.sortBy)((0, lodash_1.difference)(issues, bugs), 'title');
         if (notBugs.length > 0) {
             lines.push('### Features and enhancements');
             lines.push('');

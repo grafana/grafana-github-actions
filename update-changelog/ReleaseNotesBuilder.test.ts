@@ -90,7 +90,7 @@ Variables have been deprecated`,
 				labels: [CHANGELOG_LABEL],
 			},
 		]
-
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}
@@ -102,7 +102,7 @@ Variables have been deprecated`,
 
 		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
 		const text = await builder.buildReleaseNotes({ useDocsHeader: false })
-		expect(text).toMatchSnapshot()
+		expect(text).toMatchSnapshot('v1')
 	})
 
 	it('Should be able to get notes with docs header', async () => {
@@ -114,7 +114,7 @@ Variables have been deprecated`,
 				labels: [CHANGELOG_LABEL],
 			},
 		]
-
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const queryRunner = async function* (_: Query): AsyncIterableIterator<TestbedIssueConstructorArgs[]> {
 			yield issues
 		}

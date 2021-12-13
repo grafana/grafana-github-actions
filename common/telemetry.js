@@ -12,14 +12,13 @@ const utils_1 = require("./utils");
 const axios_1 = __importDefault(require("axios"));
 const github_1 = require("@actions/github");
 exports.aiHandle = undefined;
-const apiKey = utils_1.getInput('metricsWriteAPIKey');
+const apiKey = (0, utils_1.getInput)('metricsWriteAPIKey');
 if (apiKey) {
     exports.aiHandle = {
         trackException: (arg) => {
             console.log('trackException', arg);
         },
         trackMetric: (metric) => {
-            var _a;
             console.log(`trackMetric ${metric.name} ${metric.value}`);
             const tags = [];
             if (metric.labels) {
@@ -29,7 +28,7 @@ if (apiKey) {
                     tags.push(`${safeKey}=${safeValue}`);
                 }
             }
-            axios_1.default({
+            (0, axios_1.default)({
                 url: 'https://graphite-us-central1.grafana.net/metrics',
                 method: 'POST',
                 headers: {
@@ -44,7 +43,7 @@ if (apiKey) {
                         name: `${getMetricsNamePrefix()}.${metric.name}`,
                         value: metric.value,
                         interval: 60,
-                        mtype: (_a = metric.type) !== null && _a !== void 0 ? _a : 'count',
+                        mtype: metric.type ?? 'count',
                         time: Math.floor(new Date().valueOf() / 1000),
                         tags,
                     },
@@ -62,7 +61,8 @@ function getMetricsNamePrefix() {
     }
     return `repo_stats.${github_1.context.repo.repo}`;
 }
-exports.trackEvent = async (issue, event, props) => {
+const trackEvent = async (issue, event, props) => {
     console.debug('tracking event', issue, event, props);
 };
+exports.trackEvent = trackEvent;
 //# sourceMappingURL=telemetry.js.map

@@ -109,7 +109,9 @@ export abstract class Action {
 				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
 			}
 		} catch (e) {
-			await this.error(e)
+			if (e instanceof Error) {
+				await this.error(e)
+			}
 		}
 
 		await this.trackMetric({ name: 'octokit_request_count', value: getNumRequests() })
@@ -145,37 +147,48 @@ ID: ${details.id}
 
 		setFailed(error.message)
 	}
-
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onTriggered(_octokit: OctoKit): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onEdited(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onLabeled(_issue: OctoKitIssue, _label: string): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onUnassigned(_issue: OctoKitIssue, _label: string): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onOpened(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onReopened(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onClosed(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onMilestoned(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onDemilestoned(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onCommented(_issue: OctoKitIssue, _comment: string, _actor: string): Promise<void> {
 		throw Error('not implemented')
 	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onSynchronized(_issue: OctoKitIssue): Promise<void> {
 		throw Error('not implemented')
 	}

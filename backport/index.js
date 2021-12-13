@@ -13,31 +13,35 @@ class Backport extends Action_1.Action {
     async onClosed(issue) {
         return this.backport(issue);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onLabeled(issue, _label) {
         return this.backport(issue);
     }
     async backport(issue) {
         try {
-            await backport_1.backport({
-                labelsToAdd: exports.getLabelsToAdd(core_1.getInput('labelsToAdd')),
+            await (0, backport_1.backport)({
+                labelsToAdd: (0, exports.getLabelsToAdd)((0, core_1.getInput)('labelsToAdd')),
                 payload: github_1.context.payload,
-                titleTemplate: core_1.getInput('title'),
+                titleTemplate: (0, core_1.getInput)('title'),
                 github: issue.octokit,
                 token: this.getToken(),
             });
         }
         catch (error) {
-            core_1.error(error);
-            core_1.setFailed(error.message);
+            if (error instanceof Error) {
+                (0, core_1.error)(error);
+                (0, core_1.setFailed)(error.message);
+            }
         }
     }
 }
-exports.getLabelsToAdd = (input) => {
+const getLabelsToAdd = (input) => {
     if (input === undefined || input === '') {
         return [];
     }
     const labels = input.split(',');
     return labels.map((v) => v.trim()).filter((v) => v !== '');
 };
+exports.getLabelsToAdd = getLabelsToAdd;
 new Backport().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map

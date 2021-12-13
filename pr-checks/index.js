@@ -22,7 +22,7 @@ class PRChecksAction extends Action_1.Action {
         await this.onAction(issue);
     }
     async onAction(issue) {
-        const config = await issue.readConfig(utils_1.getRequiredInput('configPath'));
+        const config = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Checks(issue, config).run();
     }
 }
@@ -46,7 +46,6 @@ class Checks {
         }
     }
     async checkMilestone(check) {
-        var _a, _b, _c, _d;
         let result;
         if (github_1.context.eventName === 'pull_request') {
             result = await this.handlePullRequestEvent();
@@ -56,13 +55,13 @@ class Checks {
         }
         if (result) {
             console.log('got check result', result);
-            let description = (_a = result.description) !== null && _a !== void 0 ? _a : '';
-            let targetURL = (_b = check.targetUrl) !== null && _b !== void 0 ? _b : result.targetURL;
+            let description = result.description ?? '';
+            let targetURL = check.targetUrl ?? result.targetURL;
             if (result.state === CheckState.Failure) {
-                description = (_c = check.failure) !== null && _c !== void 0 ? _c : description;
+                description = check.failure ?? description;
             }
             if (result.state === CheckState.Success) {
-                description = (_d = check.success) !== null && _d !== void 0 ? _d : description;
+                description = check.success ?? description;
             }
             await this.github.createStatus(result.sha, check.title, result.state, description, targetURL);
         }

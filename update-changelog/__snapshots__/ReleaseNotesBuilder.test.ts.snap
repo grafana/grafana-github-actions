@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ReleaseNotesBuilder Should build correct release notes 1`] = `
+exports[`ReleaseNotesBuilder Should build correct release notes: v1 1`] = `
 "# 7.3.3 (2020-11-11)
 
 ### Features and enhancements

@@ -259,8 +259,9 @@ const backport = async ({
 					mergedBy: merged_by,
 				})
 			} catch (error) {
-				const errorMessage: string = error.message
-				logError(error)
+				const errorMessage: string =
+					error instanceof Error ? error.message : 'Unknown error while backporting'
+				logError(errorMessage)
 
 				// Create comment
 				await github.issues.createComment({

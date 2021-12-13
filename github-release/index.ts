@@ -4,6 +4,7 @@ import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 import { ReleaseNotesBuilder } from '../update-changelog/ReleaseNotesBuilder'
 import { isPreRelease } from '../common/utils'
+import { RequestError } from '@octokit/request-error'
 class GitHubRelease extends Action {
 	id = 'GitHubRelease'
 
@@ -46,7 +47,7 @@ ${notes}
 				tag_name: tag,
 			})
 		} catch (err) {
-			if (err.status !== 404) {
+			if (err instanceof RequestError && err.status !== 404) {
 				console.log('getReleaseByTag error', err)
 			}
 
