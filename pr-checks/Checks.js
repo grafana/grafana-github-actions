@@ -23,7 +23,7 @@ class Checks {
     }
     async checkMilestone(check) {
         let result;
-        if (github_1.context.eventName === 'pull_request') {
+        if (github_1.context.eventName === 'pull_request' || github_1.context.eventName === 'pull_request_target') {
             result = await this.handlePullRequestEvent();
         }
         if (github_1.context.eventName === 'issues') {

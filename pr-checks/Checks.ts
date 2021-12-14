@@ -38,7 +38,7 @@ export class Checks {
 	private async checkMilestone(check: CheckConfig) {
 		let result: CheckResult | undefined
 
-		if (context.eventName === 'pull_request') {
+		if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
 			result = await this.handlePullRequestEvent()
 		}
 
