@@ -3,7 +3,18 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Comment, GitHub, GitHubIssue, Issue, Milestone, PullRequest, Query, User } from './api'
+import {
+	Comment,
+	GitHub,
+	GitHubIssue,
+	Issue,
+	Milestone,
+	ProjectAndColumnIds,
+	projectType,
+	PullRequest,
+	Query,
+	User,
+} from './api'
 
 type TestbedConfig = {
 	globalLabels: string[]
@@ -88,10 +99,18 @@ export class Testbed implements GitHub {
 		return this.config.userMemberOfOrganization
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	async getProjectNodeId(_projectId: number, _org?: string): Promise<string | undefined> {
-		return this.config.projectNodeId
+	/* eslint-disable @typescript-eslint/no-unused-vars */
+	async getProject(
+		_projectId: number,
+		_org?: string,
+		_columnName?: string,
+	): Promise<ProjectAndColumnIds | undefined> {
+		return {
+			projectNodeId: this.config.projectNodeId ?? 'TESTPROJECTID',
+			projectType: projectType.ProjectNext,
+		}
 	}
+	/* eslint-enable @typescript-eslint/no-unused-vars */
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async addIssueToProject(_project: number, _issue: Issue, org?: string): Promise<void> {

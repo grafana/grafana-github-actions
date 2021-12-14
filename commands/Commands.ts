@@ -20,7 +20,7 @@ export type Command = { name: string } & (
 		action?: 'close' | 'addToProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
 	Partial<{ requireLabel: string; disallowLabel: string }>
-	& Partial<{ addToProject: { url: string } }>
+	& Partial<{ addToProject: { url: string, org?: string, column?: string } }>
 /* eslint-enable */
 
 export class Commands {
@@ -180,7 +180,14 @@ export class Commands {
 		) {
 			const projectId = getProjectIdFromUrl(command.addToProject.url)
 			if (projectId) {
-				tasks.push(this.github.addIssueToProject(projectId, issue))
+				tasks.push(
+					this.github.addIssueToProject(
+						projectId,
+						issue,
+						command.addToProject.org,
+						command.addToProject.column,
+					),
+				)
 			} else {
 				console.debug('Could not parse project id from the provided URL', command.addToProject.url)
 			}
