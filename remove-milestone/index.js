@@ -21,6 +21,12 @@ class RemoveMilestone extends Action_1.Action {
                 issue_number: issue.number,
                 milestone: null,
             });
+            octokit.octokit.issues.createComment({
+                body: `This issue was removed from the ${version} milestone because ${version} is currently being released.`,
+                issue_number: issue.number,
+                owner,
+                repo,
+            });
         }
     }
 }
