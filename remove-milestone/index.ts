@@ -17,14 +17,14 @@ class RemoveMilestone extends Action {
 		}
 
 		for (const issue of await getIssuesForVersion(octokit, version)) {
-			octokit.octokit.issues.update({
+			await octokit.octokit.issues.update({
 				owner,
 				repo,
 				issue_number: issue.number,
 				milestone: null,
 			})
 
-			octokit.octokit.issues.createComment({
+			await octokit.octokit.issues.createComment({
 				body: `This issue was removed from the ${version} milestone because ${version} is currently being released.`,
 				issue_number: issue.number,
 				owner,
@@ -37,7 +37,7 @@ class RemoveMilestone extends Action {
 async function getIssuesForVersion(octokit: OctoKit, version: any): Promise<Issue[]> {
 	const issueList = []
 
-	for await (const page of octokit.query({ q: `is:issue is:open milestone:${version}` })) {
+	for await (const page of octokit.query({ q: `is:open milestone:${version} base:main` })) {
 		for (const issue of page) {
 			issueList.push(await issue.getIssue())
 		}
@@ -46,4 +46,4 @@ async function getIssuesForVersion(octokit: OctoKit, version: any): Promise<Issu
 	return issueList
 }
 
-new RemoveMilestone().run()
+new RemoveMilestone().run() // eslint-disable-line
