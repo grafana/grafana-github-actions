@@ -11,6 +11,7 @@ import {
 	Milestone,
 	ProjectAndColumnIds,
 	projectType,
+	PullRequest,
 	Query,
 	User,
 } from './api'
@@ -115,6 +116,18 @@ export class Testbed implements GitHub {
 	async addIssueToProject(_project: number, _issue: Issue, org?: string): Promise<void> {
 		// pass...
 	}
+
+	/* eslint-disable */
+	async createStatus(
+		_sha: string,
+		_context: string,
+		_state: 'error' | 'failure' | 'pending' | 'success',
+		_description?: string,
+		_targetUrl?: string,
+	): Promise<void> {
+		return
+	}
+	/* eslint-enable */
 }
 
 type TestbedIssueConfig = {
@@ -123,6 +136,7 @@ type TestbedIssueConfig = {
 	labels: string[]
 	closingCommit: { hash: string | undefined; timestamp: number } | undefined
 	pullRequestFilenames: string[]
+	pullRequest: PullRequest
 }
 
 export type TestbedIssueConstructorArgs = Partial<Omit<TestbedIssueConfig, 'issue'>> & {
@@ -180,6 +194,10 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 	async getIssue(): Promise<Issue> {
 		const labels = [...this.issueConfig.labels]
 		return { ...this.issueConfig.issue, labels }
+	}
+
+	async getPullRequest(): Promise<PullRequest> {
+		return { ...this.issueConfig.pullRequest }
 	}
 
 	async postComment(body: string, author?: string): Promise<void> {
