@@ -12,6 +12,10 @@ class RemoveMilestone extends Action {
 		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
 		const version = (payload.inputs as any).version
 
+		if (!version) {
+			throw new Error('Missing version input')
+		}
+
 		for (const issue of await getIssuesForVersion(octokit, version)) {
 			octokit.octokit.issues.update({
 				owner,
