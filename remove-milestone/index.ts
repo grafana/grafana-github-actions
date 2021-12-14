@@ -9,17 +9,14 @@ import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
 
 class RemoveMilestone extends Action {
-  id = 'RemoveMilestone'
+	id = 'RemoveMilestone'
 
-  async onTriggered(octokit: OctoKit) {
-    const { owner, repo } = context.repo
-    const { milestone_number } = context.payload as EventPayloads.WebhookPayloadPullRequest
-    await octokit.issues.removeMilestone({
-      owner,
-      repo,
-      milestone_number,
-    })
-  }
+	async onTriggered(octokit: OctoKit) {
+		const { owner, repo } = context.repo
+
+		octokit.octokit.issues.deleteMilestone()
+	}
 }
+
 
 new RemoveMilestone().run()
