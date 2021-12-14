@@ -46,7 +46,7 @@ class RemoveMilestone extends Action_1.Action {
 }
 async function getIssuesForVersion(octokit, version) {
     const issueList = [];
-    for await (const page of octokit.query({ q: `is:open milestone:${version}` })) {
+    for await (const page of octokit.query({ q: `is:issue is:open milestone:${version}` })) {
         for (const issue of page) {
             issueList.push(await issue.getIssue());
         }
