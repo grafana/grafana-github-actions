@@ -1,5 +1,5 @@
 name: Remove milestone
-description: Remove any open issues from the current milestone
+description: Remove any open issues and pull requests from the current milestone
 inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions.
