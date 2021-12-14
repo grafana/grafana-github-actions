@@ -10,14 +10,15 @@ import { getInput, setFailed } from '@actions/core'
 import { aiHandle } from './telemetry'
 import { debug } from 'console'
 
-export abstract class Action {
+export abstract class ActionBase {
 	abstract id: string
 
-	private username: Promise<string>
 	private token = getRequiredInput('token')
 
+	private username: Promise<string>
+
 	constructor() {
-		this.username = new GitHub(this.token).users.getAuthenticated().then(
+		this.username = new GitHub(this.getToken()).users.getAuthenticated().then(
 			(v) => v.data.name,
 			() => 'unknown',
 		)
@@ -27,12 +28,7 @@ export abstract class Action {
 		return this.token
 	}
 
-	public async trackMetric(telemetry: { name: string; value: number }) {
-		console.log('tracking metrics:', telemetry)
-		if (aiHandle) {
-			aiHandle.trackMetric(telemetry)
-		}
-	}
+	protected abstract runAction(): Promise<void>
 
 	public async run() {
 		console.log('running ', this.id, 'with context', {
@@ -59,55 +55,7 @@ export abstract class Action {
 		}
 
 		try {
-			const token = getRequiredInput('token')
-			const readonly = !!getInput('readonly')
-
-			const issue = context?.issue?.number
-
-			if (issue) {
-				const octokit = new OctoKitIssue(token, context.repo, { number: issue }, { readonly })
-				switch (context.eventName) {
-					case 'issue_comment':
-						await this.onCommented(octokit, context.payload.comment.body, context.actor)
-						break
-					case 'issues':
-					case 'pull_request':
-					case 'pull_request_target':
-						switch (context.payload.action) {
-							case 'opened':
-								await this.onOpened(octokit)
-								break
-							case 'reopened':
-								await this.onReopened(octokit)
-								break
-							case 'closed':
-								await this.onClosed(octokit)
-								break
-							case 'labeled':
-								await this.onLabeled(octokit, context.payload.label.name)
-								break
-							case 'unassigned':
-								await this.onUnassigned(octokit, context.payload.assignee.login)
-								break
-							case 'edited':
-								await this.onEdited(octokit)
-								break
-							case 'milestoned':
-								await this.onMilestoned(octokit)
-								break
-							case 'demilestoned':
-								await this.onDemilestoned(octokit)
-								break
-							case 'synchronize':
-								await this.onSynchronized(octokit)
-								break
-							default:
-								throw Error('Unexpected action: ' + context.payload.action)
-						}
-				}
-			} else {
-				await this.onTriggered(new OctoKit(token, context.repo, { readonly }))
-			}
+			await this.runAction()
 		} catch (e) {
 			if (e instanceof Error) {
 				await this.error(e)
@@ -116,13 +64,20 @@ export abstract class Action {
 
 		await this.trackMetric({ name: 'octokit_request_count', value: getNumRequests() })
 
-		const usage = await getRateLimit(this.token)
+		const usage = await getRateLimit(this.getToken())
 		await this.trackMetric({ name: 'usage_core', value: usage.core })
 		await this.trackMetric({ name: 'usage_graphql', value: usage.graphql })
 		await this.trackMetric({ name: 'usage_search', value: usage.search })
 	}
 
-	private async error(error: Error) {
+	protected async trackMetric(telemetry: { name: string; value: number }) {
+		console.log('tracking metrics:', telemetry)
+		if (aiHandle) {
+			aiHandle.trackMetric(telemetry)
+		}
+	}
+
+	protected async error(error: Error) {
 		debug('Error when running action: ', error)
 		const details: any = {
 			message: `${error.message}\n${error.stack}`,
@@ -147,6 +102,65 @@ ID: ${details.id}
 
 		setFailed(error.message)
 	}
+}
+
+export abstract class Action extends ActionBase {
+	abstract id: string
+
+	constructor() {
+		super()
+	}
+
+	protected async runAction(): Promise<void> {
+		const readonly = !!getInput('readonly')
+		const issue = context?.issue?.number
+
+		if (issue) {
+			const octokit = new OctoKitIssue(this.getToken(), context.repo, { number: issue }, { readonly })
+			switch (context.eventName) {
+				case 'issue_comment':
+					await this.onCommented(octokit, context.payload.comment.body, context.actor)
+					break
+				case 'issues':
+				case 'pull_request':
+				case 'pull_request_target':
+					switch (context.payload.action) {
+						case 'opened':
+							await this.onOpened(octokit)
+							break
+						case 'reopened':
+							await this.onReopened(octokit)
+							break
+						case 'closed':
+							await this.onClosed(octokit)
+							break
+						case 'labeled':
+							await this.onLabeled(octokit, context.payload.label.name)
+							break
+						case 'unassigned':
+							await this.onUnassigned(octokit, context.payload.assignee.login)
+							break
+						case 'edited':
+							await this.onEdited(octokit)
+							break
+						case 'milestoned':
+							await this.onMilestoned(octokit)
+							break
+						case 'demilestoned':
+							await this.onDemilestoned(octokit)
+							break
+						case 'synchronize':
+							await this.onSynchronized(octokit)
+							break
+						default:
+							throw Error('Unexpected action: ' + context.payload.action)
+					}
+			}
+		} else {
+			await this.onTriggered(new OctoKit(this.getToken(), context.repo, { readonly }))
+		}
+	}
+
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onTriggered(_octokit: OctoKit): Promise<void> {
 		throw Error('not implemented')
