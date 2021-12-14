@@ -55,7 +55,7 @@ async function getIssuesForVersion(octokit, version) {
 }
 async function getPullRequestsForVersion(octokit, version) {
     const issueList = [];
-    for await (const page of octokit.query({ q: `is:open milestone:${version} base:main` })) {
+    for await (const page of octokit.query({ q: `is:pr is:open milestone:${version} base:main` })) {
         for (const issue of page) {
             issueList.push(await issue.getIssue());
         }
