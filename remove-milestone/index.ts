@@ -17,12 +17,12 @@ class RemoveMilestone extends Action {
 		}
 
 		for (const issue of await getIssuesForVersion(octokit, version)) {
-			octokit.octokit.issues.update({
-				owner,
-				repo,
-				issue_number: issue.number,
-				milestone: null,
-			})
+			// octokit.octokit.issues.update({
+			// 	owner,
+			// 	repo,
+			// 	issue_number: issue.number,
+			// 	milestone: null,
+			// })
 
 			octokit.octokit.issues.createComment({
 				body: `This issue was removed from the ${version} milestone because ${version} is currently being released.`,
