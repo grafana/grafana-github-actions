@@ -28,9 +28,32 @@ class RemoveMilestone extends Action_1.Action {
                 repo,
             });
         }
+        for (const issue of await getPullRequestsForVersion(octokit, version)) {
+            await octokit.octokit.issues.update({
+                owner,
+                repo,
+                issue_number: issue.number,
+                milestone: null,
+            });
+            await octokit.octokit.issues.createComment({
+                body: `This pull request was removed from the ${version} milestone because ${version} is currently being released.`,
+                issue_number: issue.number,
+                owner,
+                repo,
+            });
+        }
     }
 }
 async function getIssuesForVersion(octokit, version) {
+    const issueList = [];
+    for await (const page of octokit.query({ q: `is:open milestone:${version}` })) {
+        for (const issue of page) {
+            issueList.push(await issue.getIssue());
+        }
+    }
+    return issueList;
+}
+async function getPullRequestsForVersion(octokit, version) {
     const issueList = [];
     for await (const page of octokit.query({ q: `is:open milestone:${version} base:main` })) {
         for (const issue of page) {
