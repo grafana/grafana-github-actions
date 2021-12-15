@@ -22,6 +22,9 @@ class MilestoneCheck extends Check_1.Check {
             if (!issue || !issue.pull_request) {
                 return;
             }
+            if (issue.state !== 'open') {
+                return;
+            }
             const pr = await ctx.getAPI().getPullRequest();
             if (pr.milestoneId) {
                 return this.success(ctx, pr.headSHA);
