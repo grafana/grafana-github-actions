@@ -4,26 +4,20 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Action = void 0;
+exports.Action = exports.ActionBase = void 0;
 const octokit_1 = require("../api/octokit");
 const github_1 = require("@actions/github");
 const utils_1 = require("./utils");
 const core_1 = require("@actions/core");
 const telemetry_1 = require("./telemetry");
 const console_1 = require("console");
-class Action {
+class ActionBase {
     constructor() {
         this.token = (0, utils_1.getRequiredInput)('token');
-        this.username = new github_1.GitHub(this.token).users.getAuthenticated().then((v) => v.data.name, () => 'unknown');
+        this.username = new github_1.GitHub(this.getToken()).users.getAuthenticated().then((v) => v.data.name, () => 'unknown');
     }
     getToken() {
         return this.token;
-    }
-    async trackMetric(telemetry) {
-        console.log('tracking metrics:', telemetry);
-        if (telemetry_1.aiHandle) {
-            telemetry_1.aiHandle.trackMetric(telemetry);
-        }
     }
     async run() {
         console.log('running ', this.id, 'with context', {
@@ -46,54 +40,7 @@ class Action {
             }
         }
         try {
-            const token = (0, utils_1.getRequiredInput)('token');
-            const readonly = !!(0, core_1.getInput)('readonly');
-            const issue = github_1.context?.issue?.number;
-            if (issue) {
-                const octokit = new octokit_1.OctoKitIssue(token, github_1.context.repo, { number: issue }, { readonly });
-                switch (github_1.context.eventName) {
-                    case 'issue_comment':
-                        await this.onCommented(octokit, github_1.context.payload.comment.body, github_1.context.actor);
-                        break;
-                    case 'issues':
-                    case 'pull_request':
-                    case 'pull_request_target':
-                        switch (github_1.context.payload.action) {
-                            case 'opened':
-                                await this.onOpened(octokit);
-                                break;
-                            case 'reopened':
-                                await this.onReopened(octokit);
-                                break;
-                            case 'closed':
-                                await this.onClosed(octokit);
-                                break;
-                            case 'labeled':
-                                await this.onLabeled(octokit, github_1.context.payload.label.name);
-                                break;
-                            case 'unassigned':
-                                await this.onUnassigned(octokit, github_1.context.payload.assignee.login);
-                                break;
-                            case 'edited':
-                                await this.onEdited(octokit);
-                                break;
-                            case 'milestoned':
-                                await this.onMilestoned(octokit);
-                                break;
-                            case 'demilestoned':
-                                await this.onDemilestoned(octokit);
-                                break;
-                            case 'synchronize':
-                                await this.onSynchronized(octokit);
-                                break;
-                            default:
-                                throw Error('Unexpected action: ' + github_1.context.payload.action);
-                        }
-                }
-            }
-            else {
-                await this.onTriggered(new octokit_1.OctoKit(token, github_1.context.repo, { readonly }));
-            }
+            await this.runAction();
         }
         catch (e) {
             if (e instanceof Error) {
@@ -101,10 +48,16 @@ class Action {
             }
         }
         await this.trackMetric({ name: 'octokit_request_count', value: (0, octokit_1.getNumRequests)() });
-        const usage = await (0, utils_1.getRateLimit)(this.token);
+        const usage = await (0, utils_1.getRateLimit)(this.getToken());
         await this.trackMetric({ name: 'usage_core', value: usage.core });
         await this.trackMetric({ name: 'usage_graphql', value: usage.graphql });
         await this.trackMetric({ name: 'usage_search', value: usage.search });
+    }
+    async trackMetric(telemetry) {
+        console.log('tracking metrics:', telemetry);
+        if (telemetry_1.aiHandle) {
+            telemetry_1.aiHandle.trackMetric(telemetry);
+        }
     }
     async error(error) {
         (0, console_1.debug)('Error when running action: ', error);
@@ -127,6 +80,61 @@ ID: ${details.id}
             telemetry_1.aiHandle.trackException({ exception: error });
         }
         (0, core_1.setFailed)(error.message);
+    }
+}
+exports.ActionBase = ActionBase;
+class Action extends ActionBase {
+    constructor() {
+        super();
+    }
+    async runAction() {
+        const readonly = !!(0, core_1.getInput)('readonly');
+        const issue = github_1.context?.issue?.number;
+        if (issue) {
+            const octokit = new octokit_1.OctoKitIssue(this.getToken(), github_1.context.repo, { number: issue }, { readonly });
+            switch (github_1.context.eventName) {
+                case 'issue_comment':
+                    await this.onCommented(octokit, github_1.context.payload.comment.body, github_1.context.actor);
+                    break;
+                case 'issues':
+                case 'pull_request':
+                case 'pull_request_target':
+                    switch (github_1.context.payload.action) {
+                        case 'opened':
+                            await this.onOpened(octokit);
+                            break;
+                        case 'reopened':
+                            await this.onReopened(octokit);
+                            break;
+                        case 'closed':
+                            await this.onClosed(octokit);
+                            break;
+                        case 'labeled':
+                            await this.onLabeled(octokit, github_1.context.payload.label.name);
+                            break;
+                        case 'unassigned':
+                            await this.onUnassigned(octokit, github_1.context.payload.assignee.login);
+                            break;
+                        case 'edited':
+                            await this.onEdited(octokit);
+                            break;
+                        case 'milestoned':
+                            await this.onMilestoned(octokit);
+                            break;
+                        case 'demilestoned':
+                            await this.onDemilestoned(octokit);
+                            break;
+                        case 'synchronize':
+                            await this.onSynchronized(octokit);
+                            break;
+                        default:
+                            throw Error('Unexpected action: ' + github_1.context.payload.action);
+                    }
+            }
+        }
+        else {
+            await this.onTriggered(new octokit_1.OctoKit(this.getToken(), github_1.context.repo, { readonly }));
+        }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onTriggered(_octokit) {

@@ -288,7 +288,7 @@ class OctoKit {
     }
     async addIssueToProjectOld(projectColumnId, issueNodeId) {
         console.log('Running addIssueToProjectOld with: projectColumnId: ', projectColumnId, ' issueNodeId: ', issueNodeId);
-        const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {				
+        const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
 				cardEdge {
 					node {
