@@ -5,7 +5,7 @@ import { CheckContext, CheckSubscriber } from '../types'
 
 export type MilestoneCheckConfig = {
 	title?: string
-	targetURL?: string
+	targetUrl?: string
 	success?: string
 	failure?: string
 }
@@ -46,12 +46,12 @@ export class MilestoneCheck extends Check {
 	private success(ctx: CheckContext, sha: string) {
 		const title = this.config.title ?? 'Milestone Check'
 		const description = this.config.success ?? 'Milestone set'
-		return ctx.success({ sha, title, description, targetURL: this.config.targetURL })
+		return ctx.success({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 
 	private failure(ctx: CheckContext, sha: string) {
 		const title = this.config.title ?? 'Milestone Check'
 		const description = this.config.failure ?? 'Milestone not set'
-		return ctx.failure({ sha, title, description, targetURL: this.config.targetURL })
+		return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 }

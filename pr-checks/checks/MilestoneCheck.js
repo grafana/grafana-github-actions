@@ -32,12 +32,12 @@ class MilestoneCheck extends Check_1.Check {
     success(ctx, sha) {
         const title = this.config.title ?? 'Milestone Check';
         const description = this.config.success ?? 'Milestone set';
-        return ctx.success({ sha, title, description, targetURL: this.config.targetURL });
+        return ctx.success({ sha, title, description, targetURL: this.config.targetUrl });
     }
     failure(ctx, sha) {
         const title = this.config.title ?? 'Milestone Check';
         const description = this.config.failure ?? 'Milestone not set';
-        return ctx.failure({ sha, title, description, targetURL: this.config.targetURL });
+        return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl });
     }
 }
 exports.MilestoneCheck = MilestoneCheck;

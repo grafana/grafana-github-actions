@@ -15,7 +15,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
+			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetUrl: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request'
 			context.payload = {
@@ -48,7 +48,7 @@ describe('MilestoneCheck', () => {
 				const c = new MilestoneCheck({
 					title: 'Test',
 					success: 'Milestone set',
-					targetURL: 'http://',
+					targetUrl: 'http://',
 				})
 				c.subscribe(d)
 				context.eventName = 'pull_request'
@@ -82,7 +82,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
+			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetUrl: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request_target'
 			context.payload = {
@@ -115,7 +115,7 @@ describe('MilestoneCheck', () => {
 				const c = new MilestoneCheck({
 					title: 'Test',
 					success: 'Milestone set',
-					targetURL: 'http://',
+					targetUrl: 'http://',
 				})
 				c.subscribe(d)
 				context.eventName = 'pull_request_target'
