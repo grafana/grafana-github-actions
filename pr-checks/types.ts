@@ -22,8 +22,11 @@ export type CheckSubscriber = {
 	on(events: string | string[], actions: string | string[], callback: SubscribeCallback): void
 }
 
-export type API = {
+export type ChecksAPI = {
 	getPullRequest(): Promise<PullRequest>
+}
+
+export type API = {
 	createStatus(
 		sha: string,
 		context: string,
@@ -31,15 +34,15 @@ export type API = {
 		description?: string,
 		targetUrl?: string,
 	): Promise<void>
-}
+} & ChecksAPI
 
 export class CheckContext {
 	private result: CheckResult | undefined
 
-	constructor(private getPullRequestFn: () => Promise<PullRequest>) {}
+	constructor(private api: ChecksAPI) {}
 
-	getPullRequest(): Promise<PullRequest> {
-		return this.getPullRequestFn()
+	getAPI() {
+		return this.api
 	}
 
 	getResult(): CheckResult | undefined {

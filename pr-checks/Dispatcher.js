@@ -51,7 +51,7 @@ class Dispatcher {
         console.debug('got matches', matches);
         for (let n = 0; n < matches.length; n++) {
             const match = matches[n];
-            let ctx = new types_1.CheckContext(this.api?.getPullRequest);
+            let ctx = new types_1.CheckContext(this.api);
             try {
                 console.debug('calling subcriber of event(s) and action(s)', match.events, match.actions);
                 await match.callback(ctx);

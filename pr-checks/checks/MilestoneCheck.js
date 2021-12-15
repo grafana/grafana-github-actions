@@ -22,7 +22,7 @@ class MilestoneCheck extends Check_1.Check {
             if (!issue.pull_request) {
                 return;
             }
-            const pr = await ctx.getPullRequest();
+            const pr = await ctx.getAPI().getPullRequest();
             if (pr.milestoneId) {
                 return this.success(ctx, pr.headSHA);
             }

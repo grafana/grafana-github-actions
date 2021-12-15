@@ -34,7 +34,7 @@ export class MilestoneCheck extends Check {
 				return
 			}
 
-			const pr = await ctx.getPullRequest()
+			const pr = await ctx.getAPI().getPullRequest()
 			if (pr.milestoneId) {
 				return this.success(ctx, pr.headSHA)
 			}
