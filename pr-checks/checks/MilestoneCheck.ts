@@ -30,7 +30,7 @@ export class MilestoneCheck extends Check {
 
 		s.on('issues', ['milestoned', 'demilestoned'], async (ctx) => {
 			const issue = context.payload.issue as EventPayloads.WebhookPayloadIssuesIssue
-			if (!issue.pull_request) {
+			if (!issue || issue.pull_request) {
 				return
 			}
 

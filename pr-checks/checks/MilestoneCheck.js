@@ -19,7 +19,7 @@ class MilestoneCheck extends Check_1.Check {
         });
         s.on('issues', ['milestoned', 'demilestoned'], async (ctx) => {
             const issue = github_1.context.payload.issue;
-            if (!issue.pull_request) {
+            if (!issue || issue.pull_request) {
                 return;
             }
             const pr = await ctx.getAPI().getPullRequest();
