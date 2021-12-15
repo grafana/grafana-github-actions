@@ -1,30 +1,35 @@
+import { context } from '@actions/github'
 import { OctoKitIssue } from '../api/octokit'
 import { getRequiredInput } from '../common/utils'
-import { Action } from '../common/Action'
-import { Checks } from './Checks'
+import { ActionBase } from '../common/Action'
+import { CheckConfig } from './types'
+import { getChecks } from './checks'
+import { Dispatcher } from './Dispatcher'
 
-class PRChecksAction extends Action {
+class PRChecksAction extends ActionBase {
 	id = 'PR Checks'
 
-	async onOpened(issue: OctoKitIssue): Promise<void> {
-		await this.onAction(issue)
-	}
+	protected async runAction(): Promise<void> {
+		const issue = context?.issue?.number
 
-	async onMilestoned(issue: OctoKitIssue): Promise<void> {
-		await this.onAction(issue)
-	}
+		if (!issue) {
+			return
+		}
 
-	async onDemilestoned(issue: OctoKitIssue): Promise<void> {
-		await this.onAction(issue)
-	}
+		const api = new OctoKitIssue(this.getToken(), context.repo, { number: issue })
+		const config = (await api.readConfig(getRequiredInput('configPath'))) as CheckConfig
+		const dispatcher = new Dispatcher(api)
+		const checks = getChecks()
 
-	async onSynchronized(issue: OctoKitIssue): Promise<void> {
-		await this.onAction(issue)
-	}
+		for (let n = 0; n < checks.length; n++) {
+			const check = checks[n]
 
-	async onAction(issue: OctoKitIssue): Promise<void> {
-		const config = await issue.readConfig(getRequiredInput('configPath'))
-		await new Checks(issue, config).run()
+			if (check.isEnabled(config)) {
+				check.subscribe(dispatcher)
+			}
+		}
+
+		await dispatcher.dispatch(context, config as CheckConfig)
 	}
 }
 
