@@ -11,12 +11,11 @@ class BackportCheck extends Check_1.Check {
         this.id = 'backport';
     }
     subscribe(s) {
-        s.on(['pull_request', 'pull_request_target'], 'labeled', async (ctx) => {
+        s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled'], async (ctx) => {
             const payload = github_1.context.payload;
             if (!payload.label) {
                 return;
             }
-            console.log('Label added', payload.pull_request.labels.map((l) => l.name));
             for (let n = 0; n < payload.pull_request.labels.length; n++) {
                 const existingLabel = payload.pull_request.labels[n];
                 const matches = labelRegExp.exec(existingLabel.name);
@@ -32,41 +31,7 @@ class BackportCheck extends Check_1.Check {
                     }
                 }
             }
-            return this.failure(ctx, payload.pull_request.head.sha);
-        });
-        s.on(['pull_request', 'pull_request_target'], 'unlabeled', async (ctx) => {
-            const payload = github_1.context.payload;
-            if (!payload.label) {
-                return;
-            }
-            console.log('Label removed', payload.pull_request.labels.map((l) => l.name));
-            for (let n = 0; n < payload.pull_request.labels.length; n++) {
-                const existingLabel = payload.pull_request.labels[n];
-                const matches = labelRegExp.exec(existingLabel.name);
-                if (matches !== null) {
-                    return this.successEnabled(ctx, payload.pull_request.head.sha);
-                }
-                if (this.config.skipLabels) {
-                    for (let n = 0; n < this.config.skipLabels.length; n++) {
-                        const l = this.config.skipLabels[n];
-                        if (l === existingLabel.name) {
-                            return this.successSkip(ctx, payload.pull_request.head.sha);
-                        }
-                    }
-                }
-            }
-            for (let n = 0; n < payload.pull_request.labels.length; n++) {
-                const existingLabel = payload.pull_request.labels[n];
-                if (this.config.skipLabels) {
-                    for (let n = 0; n < this.config.skipLabels.length; n++) {
-                        const l = this.config.skipLabels[n];
-                        if (l === existingLabel.name) {
-                            return this.successSkip(ctx, payload.pull_request.head.sha);
-                        }
-                    }
-                }
-            }
-            return this.failure(ctx, payload.pull_request.head.sha);
+            return this.pending(ctx, payload.pull_request.head.sha);
         });
     }
     successEnabled(ctx, sha) {
@@ -79,9 +44,9 @@ class BackportCheck extends Check_1.Check {
         const description = this.config.backportSkipped ?? 'Backport skipped';
         return ctx.success({ sha, title, description, targetURL: this.config.targetUrl });
     }
-    failure(ctx, sha) {
+    pending(ctx, sha) {
         const title = this.config.title ?? 'Backport Check';
-        const description = this.config.failure ?? 'Backport decision needed';
+        const description = this.config.pending ?? 'Backport decision needed';
         return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl });
     }
 }
