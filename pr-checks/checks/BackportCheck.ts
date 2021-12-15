@@ -8,7 +8,7 @@ export type BackportCheckConfig = {
 	targetUrl?: string
 	backportEnabled?: string
 	backportSkipped?: string
-	pending?: string
+	failure?: string
 	skipLabels?: string[]
 }
 
@@ -45,7 +45,7 @@ export class BackportCheck extends Check {
 				}
 			}
 
-			return this.pending(ctx, payload.pull_request.head.sha)
+			return this.failure(ctx, payload.pull_request.head.sha)
 		})
 	}
 
@@ -61,9 +61,9 @@ export class BackportCheck extends Check {
 		return ctx.success({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 
-	private pending(ctx: CheckContext, sha: string) {
+	private failure(ctx: CheckContext, sha: string) {
 		const title = this.config.title ?? 'Backport Check'
-		const description = this.config.pending ?? 'Backport decision needed'
+		const description = this.config.failure ?? 'Backport decision needed'
 		return ctx.pending({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 }

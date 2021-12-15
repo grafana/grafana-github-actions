@@ -31,7 +31,7 @@ class BackportCheck extends Check_1.Check {
                     }
                 }
             }
-            return this.pending(ctx, payload.pull_request.head.sha);
+            return this.failure(ctx, payload.pull_request.head.sha);
         });
     }
     successEnabled(ctx, sha) {
@@ -44,9 +44,9 @@ class BackportCheck extends Check_1.Check {
         const description = this.config.backportSkipped ?? 'Backport skipped';
         return ctx.success({ sha, title, description, targetURL: this.config.targetUrl });
     }
-    pending(ctx, sha) {
+    failure(ctx, sha) {
         const title = this.config.title ?? 'Backport Check';
-        const description = this.config.pending ?? 'Backport decision needed';
+        const description = this.config.failure ?? 'Backport decision needed';
         return ctx.pending({ sha, title, description, targetURL: this.config.targetUrl });
     }
 }
