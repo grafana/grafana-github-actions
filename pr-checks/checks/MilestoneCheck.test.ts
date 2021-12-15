@@ -74,7 +74,7 @@ describe('MilestoneCheck', () => {
 		})
 	})
 
-	describe('pull_request_target|synchronized|Without milestone set', () => {
+	describe('pull_request_target|synchronize|Without milestone set', () => {
 		it('Should create status failure', async () => {
 			const createStatusMock = jest.fn()
 			const getPullRequestMock = jest.fn()
@@ -86,7 +86,7 @@ describe('MilestoneCheck', () => {
 			c.subscribe(d)
 			context.eventName = 'pull_request_target'
 			context.payload = {
-				action: 'synchronized',
+				action: 'synchronize',
 			}
 			context.payload.pull_request = {
 				head: {
@@ -104,7 +104,7 @@ describe('MilestoneCheck', () => {
 			expect(createStatusMock.mock.calls[0][4]).to.equal('http://')
 		})
 
-		describe('pull_request_target|synchronized|With milestone set', () => {
+		describe('pull_request_target|synchronize|With milestone set', () => {
 			it('Should create status success', async () => {
 				const createStatusMock = jest.fn()
 				const getPullRequestMock = jest.fn()
@@ -120,7 +120,7 @@ describe('MilestoneCheck', () => {
 				c.subscribe(d)
 				context.eventName = 'pull_request_target'
 				context.payload = {
-					action: 'synchronized',
+					action: 'synchronize',
 				}
 				context.payload.pull_request = {
 					head: {

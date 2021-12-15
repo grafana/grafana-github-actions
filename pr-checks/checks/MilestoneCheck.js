@@ -10,7 +10,7 @@ class MilestoneCheck extends Check_1.Check {
         this.id = 'milestone';
     }
     subscribe(s) {
-        s.on(['pull_request', 'pull_request_target'], ['opened', 'synchronized'], async (ctx) => {
+        s.on(['pull_request', 'pull_request_target'], ['opened', 'synchronize'], async (ctx) => {
             const pr = github_1.context.payload.pull_request;
             if (pr && pr.milestone) {
                 return this.success(ctx, pr.head.sha);
