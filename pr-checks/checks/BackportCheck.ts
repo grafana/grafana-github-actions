@@ -64,6 +64,6 @@ export class BackportCheck extends Check {
 	private pending(ctx: CheckContext, sha: string) {
 		const title = this.config.title ?? 'Backport Check'
 		const description = this.config.pending ?? 'Backport decision needed'
-		return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl })
+		return ctx.pending({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 }
