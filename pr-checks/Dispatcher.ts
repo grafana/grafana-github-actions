@@ -49,21 +49,23 @@ export class Dispatcher implements CheckSubscriber {
 	}
 
 	async dispatch(context: Context): Promise<void> {
-		const callbacks = this.subscribers
-			.filter((s) => {
-				return (
-					s.events.includes(context.eventName) &&
-					(s.actions.length === 0 || s.actions.includes(context.action))
-				)
-			})
-			.map((s) => s.callback)
+		console.debug('dispatches based on', { eventName: context.eventName, action: context.action })
+		const matches = this.subscribers.filter((s) => {
+			return (
+				s.events.includes(context.eventName) &&
+				(s.actions.length === 0 || s.actions.includes(context.action))
+			)
+		})
+		console.debug('got matches', matches)
 
-		for (let n = 0; n < callbacks.length; n++) {
-			const callback = callbacks[n]
+		for (let n = 0; n < matches.length; n++) {
+			const match = matches[n]
 			let ctx = new CheckContext(this.api?.getPullRequest)
 			try {
-				await callback(ctx)
+				console.debug('calling subcriber of event(s) and action(s)', match.events, match.actions)
+				await match.callback(ctx)
 				const result = ctx.getResult()
+				console.debug('ctx', ctx)
 				if (!result) {
 					continue
 				}
