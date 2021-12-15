@@ -24,7 +24,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
-				context.action = 'a100'
+				context.payload = {
+					action: 'a100',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(2)
@@ -37,7 +39,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
-				context.action = 'a1'
+				context.payload = {
+					action: 'a1',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(6)
@@ -50,7 +54,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
-				context.action = 'a2'
+				context.payload = {
+					action: 'a2',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(4)
@@ -63,7 +69,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'
-				context.action = 'a100'
+				context.payload = {
+					action: 'a100',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(1)
@@ -76,7 +84,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'
-				context.action = 'a1'
+				context.payload = {
+					action: 'a1',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(3)
@@ -89,7 +99,9 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'
-				context.action = 'a2'
+				context.payload = {
+					action: 'a2',
+				}
 				await d.dispatch(context)
 
 				expect(check.calls).equal(2)

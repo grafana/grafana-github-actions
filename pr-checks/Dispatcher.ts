@@ -49,11 +49,15 @@ export class Dispatcher implements CheckSubscriber {
 	}
 
 	async dispatch(context: Context): Promise<void> {
-		console.debug('dispatches based on', { eventName: context.eventName, action: context.action })
+		console.debug('dispatches based on', {
+			eventName: context.eventName,
+			action: context.payload?.action,
+		})
 		const matches = this.subscribers.filter((s) => {
 			return (
 				s.events.includes(context.eventName) &&
-				(s.actions.length === 0 || s.actions.includes(context.action))
+				(s.actions.length === 0 ||
+					(context.payload.action && s.actions.includes(context.payload?.action)))
 			)
 		})
 		console.debug('got matches', matches)

@@ -18,8 +18,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request'
-			context.action = 'opened'
-			context.payload = {}
+			context.payload = {
+				action: 'opened',
+			}
 			context.payload.pull_request = {
 				head: {
 					sha: '123',
@@ -51,8 +52,9 @@ describe('MilestoneCheck', () => {
 				})
 				c.subscribe(d)
 				context.eventName = 'pull_request'
-				context.action = 'opened'
-				context.payload = {}
+				context.payload = {
+					action: 'opened',
+				}
 				context.payload.pull_request = {
 					head: {
 						sha: '123',
@@ -83,8 +85,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request_target'
-			context.action = 'synchronized'
-			context.payload = {}
+			context.payload = {
+				action: 'synchronized',
+			}
 			context.payload.pull_request = {
 				head: {
 					sha: '123',
@@ -116,8 +119,9 @@ describe('MilestoneCheck', () => {
 				})
 				c.subscribe(d)
 				context.eventName = 'pull_request_target'
-				context.action = 'synchronized'
-				context.payload = {}
+				context.payload = {
+					action: 'synchronized',
+				}
 				context.payload.pull_request = {
 					head: {
 						sha: '123',
@@ -148,8 +152,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
-			context.action = 'milestoned'
-			context.payload = {}
+			context.payload = {
+				action: 'milestoned',
+			}
 			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
@@ -171,8 +176,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
-			context.action = 'milestoned'
-			context.payload = {}
+			context.payload = {
+				action: 'milestoned',
+			}
 			context.payload.issue = {
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
@@ -199,8 +205,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
-			context.action = 'demilestoned'
-			context.payload = {}
+			context.payload = {
+				action: 'demilestoned',
+			}
 			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
@@ -222,8 +229,9 @@ describe('MilestoneCheck', () => {
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
-			context.action = 'demilestoned'
-			context.payload = {}
+			context.payload = {
+				action: 'demilestoned',
+			}
 			context.payload.issue = {
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
