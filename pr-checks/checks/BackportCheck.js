@@ -16,20 +16,7 @@ class BackportCheck extends Check_1.Check {
             if (!payload.label) {
                 return;
             }
-            const labelAdded = payload.label.name;
-            console.log('Label added', labelAdded, payload.pull_request.labels);
-            const matches = labelRegExp.exec(labelAdded);
-            if (matches !== null) {
-                return this.successEnabled(ctx, payload.pull_request.head.sha);
-            }
-            if (this.config.skipLabels) {
-                for (let n = 0; n < this.config.skipLabels.length; n++) {
-                    const l = this.config.skipLabels[n];
-                    if (l === labelAdded) {
-                        return this.successSkip(ctx, payload.pull_request.head.sha);
-                    }
-                }
-            }
+            console.log('Label added', payload.pull_request.labels.map((l) => l.name));
             for (let n = 0; n < payload.pull_request.labels.length; n++) {
                 const existingLabel = payload.pull_request.labels[n];
                 const matches = labelRegExp.exec(existingLabel.name);
@@ -45,13 +32,29 @@ class BackportCheck extends Check_1.Check {
                     }
                 }
             }
+            return this.failure(ctx, payload.pull_request.head.sha);
         });
         s.on(['pull_request', 'pull_request_target'], 'unlabeled', async (ctx) => {
             const payload = github_1.context.payload;
             if (!payload.label) {
                 return;
             }
-            console.log('Label removed', payload.label.name, payload.pull_request.labels);
+            console.log('Label removed', payload.pull_request.labels.map((l) => l.name));
+            for (let n = 0; n < payload.pull_request.labels.length; n++) {
+                const existingLabel = payload.pull_request.labels[n];
+                const matches = labelRegExp.exec(existingLabel.name);
+                if (matches !== null) {
+                    return this.successEnabled(ctx, payload.pull_request.head.sha);
+                }
+                if (this.config.skipLabels) {
+                    for (let n = 0; n < this.config.skipLabels.length; n++) {
+                        const l = this.config.skipLabels[n];
+                        if (l === existingLabel.name) {
+                            return this.successSkip(ctx, payload.pull_request.head.sha);
+                        }
+                    }
+                }
+            }
             for (let n = 0; n < payload.pull_request.labels.length; n++) {
                 const existingLabel = payload.pull_request.labels[n];
                 if (this.config.skipLabels) {
@@ -63,11 +66,7 @@ class BackportCheck extends Check_1.Check {
                     }
                 }
             }
-            const labelRemoved = payload.label.name;
-            const matches = labelRegExp.exec(labelRemoved);
-            if (matches !== null) {
-                return this.failure(ctx, payload.pull_request.head.sha);
-            }
+            return this.failure(ctx, payload.pull_request.head.sha);
         });
     }
     successEnabled(ctx, sha) {
