@@ -20,7 +20,6 @@ class PRChecksAction extends Action_1.ActionBase {
         const dispatcher = new Dispatcher_1.Dispatcher(api);
         const config = await api.readConfig((0, utils_1.getRequiredInput)('configPath'));
         const checks = (0, checks_1.getChecks)(config);
-        console.debug('got checks', checks.length);
         for (let n = 0; n < checks.length; n++) {
             const check = checks[n];
             console.debug('subscribing to check', check.id);

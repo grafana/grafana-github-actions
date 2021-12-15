@@ -21,8 +21,6 @@ class PRChecksAction extends ActionBase {
 		const config = await api.readConfig(getRequiredInput('configPath'))
 		const checks = getChecks(config as CheckConfig[])
 
-		console.debug('got checks', checks.length)
-
 		for (let n = 0; n < checks.length; n++) {
 			const check = checks[n]
 			console.debug('subscribing to check', check.id)

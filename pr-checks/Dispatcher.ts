@@ -49,7 +49,7 @@ export class Dispatcher implements CheckSubscriber {
 	}
 
 	async dispatch(context: Context): Promise<void> {
-		console.debug('dispatches based on', {
+		console.debug('dispatch based on', {
 			eventName: context.eventName,
 			action: context.payload?.action,
 		})
@@ -69,7 +69,6 @@ export class Dispatcher implements CheckSubscriber {
 				console.debug('calling subcriber of event(s) and action(s)', match.events, match.actions)
 				await match.callback(ctx)
 				const result = ctx.getResult()
-				console.debug('ctx', ctx)
 				if (!result) {
 					continue
 				}
