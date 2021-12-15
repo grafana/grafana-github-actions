@@ -12,8 +12,7 @@ describe('Dispatcher', () => {
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'unhandled'
-				expect(await d.isMatch(context)).to.be.false
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(0)
 			})
@@ -26,8 +25,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e1'
 				context.action = 'a100'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(2)
 			})
@@ -40,8 +38,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e1'
 				context.action = 'a1'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(6)
 			})
@@ -54,8 +51,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e1'
 				context.action = 'a2'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(4)
 			})
@@ -68,8 +64,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e2'
 				context.action = 'a100'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(1)
 			})
@@ -82,8 +77,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e2'
 				context.action = 'a1'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(3)
 			})
@@ -96,8 +90,7 @@ describe('Dispatcher', () => {
 				check.subscribe(d)
 				context.eventName = 'e2'
 				context.action = 'a2'
-				expect(await d.isMatch(context)).to.be.true
-				await d.dispatch(context, null)
+				await d.dispatch(context)
 
 				expect(check.calls).equal(2)
 			})
@@ -112,10 +105,10 @@ describe('Dispatcher', () => {
 					createStatus: mockCallback,
 					getPullRequest: jest.fn(),
 				})
-				const check = new TestUpdateCheck()
+				const check = new TestUpdateCheck({ sha: 'sha', title: 'Test', description: 'Success' })
 				check.subscribe(d)
 				context.eventName = 'success'
-				await d.dispatch(context, { sha: 'sha', title: 'Test', description: 'Success' })
+				await d.dispatch(context)
 
 				expect(mockCallback.mock.calls.length).to.equal(1)
 				expect(mockCallback.mock.calls[0][0]).to.equal('sha')
@@ -133,10 +126,10 @@ describe('Dispatcher', () => {
 					createStatus: mockCallback,
 					getPullRequest: jest.fn(),
 				})
-				const check = new TestUpdateCheck()
+				const check = new TestUpdateCheck({ sha: 'sha', title: 'Test', description: 'Failure' })
 				check.subscribe(d)
 				context.eventName = 'failure'
-				await d.dispatch(context, { sha: 'sha', title: 'Test', description: 'Failure' })
+				await d.dispatch(context)
 
 				expect(mockCallback.mock.calls.length).to.equal(1)
 				expect(mockCallback.mock.calls[0][0]).to.equal('sha')
@@ -182,15 +175,18 @@ class TestCheck extends Check {
 
 class TestUpdateCheck extends Check {
 	id = 'testUpdate'
+
+	constructor(private config: { sha: string; title: string; description: string }) {
+		super()
+	}
+
 	public subscribe(s: CheckSubscriber) {
 		s.on('success', async (ctx) => {
-			const config = ctx.getConfig() as any
-			ctx.success({ sha: config.sha, title: config.title, description: config.description })
+			ctx.success(this.config)
 		})
 
 		s.on('failure', async (ctx) => {
-			const config = ctx.getConfig() as any
-			ctx.failure({ sha: config.sha, title: config.title, description: config.description })
+			ctx.failure(this.config)
 		})
 	}
 }

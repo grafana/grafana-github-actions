@@ -17,16 +17,16 @@ class PRChecksAction extends Action_1.ActionBase {
             return;
         }
         const api = new octokit_1.OctoKitIssue(this.getToken(), github_1.context.repo, { number: issue });
-        const config = (await api.readConfig((0, utils_1.getRequiredInput)('configPath')));
         const dispatcher = new Dispatcher_1.Dispatcher(api);
-        const checks = (0, checks_1.getChecks)();
+        const config = await api.readConfig((0, utils_1.getRequiredInput)('configPath'));
+        const checks = (0, checks_1.getChecks)(config);
+        console.debug('got checks', checks.length);
         for (let n = 0; n < checks.length; n++) {
             const check = checks[n];
-            if (check.isEnabled(config)) {
-                check.subscribe(dispatcher);
-            }
+            console.debug('subscribing to check', check.id);
+            check.subscribe(dispatcher);
         }
-        await dispatcher.dispatch(github_1.context, config);
+        await dispatcher.dispatch(github_1.context);
     }
 }
 new PRChecksAction().run(); // eslint-disable-line

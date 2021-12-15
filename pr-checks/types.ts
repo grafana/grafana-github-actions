@@ -33,21 +33,13 @@ export type API = {
 	): Promise<void>
 }
 
-export interface CheckConfig {
-	[key: string]: any
-}
-
 export class CheckContext {
 	private result: CheckResult | undefined
 
-	constructor(private getPullRequestFn: () => Promise<PullRequest>, private config: CheckConfig) {}
+	constructor(private getPullRequestFn: () => Promise<PullRequest>) {}
 
 	getPullRequest(): Promise<PullRequest> {
 		return this.getPullRequestFn()
-	}
-
-	getConfig() {
-		return this.config
 	}
 
 	getResult(): CheckResult | undefined {

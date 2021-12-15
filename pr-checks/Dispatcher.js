@@ -38,11 +38,7 @@ class Dispatcher {
             callback,
         });
     }
-    async isMatch(context) {
-        return this.subscribers.some((s) => s.events.includes(context.eventName) &&
-            (s.actions.length === 0 || s.actions.includes(context.action)));
-    }
-    async dispatch(context, checkConfig) {
+    async dispatch(context) {
         const callbacks = this.subscribers
             .filter((s) => {
             return (s.events.includes(context.eventName) &&
@@ -51,7 +47,7 @@ class Dispatcher {
             .map((s) => s.callback);
         for (let n = 0; n < callbacks.length; n++) {
             const callback = callbacks[n];
-            let ctx = new types_1.CheckContext(this.api?.getPullRequest, checkConfig);
+            let ctx = new types_1.CheckContext(this.api?.getPullRequest);
             try {
                 await callback(ctx);
                 const result = ctx.getResult();

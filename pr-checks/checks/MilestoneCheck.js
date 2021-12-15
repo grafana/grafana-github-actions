@@ -4,8 +4,9 @@ exports.MilestoneCheck = void 0;
 const github_1 = require("@actions/github");
 const Check_1 = require("../Check");
 class MilestoneCheck extends Check_1.Check {
-    constructor() {
-        super(...arguments);
+    constructor(config) {
+        super();
+        this.config = config;
         this.id = 'milestone';
     }
     subscribe(s) {
@@ -29,16 +30,14 @@ class MilestoneCheck extends Check_1.Check {
         });
     }
     success(ctx, sha) {
-        const config = ctx.getConfig()[this.id];
-        const title = config.title ?? 'Milestone Check';
-        const description = config.success ?? 'Milestone set';
-        return ctx.success({ sha, title, description, targetURL: config.targetURL });
+        const title = this.config.title ?? 'Milestone Check';
+        const description = this.config.success ?? 'Milestone set';
+        return ctx.success({ sha, title, description, targetURL: this.config.targetURL });
     }
     failure(ctx, sha) {
-        const config = ctx.getConfig()[this.id];
-        const title = config.title ?? 'Milestone Check';
-        const description = config.failure ?? 'Milestone not set';
-        return ctx.failure({ sha, title, description, targetURL: config.targetURL });
+        const title = this.config.title ?? 'Milestone Check';
+        const description = this.config.failure ?? 'Milestone not set';
+        return ctx.failure({ sha, title, description, targetURL: this.config.targetURL });
     }
 }
 exports.MilestoneCheck = MilestoneCheck;

@@ -1,5 +1,5 @@
 import { Context } from '@actions/github/lib/context'
-import { API, CheckConfig, CheckContext, CheckSubscriber, SubscribeCallback } from './types'
+import { API, CheckContext, CheckSubscriber, SubscribeCallback } from './types'
 
 export class Dispatcher implements CheckSubscriber {
 	private subscribers: {
@@ -48,15 +48,7 @@ export class Dispatcher implements CheckSubscriber {
 		})
 	}
 
-	async isMatch(context: Context) {
-		return this.subscribers.some(
-			(s) =>
-				s.events.includes(context.eventName) &&
-				(s.actions.length === 0 || s.actions.includes(context.action)),
-		)
-	}
-
-	async dispatch(context: Context, checkConfig: CheckConfig): Promise<void> {
+	async dispatch(context: Context): Promise<void> {
 		const callbacks = this.subscribers
 			.filter((s) => {
 				return (
@@ -68,7 +60,7 @@ export class Dispatcher implements CheckSubscriber {
 
 		for (let n = 0; n < callbacks.length; n++) {
 			const callback = callbacks[n]
-			let ctx = new CheckContext(this.api?.getPullRequest, checkConfig)
+			let ctx = new CheckContext(this.api?.getPullRequest)
 			try {
 				await callback(ctx)
 				const result = ctx.getResult()

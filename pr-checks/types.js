@@ -9,15 +9,11 @@ var CheckState;
     CheckState["Success"] = "success";
 })(CheckState = exports.CheckState || (exports.CheckState = {}));
 class CheckContext {
-    constructor(getPullRequestFn, config) {
+    constructor(getPullRequestFn) {
         this.getPullRequestFn = getPullRequestFn;
-        this.config = config;
     }
     getPullRequest() {
         return this.getPullRequestFn();
-    }
-    getConfig() {
-        return this.config;
     }
     getResult() {
         return this.result;

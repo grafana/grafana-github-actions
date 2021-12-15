@@ -3,7 +3,7 @@ import { EventPayloads } from '@octokit/webhooks'
 import { Check } from '../Check'
 import { CheckContext, CheckSubscriber } from '../types'
 
-type Config = {
+export type MilestoneCheckConfig = {
 	title?: string
 	targetURL?: string
 	success?: string
@@ -12,6 +12,10 @@ type Config = {
 
 export class MilestoneCheck extends Check {
 	id = 'milestone'
+
+	constructor(private config: MilestoneCheckConfig) {
+		super()
+	}
 
 	subscribe(s: CheckSubscriber) {
 		s.on(['pull_request', 'pull_request_target'], ['opened', 'synchronized'], async (ctx) => {
@@ -40,16 +44,14 @@ export class MilestoneCheck extends Check {
 	}
 
 	private success(ctx: CheckContext, sha: string) {
-		const config = ctx.getConfig()[this.id] as Config
-		const title = config.title ?? 'Milestone Check'
-		const description = config.success ?? 'Milestone set'
-		return ctx.success({ sha, title, description, targetURL: config.targetURL })
+		const title = this.config.title ?? 'Milestone Check'
+		const description = this.config.success ?? 'Milestone set'
+		return ctx.success({ sha, title, description, targetURL: this.config.targetURL })
 	}
 
 	private failure(ctx: CheckContext, sha: string) {
-		const config = ctx.getConfig()[this.id] as Config
-		const title = config.title ?? 'Milestone Check'
-		const description = config.failure ?? 'Milestone not set'
-		return ctx.failure({ sha, title, description, targetURL: config.targetURL })
+		const title = this.config.title ?? 'Milestone Check'
+		const description = this.config.failure ?? 'Milestone not set'
+		return ctx.failure({ sha, title, description, targetURL: this.config.targetURL })
 	}
 }

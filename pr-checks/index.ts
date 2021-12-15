@@ -2,8 +2,7 @@ import { context } from '@actions/github'
 import { OctoKitIssue } from '../api/octokit'
 import { getRequiredInput } from '../common/utils'
 import { ActionBase } from '../common/Action'
-import { CheckConfig } from './types'
-import { getChecks } from './checks'
+import { CheckConfig, getChecks } from './checks'
 import { Dispatcher } from './Dispatcher'
 
 class PRChecksAction extends ActionBase {
@@ -17,19 +16,20 @@ class PRChecksAction extends ActionBase {
 		}
 
 		const api = new OctoKitIssue(this.getToken(), context.repo, { number: issue })
-		const config = (await api.readConfig(getRequiredInput('configPath'))) as CheckConfig
 		const dispatcher = new Dispatcher(api)
-		const checks = getChecks()
+
+		const config = await api.readConfig(getRequiredInput('configPath'))
+		const checks = getChecks(config as CheckConfig[])
+
+		console.debug('got checks', checks.length)
 
 		for (let n = 0; n < checks.length; n++) {
 			const check = checks[n]
-
-			if (check.isEnabled(config)) {
-				check.subscribe(dispatcher)
-			}
+			console.debug('subscribing to check', check.id)
+			check.subscribe(dispatcher)
 		}
 
-		await dispatcher.dispatch(context, config as CheckConfig)
+		await dispatcher.dispatch(context)
 	}
 }
 

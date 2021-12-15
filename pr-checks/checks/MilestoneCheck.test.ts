@@ -15,7 +15,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request'
 			context.action = 'opened'
@@ -25,9 +25,7 @@ describe('MilestoneCheck', () => {
 					sha: '123',
 				},
 			} as EventPayloads.WebhookPayloadPullRequestPullRequest
-			await d.dispatch(context, {
-				milestone: { title: 'Test', failure: 'Failed', targetURL: 'http://' },
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
 			expect(createStatusMock.mock.calls.length).to.equal(1)
@@ -46,7 +44,11 @@ describe('MilestoneCheck', () => {
 					createStatus: createStatusMock,
 					getPullRequest: getPullRequestMock,
 				})
-				const c = new MilestoneCheck()
+				const c = new MilestoneCheck({
+					title: 'Test',
+					success: 'Milestone set',
+					targetURL: 'http://',
+				})
 				c.subscribe(d)
 				context.eventName = 'pull_request'
 				context.action = 'opened'
@@ -57,9 +59,7 @@ describe('MilestoneCheck', () => {
 					},
 					milestone: {},
 				} as EventPayloads.WebhookPayloadPullRequestPullRequest
-				await d.dispatch(context, {
-					milestone: { title: 'Test', success: 'Milestone set', targetURL: 'http://' },
-				})
+				await d.dispatch(context)
 
 				expect(getPullRequestMock.mock.calls.length).to.equal(0)
 				expect(createStatusMock.mock.calls.length).to.equal(1)
@@ -80,7 +80,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({ title: 'Test', failure: 'Failed', targetURL: 'http://' })
 			c.subscribe(d)
 			context.eventName = 'pull_request_target'
 			context.action = 'synchronized'
@@ -90,9 +90,7 @@ describe('MilestoneCheck', () => {
 					sha: '123',
 				},
 			} as EventPayloads.WebhookPayloadPullRequestPullRequest
-			await d.dispatch(context, {
-				milestone: { title: 'Test', failure: 'Failed', targetURL: 'http://' },
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
 			expect(createStatusMock.mock.calls.length).to.equal(1)
@@ -111,7 +109,11 @@ describe('MilestoneCheck', () => {
 					createStatus: createStatusMock,
 					getPullRequest: getPullRequestMock,
 				})
-				const c = new MilestoneCheck()
+				const c = new MilestoneCheck({
+					title: 'Test',
+					success: 'Milestone set',
+					targetURL: 'http://',
+				})
 				c.subscribe(d)
 				context.eventName = 'pull_request_target'
 				context.action = 'synchronized'
@@ -122,9 +124,7 @@ describe('MilestoneCheck', () => {
 					},
 					milestone: {},
 				} as EventPayloads.WebhookPayloadPullRequestPullRequest
-				await d.dispatch(context, {
-					milestone: { title: 'Test', success: 'Milestone set', targetURL: 'http://' },
-				})
+				await d.dispatch(context)
 
 				expect(getPullRequestMock.mock.calls.length).to.equal(0)
 				expect(createStatusMock.mock.calls.length).to.equal(1)
@@ -145,15 +145,13 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
 			context.action = 'milestoned'
 			context.payload = {}
 			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
-			await d.dispatch(context, {
-				milestone: {},
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
 			expect(createStatusMock.mock.calls.length).to.equal(0)
@@ -170,7 +168,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
 			context.action = 'milestoned'
@@ -178,9 +176,7 @@ describe('MilestoneCheck', () => {
 			context.payload.issue = {
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
-			await d.dispatch(context, {
-				milestone: {},
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(1)
 			expect(createStatusMock.mock.calls.length).to.equal(1)
@@ -200,15 +196,13 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
 			context.action = 'demilestoned'
 			context.payload = {}
 			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
-			await d.dispatch(context, {
-				milestone: {},
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
 			expect(createStatusMock.mock.calls.length).to.equal(0)
@@ -225,7 +219,7 @@ describe('MilestoneCheck', () => {
 				createStatus: createStatusMock,
 				getPullRequest: getPullRequestMock,
 			})
-			const c = new MilestoneCheck()
+			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
 			context.action = 'demilestoned'
@@ -233,9 +227,7 @@ describe('MilestoneCheck', () => {
 			context.payload.issue = {
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
-			await d.dispatch(context, {
-				milestone: {},
-			})
+			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(1)
 			expect(createStatusMock.mock.calls.length).to.equal(1)
