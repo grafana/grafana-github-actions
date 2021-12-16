@@ -58,19 +58,19 @@ class UpdateChangelog extends Action {
 		)
 
 		// look for the branch
-    let branchExists
+		let branchExists
 		try {
-      await git(
-        'ls-remote',
-        '--heads',
-        '--exit-code',
-        `https://github.com/${owner}/${repo}.git`,
-        branchName,
-      )
-      branchExists = true
-    } catch (e) {
-      branchExists = false
-    }
+			await git(
+				'ls-remote',
+				'--heads',
+				'--exit-code',
+				`https://github.com/${owner}/${repo}.git`,
+				branchName,
+			)
+			branchExists = true
+		} catch (e) {
+			branchExists = false
+		}
 
 		// we delete the branch which also will delete the associated PR
 		if (branchExists) {
@@ -82,14 +82,14 @@ class UpdateChangelog extends Action {
 			})
 
 			// close open PRs
-      for (const pull of pulls.data) {
-        // leave a comment explaining why we're closing this PR
-        await octokit.octokit.issues.createComment({
-          body: `This pull request has been closed because an updated changelog and release notes have been generated.`,
-          issue_number: pull.number,
-          owner,
-          repo,
-        })
+			for (const pull of pulls.data) {
+				// leave a comment explaining why we're closing this PR
+				await octokit.octokit.issues.createComment({
+					body: `This pull request has been closed because an updated changelog and release notes have been generated.`,
+					issue_number: pull.number,
+					owner,
+					repo,
+				})
 
 				// close pr
 				await octokit.octokit.pulls.update({
