@@ -63,7 +63,25 @@ class UpdateChangelog extends Action {
 		// if exitcode === 0 then branch does exist
 		// we delete the branch which also will delete the associated PR
     if (exitCode === 0) {
-			await git('push', 'origin', '--delete', branchName)
+       // check if there are open PR's
+      const pulls = await octokit.octokit.pulls.list({
+        owner,
+        repo,
+        head: branchName
+      })
+
+      // close opne PRs
+      pulls.data.forEach((pull)=>{
+        // close pr
+        octokit.octokit.pulls.update({
+          owner,
+          repo,
+          pull_number: pull.number,
+          state: 'closed',
+        })
+      })
+      // delete the branch
+      await git('push', 'origin', '--delete', branchName)
     }
 
 		await git('switch', '--create', branchName)
