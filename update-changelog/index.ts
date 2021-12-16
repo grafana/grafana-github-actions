@@ -67,7 +67,7 @@ class UpdateChangelog extends Action {
       const pulls = await octokit.octokit.pulls.list({
         owner,
         repo,
-        head: branchName
+        head: `${owner}:${branchName}`,
       })
 
       // close opne PRs
