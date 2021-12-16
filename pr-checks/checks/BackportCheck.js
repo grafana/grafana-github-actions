@@ -1,8 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BackportCheck = void 0;
+exports.BackportCheck = exports.defaultConfig = void 0;
 const github_1 = require("@actions/github");
 const Check_1 = require("../Check");
+exports.defaultConfig = {
+    title: 'Backport Check',
+    backportEnabled: 'Backport enabled',
+    backportSkipped: 'Backport skipped',
+    failure: 'Backport decision needed',
+};
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
 class BackportCheck extends Check_1.Check {
     constructor(config) {
@@ -13,7 +19,10 @@ class BackportCheck extends Check_1.Check {
     subscribe(s) {
         s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled'], async (ctx) => {
             const payload = github_1.context.payload;
-            if (!payload.label) {
+            if (!payload) {
+                return;
+            }
+            if (payload.pull_request.state !== 'open') {
                 return;
             }
             for (let n = 0; n < payload.pull_request.labels.length; n++) {
@@ -22,7 +31,10 @@ class BackportCheck extends Check_1.Check {
                 if (matches !== null) {
                     return this.successEnabled(ctx, payload.pull_request.head.sha);
                 }
-                if (this.config.skipLabels) {
+            }
+            if (this.config.skipLabels) {
+                for (let n = 0; n < payload.pull_request.labels.length; n++) {
+                    const existingLabel = payload.pull_request.labels[n];
                     for (let n = 0; n < this.config.skipLabels.length; n++) {
                         const l = this.config.skipLabels[n];
                         if (l === existingLabel.name) {
@@ -35,18 +47,18 @@ class BackportCheck extends Check_1.Check {
         });
     }
     successEnabled(ctx, sha) {
-        const title = this.config.title ?? 'Backport Check';
-        const description = this.config.backportEnabled ?? 'Backport enabled';
+        const title = this.config.title ?? exports.defaultConfig.title;
+        const description = this.config.backportEnabled ?? exports.defaultConfig.backportEnabled;
         return ctx.success({ sha, title, description, targetURL: this.config.targetUrl });
     }
     successSkip(ctx, sha) {
-        const title = this.config.title ?? 'Backport Check';
-        const description = this.config.backportSkipped ?? 'Backport skipped';
+        const title = this.config.title ?? exports.defaultConfig.title;
+        const description = this.config.backportSkipped ?? exports.defaultConfig.backportSkipped;
         return ctx.success({ sha, title, description, targetURL: this.config.targetUrl });
     }
     failure(ctx, sha) {
-        const title = this.config.title ?? 'Backport Check';
-        const description = this.config.failure ?? 'Backport decision needed';
+        const title = this.config.title ?? exports.defaultConfig.title;
+        const description = this.config.failure ?? exports.defaultConfig.failure;
         return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl });
     }
 }

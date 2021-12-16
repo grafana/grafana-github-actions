@@ -12,6 +12,12 @@ export type BackportCheckConfig = {
 	skipLabels?: string[]
 }
 
+export const defaultConfig = {
+	title: 'Backport Check',
+	backportEnabled: 'Backport enabled',
+	backportSkipped: 'Backport skipped',
+	failure: 'Backport decision needed',
+}
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/
 
 export class BackportCheck extends Check {
@@ -24,7 +30,11 @@ export class BackportCheck extends Check {
 	subscribe(s: CheckSubscriber) {
 		s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled'], async (ctx) => {
 			const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
-			if (!payload.label) {
+			if (!payload) {
+				return
+			}
+
+			if (payload.pull_request.state !== 'open') {
 				return
 			}
 
@@ -34,8 +44,12 @@ export class BackportCheck extends Check {
 				if (matches !== null) {
 					return this.successEnabled(ctx, payload.pull_request.head.sha)
 				}
+			}
 
-				if (this.config.skipLabels) {
+			if (this.config.skipLabels) {
+				for (let n = 0; n < payload.pull_request.labels.length; n++) {
+					const existingLabel = payload.pull_request.labels[n]
+
 					for (let n = 0; n < this.config.skipLabels.length; n++) {
 						const l = this.config.skipLabels[n]
 						if (l === existingLabel.name) {
@@ -50,20 +64,20 @@ export class BackportCheck extends Check {
 	}
 
 	private successEnabled(ctx: CheckContext, sha: string) {
-		const title = this.config.title ?? 'Backport Check'
-		const description = this.config.backportEnabled ?? 'Backport enabled'
+		const title = this.config.title ?? defaultConfig.title
+		const description = this.config.backportEnabled ?? defaultConfig.backportEnabled
 		return ctx.success({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 
 	private successSkip(ctx: CheckContext, sha: string) {
-		const title = this.config.title ?? 'Backport Check'
-		const description = this.config.backportSkipped ?? 'Backport skipped'
+		const title = this.config.title ?? defaultConfig.title
+		const description = this.config.backportSkipped ?? defaultConfig.backportSkipped
 		return ctx.success({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 
 	private failure(ctx: CheckContext, sha: string) {
-		const title = this.config.title ?? 'Backport Check'
-		const description = this.config.failure ?? 'Backport decision needed'
+		const title = this.config.title ?? defaultConfig.title
+		const description = this.config.failure ?? defaultConfig.failure
 		return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl })
 	}
 }
