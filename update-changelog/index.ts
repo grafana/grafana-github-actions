@@ -64,7 +64,7 @@ class UpdateChangelog extends Action {
 
 		await octokit.octokit.pulls.create({
 			base: 'main',
-			body: 'This exciting! So much has changed!',
+			body: 'This exciting! So much has changed!\nDO NOT CHANGE THE TITLES DIRECTLY IN THIS PR, everything in the PR is auto-generated.',
 			head: branchName,
 			owner,
 			repo,
