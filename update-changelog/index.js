@@ -51,8 +51,8 @@ class UpdateChangelog extends Action_1.Action {
                 repo,
                 head: `${owner}:${branchName}`,
             });
-            // close opne PRs
-            pulls.data.forEach(async (pull) => {
+            // close open PRs
+            for (const pull of pulls.data) {
                 // close pr
                 await octokit.octokit.pulls.update({
                     owner,
@@ -60,7 +60,7 @@ class UpdateChangelog extends Action_1.Action {
                     pull_number: pull.number,
                     state: 'closed',
                 });
-            });
+            }
             // delete the branch
             await git('push', 'origin', '--delete', branchName);
         }
