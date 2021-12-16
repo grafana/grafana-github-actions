@@ -49,7 +49,6 @@ class UpdateChangelog extends Action_1.Action {
         catch (e) {
             branchExists = false;
         }
-        // if exitcode === 0 then branch does exist
         // we delete the branch which also will delete the associated PR
         if (branchExists) {
             // check if there are open PR's
