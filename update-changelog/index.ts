@@ -58,18 +58,13 @@ class UpdateChangelog extends Action {
 		)
 
 		// look for the branch
-		// $ git ls-remote --heads --exit-code git@github.com:user/repo.git branch-name
-		// if exitcode === 2 then branch does not exist
-		// if exitcode === 0 then branch does exist, we delete the branch
     const exitCode = await git('ls-remote', '--heads' , '--exit-code', `https://github.com:${owner}/${repo}.git`, branchName)
 
-    if(exitCode === 0 ) {
-      await git('branch', '-D', branchName)
+		// if exitcode === 0 then branch does exist
+		// we delete the branch which also will delete the associated PR
+    if (exitCode === 0) {
+			await git('push', 'origin', '--delete', branchName)
     }
-
-
-		// if it exists, delete it
-		// if it doesn't exist, create it
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
@@ -89,7 +84,7 @@ class UpdateChangelog extends Action {
 
 const git = async (...args: string[]) => {
 	// await exec('git', args, { cwd: repo })
-	await exec('git', args)
+	return await exec('git', args)
 }
 
 const npx = async (...args: string[]) => {
