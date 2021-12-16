@@ -155,7 +155,9 @@ describe('MilestoneCheck', () => {
 			context.payload = {
 				action: 'milestoned',
 			}
-			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
+			context.payload.issue = {
+				state: 'open',
+			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
@@ -180,6 +182,7 @@ describe('MilestoneCheck', () => {
 				action: 'milestoned',
 			}
 			context.payload.issue = {
+				state: 'open',
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
@@ -191,6 +194,31 @@ describe('MilestoneCheck', () => {
 			expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Success)
 			expect(createStatusMock.mock.calls[0][3]).to.equal('Milestone set')
 			expect(createStatusMock.mock.calls[0][4]).to.equal(undefined)
+		})
+	})
+
+	describe('issues|milestoned|For pull request, issue closed', () => {
+		it('Should not create status', async () => {
+			const createStatusMock = jest.fn()
+			const getPullRequestMock = jest.fn()
+			const d = new Dispatcher({
+				createStatus: createStatusMock,
+				getPullRequest: getPullRequestMock,
+			})
+			const c = new MilestoneCheck({})
+			c.subscribe(d)
+			context.eventName = 'issues'
+			context.payload = {
+				action: 'milestoned',
+			}
+			context.payload.issue = {
+				state: 'closed',
+				pull_request: {},
+			} as EventPayloads.WebhookPayloadIssuesIssue
+			await d.dispatch(context)
+
+			expect(getPullRequestMock.mock.calls.length).to.equal(0)
+			expect(createStatusMock.mock.calls.length).to.equal(0)
 		})
 	})
 
@@ -208,7 +236,9 @@ describe('MilestoneCheck', () => {
 			context.payload = {
 				action: 'demilestoned',
 			}
-			context.payload.issue = {} as EventPayloads.WebhookPayloadIssuesIssue
+			context.payload.issue = {
+				state: 'open',
+			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
 			expect(getPullRequestMock.mock.calls.length).to.equal(0)
@@ -233,6 +263,7 @@ describe('MilestoneCheck', () => {
 				action: 'demilestoned',
 			}
 			context.payload.issue = {
+				state: 'open',
 				pull_request: {},
 			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
@@ -244,6 +275,31 @@ describe('MilestoneCheck', () => {
 			expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Failure)
 			expect(createStatusMock.mock.calls[0][3]).to.equal('Milestone not set')
 			expect(createStatusMock.mock.calls[0][4]).to.equal(undefined)
+		})
+	})
+
+	describe('issues|demilestoned|For pull request, issue closed', () => {
+		it('Should not create status', async () => {
+			const createStatusMock = jest.fn()
+			const getPullRequestMock = jest.fn()
+			const d = new Dispatcher({
+				createStatus: createStatusMock,
+				getPullRequest: getPullRequestMock,
+			})
+			const c = new MilestoneCheck({})
+			c.subscribe(d)
+			context.eventName = 'issues'
+			context.payload = {
+				action: 'demilestoned',
+			}
+			context.payload.issue = {
+				state: 'closed',
+				pull_request: {},
+			} as EventPayloads.WebhookPayloadIssuesIssue
+			await d.dispatch(context)
+
+			expect(getPullRequestMock.mock.calls.length).to.equal(0)
+			expect(createStatusMock.mock.calls.length).to.equal(0)
 		})
 	})
 })
