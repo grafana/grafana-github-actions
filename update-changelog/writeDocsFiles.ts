@@ -25,4 +25,14 @@ ${notes}
 	const fullPath = `${releaseNotesDocsPath}/${filePath}`
 
 	fs.writeFileSync(fullPath, content, { encoding: 'utf-8' })
+
+	const indexFilePath = `_index.md`
+	const indexFileFullPath = `${releaseNotesDocsPath}/${indexFilePath}`
+	const indexFileContent = fs.readFileSync(indexFileFullPath, 'utf8')
+	const findLatestNotes = indexFileContent.indexOf('- [Release notes for')
+	const updatedIndexFileContent =
+		indexFileContent.slice(0, findLatestNotes) +
+		`- [Release notes for ${version}]({{< relref "${filePath.replace('.md', '')}" >}})\n` +
+		indexFileContent.slice(findLatestNotes)
+	fs.writeFileSync(indexFileFullPath, updatedIndexFileContent, { encoding: 'utf8' })
 }

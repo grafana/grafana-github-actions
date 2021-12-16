@@ -22,6 +22,14 @@ ${notes}
     const filePath = `release-notes-${version.replace(/\./g, '-')}.md`;
     const fullPath = `${releaseNotesDocsPath}/${filePath}`;
     fs_1.default.writeFileSync(fullPath, content, { encoding: 'utf-8' });
+    const indexFilePath = `_index.md`;
+    const indexFileFullPath = `${releaseNotesDocsPath}/${indexFilePath}`;
+    const indexFileContent = fs_1.default.readFileSync(indexFileFullPath, 'utf8');
+    const findLatestNotes = indexFileContent.indexOf('- [Release notes for');
+    const updatedIndexFileContent = indexFileContent.slice(0, findLatestNotes) +
+        `- [Release notes for ${version}]({{< relref "${filePath.replace('.md', '')}" >}})\n` +
+        indexFileContent.slice(findLatestNotes);
+    fs_1.default.writeFileSync(indexFileFullPath, updatedIndexFileContent, { encoding: 'utf8' });
 }
 exports.writeDocsFiles = writeDocsFiles;
 //# sourceMappingURL=writeDocsFiles.js.map

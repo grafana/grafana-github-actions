@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { debug } from 'console'
 import { GitHubIssue, Issue, User } from '../api/api'
 import { checkMatch, MatchConfig } from '../common/globmatcher'
 import { trackEvent } from '../common/telemetry'
@@ -95,9 +94,9 @@ export class Commands {
 	}
 
 	private async perform(command: Command, issue: Issue, changedFiles: string[]) {
-		debug('Would perform command:', command, ' on issue:', issue)
+		console.debug('Would perform command:', command, ' on issue:', issue)
 		if (!(await this.matches(command, issue, changedFiles))) {
-			debug('Command ', JSON.stringify(command), ' did not match any criteria')
+			console.debug('Command ', JSON.stringify(command), ' did not match any criteria')
 			return
 		}
 		console.log('Running command', command)
