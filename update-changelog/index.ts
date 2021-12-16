@@ -58,31 +58,37 @@ class UpdateChangelog extends Action {
 		)
 
 		// look for the branch
-    const exitCode = await git('ls-remote', '--heads' , '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName)
+		const exitCode = await git(
+			'ls-remote',
+			'--heads',
+			'--exit-code',
+			`https://github.com/${owner}/${repo}.git`,
+			branchName,
+		)
 
 		// if exitcode === 0 then branch does exist
 		// we delete the branch which also will delete the associated PR
-    if (exitCode === 0) {
-       // check if there are open PR's
-      const pulls = await octokit.octokit.pulls.list({
-        owner,
-        repo,
-        head: `${owner}:${branchName}`,
-      })
+		if (exitCode === 0) {
+			// check if there are open PR's
+			const pulls = await octokit.octokit.pulls.list({
+				owner,
+				repo,
+				head: `${owner}:${branchName}`,
+			})
 
-      // close opne PRs
-      pulls.data.forEach((pull)=>{
-        // close pr
-        octokit.octokit.pulls.update({
-          owner,
-          repo,
-          pull_number: pull.number,
-          state: 'closed',
-        })
-      })
-      // delete the branch
-      await git('push', 'origin', '--delete', branchName)
-    }
+			// close opne PRs
+			pulls.data.forEach(async (pull) => {
+				// close pr
+				await octokit.octokit.pulls.update({
+					owner,
+					repo,
+					pull_number: pull.number,
+					state: 'closed',
+				})
+			})
+			// delete the branch
+			await git('push', 'origin', '--delete', branchName)
+		}
 
 		await git('switch', '--create', branchName)
 		await git('add', '-A')

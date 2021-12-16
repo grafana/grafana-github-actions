@@ -49,12 +49,12 @@ class UpdateChangelog extends Action_1.Action {
             const pulls = await octokit.octokit.pulls.list({
                 owner,
                 repo,
-                head: branchName
+                head: `${owner}:${branchName}`,
             });
             // close opne PRs
-            pulls.data.forEach((pull) => {
+            pulls.data.forEach(async (pull) => {
                 // close pr
-                octokit.octokit.pulls.update({
+                await octokit.octokit.pulls.update({
                     owner,
                     repo,
                     pull_number: pull.number,
