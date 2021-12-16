@@ -40,6 +40,13 @@ class UpdateChangelog extends Action_1.Action {
         fileUpdater.writeFile(changelogFile);
         await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
+        // look for the branch
+        const exitCode = await git('ls-remote', '--heads', '--exit-code', `https://github.com:${owner}/${repo}.git`, branchName);
+        // if exitcode === 0 then branch does exist
+        // we delete the branch which also will delete the associated PR
+        if (exitCode === 0) {
+            await git('push', 'origin', '--delete', branchName);
+        }
         await git('switch', '--create', branchName);
         await git('add', '-A');
         await git('commit', '-m', `${title}`);
@@ -56,7 +63,7 @@ class UpdateChangelog extends Action_1.Action {
 }
 const git = async (...args) => {
     // await exec('git', args, { cwd: repo })
-    await (0, exec_1.exec)('git', args);
+    return await (0, exec_1.exec)('git', args);
 };
 const npx = async (...args) => {
     await (0, exec_1.exec)('npx', args);
