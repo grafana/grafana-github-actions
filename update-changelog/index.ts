@@ -57,6 +57,14 @@ class UpdateChangelog extends Action {
 			'--write',
 		)
 
+		// look for the branch
+		// $ git ls-remote --heads --exit-code git@github.com:user/repo.git branch-name
+		// if exitcode === 2 then branch does not exist
+		// if exitcode === 0 then branch does exist
+
+		// if it exists, delete it
+		// if it doesn't exist, create it
+
 		await git('switch', '--create', branchName)
 		await git('add', '-A')
 		await git('commit', '-m', `${title}`)
