@@ -47,7 +47,7 @@ class BackportCheck extends Check_1.Check {
     failure(ctx, sha) {
         const title = this.config.title ?? 'Backport Check';
         const description = this.config.failure ?? 'Backport decision needed';
-        return ctx.pending({ sha, title, description, targetURL: this.config.targetUrl });
+        return ctx.failure({ sha, title, description, targetURL: this.config.targetUrl });
     }
 }
 exports.BackportCheck = BackportCheck;
