@@ -41,7 +41,7 @@ class UpdateChangelog extends Action_1.Action {
         await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
         // look for the branch
-        const exitCode = await git('ls-remote', '--heads', '--exit-code', `https://github.com:${owner}/${repo}.git`, branchName);
+        const exitCode = await git('ls-remote', '--heads', '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName);
         // if exitcode === 0 then branch does exist
         // we delete the branch which also will delete the associated PR
         if (exitCode === 0) {

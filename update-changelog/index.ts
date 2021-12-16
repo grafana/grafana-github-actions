@@ -58,7 +58,7 @@ class UpdateChangelog extends Action {
 		)
 
 		// look for the branch
-    const exitCode = await git('ls-remote', '--heads' , '--exit-code', `https://github.com:${owner}/${repo}.git`, branchName)
+    const exitCode = await git('ls-remote', '--heads' , '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName)
 
 		// if exitcode === 0 then branch does exist
 		// we delete the branch which also will delete the associated PR
