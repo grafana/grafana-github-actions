@@ -78,6 +78,14 @@ class UpdateChangelog extends Action {
 
 			// close open PRs
       for (const pull of pulls.data) {
+        // leave a comment explaining why we're closing this PR
+        await octokit.octokit.issues.createComment({
+          body: `This pull request has been closed because an updated changelog and release notes have been generated.`,
+          issue_number: pull.number,
+          owner,
+          repo,
+        })
+
 				// close pr
 				await octokit.octokit.pulls.update({
 					owner,
