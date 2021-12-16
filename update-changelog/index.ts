@@ -58,17 +58,23 @@ class UpdateChangelog extends Action {
 		)
 
 		// look for the branch
-		const exitCode = await git(
-			'ls-remote',
-			'--heads',
-			'--exit-code',
-			`https://github.com/${owner}/${repo}.git`,
-			branchName,
-		)
+    let branchExists
+		try {
+      await git(
+        'ls-remote',
+        '--heads',
+        '--exit-code',
+        `https://github.com/${owner}/${repo}.git`,
+        branchName,
+      )
+      branchExists = true
+    } catch (e) {
+      branchExists = false
+    }
 
 		// if exitcode === 0 then branch does exist
 		// we delete the branch which also will delete the associated PR
-		if (exitCode === 0) {
+		if (branchExists) {
 			// check if there are open PR's
 			const pulls = await octokit.octokit.pulls.list({
 				owner,
@@ -116,7 +122,7 @@ class UpdateChangelog extends Action {
 
 const git = async (...args: string[]) => {
 	// await exec('git', args, { cwd: repo })
-	return await exec('git', args)
+	await exec('git', args)
 }
 
 const npx = async (...args: string[]) => {

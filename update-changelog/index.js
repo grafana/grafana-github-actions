@@ -41,10 +41,17 @@ class UpdateChangelog extends Action_1.Action {
         await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
         // look for the branch
-        const exitCode = await git('ls-remote', '--heads', '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName);
+        let branchExists;
+        try {
+            await git('ls-remote', '--heads', '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName);
+            branchExists = true;
+        }
+        catch (e) {
+            branchExists = false;
+        }
         // if exitcode === 0 then branch does exist
         // we delete the branch which also will delete the associated PR
-        if (exitCode === 0) {
+        if (branchExists) {
             // check if there are open PR's
             const pulls = await octokit.octokit.pulls.list({
                 owner,
@@ -87,7 +94,7 @@ class UpdateChangelog extends Action_1.Action {
 }
 const git = async (...args) => {
     // await exec('git', args, { cwd: repo })
-    return await (0, exec_1.exec)('git', args);
+    await (0, exec_1.exec)('git', args);
 };
 const npx = async (...args) => {
     await (0, exec_1.exec)('npx', args);
