@@ -40,6 +40,43 @@ class UpdateChangelog extends Action_1.Action {
         fileUpdater.writeFile(changelogFile);
         await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
+        // look for the branch
+        let branchExists;
+        try {
+            await git('ls-remote', '--heads', '--exit-code', `https://github.com/${owner}/${repo}.git`, branchName);
+            branchExists = true;
+        }
+        catch (e) {
+            branchExists = false;
+        }
+        // we delete the branch which also will delete the associated PR
+        if (branchExists) {
+            // check if there are open PR's
+            const pulls = await octokit.octokit.pulls.list({
+                owner,
+                repo,
+                head: `${owner}:${branchName}`,
+            });
+            // close open PRs
+            for (const pull of pulls.data) {
+                // leave a comment explaining why we're closing this PR
+                await octokit.octokit.issues.createComment({
+                    body: `This pull request has been closed because an updated changelog and release notes have been generated.`,
+                    issue_number: pull.number,
+                    owner,
+                    repo,
+                });
+                // close pr
+                await octokit.octokit.pulls.update({
+                    owner,
+                    repo,
+                    pull_number: pull.number,
+                    state: 'closed',
+                });
+            }
+            // delete the branch
+            await git('push', 'origin', '--delete', branchName);
+        }
         await git('switch', '--create', branchName);
         await git('add', '-A');
         await git('commit', '-m', `${title}`);
