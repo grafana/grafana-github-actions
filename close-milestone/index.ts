@@ -2,7 +2,6 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
-import { Issue } from '../api/api'
 
 class CloseMilestone extends Action {
 	id = 'CloseMilestone'
@@ -16,25 +15,27 @@ class CloseMilestone extends Action {
 			throw new Error('Missing version input')
 		}
 
-		// get the milestone number
+		// get all the milestones
 		const milestones = await octokit.octokit.issues.listMilestonesForRepo({
 			owner,
 			repo,
-      state: 'open',
+			state: 'open',
 		})
 
-    for (const milestone of milestones) {
-      if(milestone.title === version) {
-        await octokit.octokit.issues.updateMilestone({
-          owner,
-          repo,
-          milestone_number: milestone.number,
-          state: 'closed',
-          description: `${milestone.description}\n Closed by github action`,
-        });
-        return;
-      }
-    }
+		for (const milestone of milestones) {
+			if (milestone.title === version) {
+				await octokit.octokit.issues.updateMilestone({
+					owner,
+					repo,
+					milestone_number: milestone.number,
+					state: 'closed',
+					description: `${milestone.description}\n Closed by github action`,
+				})
+				return
+			}
+		}
+
+		throw new Error('Could not find milestone')
 	}
 }
 
