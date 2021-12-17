@@ -1,4 +1,5 @@
 import fs from 'fs'
+import semver from 'semver'
 
 export interface LatestVersionContent {
 	stable: string
@@ -25,6 +26,11 @@ export class FileUpdater {
 		}
 
 		let c: LatestVersionContent = JSON.parse(this.fileContent)
+
+		if (semver.lt(version, c.stable)) {
+			throw new Error(`Version: ${version} is lower than the existing: ${c.stable}`)
+		}
+
 		if (!match?.groups?.is_beta) {
 			c.stable = version
 		}

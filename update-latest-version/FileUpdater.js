@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FileUpdater = void 0;
 const fs_1 = __importDefault(require("fs"));
+const semver_1 = __importDefault(require("semver"));
 class FileUpdater {
     constructor() {
         this.fileContent = '';
@@ -22,6 +23,9 @@ class FileUpdater {
             throw new Error(`Invalid version: ${version}`);
         }
         let c = JSON.parse(this.fileContent);
+        if (semver_1.default.lt(version, c.stable)) {
+            throw new Error(`Version: ${version} is lower than the existing: ${c.stable}`);
+        }
         if (!match?.groups?.is_beta) {
             c.stable = version;
         }

@@ -65,4 +65,23 @@ describe('FileUpdater', () => {
 		expect(c.stable).toBe('8.3.3')
 		expect(c.testing).toBe('8.3.3')
 	})
+
+	describe('When lower version', () => {
+		const updater = new FileUpdater()
+		updater.loadFile(`${__dirname}/testdata/latest.json`)
+
+		const t = () => {
+			updater.update({
+				version: '8.3.2',
+			})
+		}
+		expect(t).toThrow('Version: 8.3.2 is lower than the existing: 8.3.3')
+
+		updater.getContent()
+		JSON.parse(updater.getContent())
+		let c: LatestVersionContent = JSON.parse(updater.getContent())
+
+		expect(c.stable).toBe('8.3.3')
+		expect(c.testing).toBe('8.3.3')
+	})
 })
