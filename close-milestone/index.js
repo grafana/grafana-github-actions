@@ -2,10 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
-class RemoveMilestone extends Action_1.Action {
+class CloseMilestone extends Action_1.Action {
     constructor() {
         super(...arguments);
-        this.id = 'RemoveMilestone';
+        this.id = 'CloseMilestone';
     }
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
@@ -14,53 +14,26 @@ class RemoveMilestone extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
-        for (const issue of await getIssuesForVersion(octokit, version)) {
-            await octokit.octokit.issues.update({
-                owner,
-                repo,
-                issue_number: issue.number,
-                milestone: null,
-            });
-            await octokit.octokit.issues.createComment({
-                body: `This issue was removed from the ${version} milestone because ${version} is currently being released.`,
-                issue_number: issue.number,
-                owner,
-                repo,
-            });
+        // get all the milestones
+        const milestones = await octokit.octokit.issues.listMilestonesForRepo({
+            owner,
+            repo,
+            state: 'open',
+        });
+        for (const milestone of milestones) {
+            if (milestone.title === version) {
+                await octokit.octokit.issues.updateMilestone({
+                    owner,
+                    repo,
+                    milestone_number: milestone.number,
+                    state: 'closed',
+                    description: `${milestone.description}\n Closed by github action`,
+                });
+                return;
+            }
         }
-        for (const issue of await getPullRequestsForVersion(octokit, version)) {
-            await octokit.octokit.issues.update({
-                owner,
-                repo,
-                issue_number: issue.number,
-                milestone: null,
-            });
-            await octokit.octokit.issues.createComment({
-                body: `This pull request was removed from the ${version} milestone because ${version} is currently being released.`,
-                issue_number: issue.number,
-                owner,
-                repo,
-            });
-        }
+        throw new Error('Could not find milestone');
     }
 }
-async function getIssuesForVersion(octokit, version) {
-    const issueList = [];
-    for await (const page of octokit.query({ q: `is:issue is:open milestone:${version}` })) {
-        for (const issue of page) {
-            issueList.push(await issue.getIssue());
-        }
-    }
-    return issueList;
-}
-async function getPullRequestsForVersion(octokit, version) {
-    const issueList = [];
-    for await (const page of octokit.query({ q: `is:pr is:open milestone:${version} base:main` })) {
-        for (const issue of page) {
-            issueList.push(await issue.getIssue());
-        }
-    }
-    return issueList;
-}
-new RemoveMilestone().run(); // eslint-disable-line
+new CloseMilestone().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map
