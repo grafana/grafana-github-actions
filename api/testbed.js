@@ -81,6 +81,11 @@ class Testbed {
     async createStatus(_sha, _context, _state, _description, _targetUrl) {
         return;
     }
+    /* eslint-enable */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async listStatusesByRef(ref) {
+        return { statuses: [] };
+    }
 }
 exports.Testbed = Testbed;
 class TestbedIssue extends Testbed {

@@ -23,6 +23,7 @@ class OctoKit {
         this.mockLabels = new Set();
         this.writeAccessCache = {};
         this.orgMembersCache = {};
+        this.listStatusesByRefData = null;
         console.debug('Constructor OctoKit init');
         this._octokit = new github_1.GitHub(token);
         this._octokitGraphQL = graphql_1.graphql.defaults({
@@ -447,6 +448,20 @@ class OctoKit {
             state: state,
             target_url: targetUrl,
             description: description,
+        });
+    }
+    async listStatusesByRef(ref) {
+        if (this.listStatusesByRefData !== null) {
+            return this.listStatusesByRefData;
+        }
+        return (this.listStatusesByRefData = {
+            statuses: (await this.octokit.repos.listStatusesForRef({
+                ...this.params,
+                ref: ref,
+            })).data.map((s) => ({
+                context: s.context,
+                state: s.state,
+            })),
         });
     }
 }

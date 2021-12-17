@@ -4,6 +4,7 @@ import { getRequiredInput } from '../common/utils'
 import { ActionBase } from '../common/Action'
 import { CheckConfig, getChecks } from './checks'
 import { Dispatcher } from './Dispatcher'
+import { Subscriber } from './Subscriber'
 
 class PRChecksAction extends ActionBase {
 	id = 'PR Checks'
@@ -16,7 +17,8 @@ class PRChecksAction extends ActionBase {
 		}
 
 		const api = new OctoKitIssue(this.getToken(), context.repo, { number: issue })
-		const dispatcher = new Dispatcher(api)
+		const subscriber = new Subscriber()
+		const dispatcher = new Dispatcher(api, subscriber)
 
 		const config = await api.readConfig(getRequiredInput('configPath'))
 		const checks = getChecks(config as CheckConfig[])

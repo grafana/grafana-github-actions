@@ -20,6 +20,7 @@ import {
 	projectType,
 	PullRequest,
 	Query,
+	StatusesByRef,
 	User,
 } from './api'
 
@@ -541,6 +542,25 @@ export class OctoKit implements GitHub {
 			state: state,
 			target_url: targetUrl,
 			description: description,
+		})
+	}
+
+	private listStatusesByRefData: null | StatusesByRef = null
+	async listStatusesByRef(ref: string): Promise<StatusesByRef> {
+		if (this.listStatusesByRefData !== null) {
+			return this.listStatusesByRefData
+		}
+
+		return (this.listStatusesByRefData = {
+			statuses: (
+				await this.octokit.repos.listStatusesForRef({
+					...this.params,
+					ref: ref,
+				})
+			).data.map((s) => ({
+				context: s.context,
+				state: s.state,
+			})),
 		})
 	}
 }

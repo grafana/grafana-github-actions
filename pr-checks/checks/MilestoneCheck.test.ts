@@ -3,8 +3,19 @@ import { EventPayloads } from '@octokit/webhooks'
 import { expect } from 'chai'
 import { PullRequest } from '../../api/api'
 import { Dispatcher } from '../Dispatcher'
+import { Subscriber } from '../Subscriber'
 import { CheckState } from '../types'
 import { MilestoneCheck } from './MilestoneCheck'
+
+function mockAPI(args?: { pr: PullRequest }) {
+	const getPullRequest: jest.Mock<any, any> = args?.pr ? jest.fn(() => args.pr) : jest.fn()
+
+	return {
+		getPullRequest,
+		createStatus: jest.fn(),
+		listStatusesByRef: jest.fn(),
+	}
+}
 
 describe('MilestoneCheck', () => {
 	describe('Pull Requests', () => {
@@ -140,12 +151,8 @@ describe('MilestoneCheck', () => {
 		])(
 			'$eventName - $action - $testCaseName - Should create status $checkState',
 			async ({ eventName, action, checkState, description, pull_request_payload }) => {
-				const createStatusMock = jest.fn()
-				const getPullRequestMock = jest.fn()
-				const d = new Dispatcher({
-					createStatus: createStatusMock,
-					getPullRequest: getPullRequestMock,
-				})
+				const api = mockAPI()
+				const d = new Dispatcher(api, new Subscriber())
 				const c = new MilestoneCheck({
 					title: 'Test',
 					failure: 'Failed',
@@ -165,13 +172,13 @@ describe('MilestoneCheck', () => {
 				} as EventPayloads.WebhookPayloadPullRequestPullRequest
 				await d.dispatch(context)
 
-				expect(getPullRequestMock.mock.calls.length).to.equal(0)
-				expect(createStatusMock.mock.calls.length).to.equal(1)
-				expect(createStatusMock.mock.calls[0][0]).to.equal('123')
-				expect(createStatusMock.mock.calls[0][1]).to.equal('Test')
-				expect(createStatusMock.mock.calls[0][2]).to.equal(checkState)
-				expect(createStatusMock.mock.calls[0][3]).to.equal(description)
-				expect(createStatusMock.mock.calls[0][4]).to.equal('http://')
+				expect(api.getPullRequest.mock.calls.length).to.equal(0)
+				expect(api.createStatus.mock.calls.length).to.equal(1)
+				expect(api.createStatus.mock.calls[0][0]).to.equal('123')
+				expect(api.createStatus.mock.calls[0][1]).to.equal('Test')
+				expect(api.createStatus.mock.calls[0][2]).to.equal(checkState)
+				expect(api.createStatus.mock.calls[0][3]).to.equal(description)
+				expect(api.createStatus.mock.calls[0][4]).to.equal('http://')
 			},
 		)
 	})
@@ -220,12 +227,8 @@ describe('MilestoneCheck', () => {
 			issuePayload: { pull_request: {} },
 		},
 	])('$eventName - $action - $testCaseName', async ({ eventName, action, issueState, issuePayload }) => {
-		const createStatusMock = jest.fn()
-		const getPullRequestMock = jest.fn()
-		const d = new Dispatcher({
-			createStatus: createStatusMock,
-			getPullRequest: getPullRequestMock,
-		})
+		const api = mockAPI()
+		const d = new Dispatcher(api, new Subscriber())
 		const c = new MilestoneCheck({})
 		c.subscribe(d)
 		context.eventName = eventName
@@ -238,20 +241,14 @@ describe('MilestoneCheck', () => {
 		} as EventPayloads.WebhookPayloadIssuesIssue
 		await d.dispatch(context)
 
-		expect(getPullRequestMock.mock.calls.length).to.equal(0)
-		expect(createStatusMock.mock.calls.length).to.equal(0)
+		expect(api.getPullRequest.mock.calls.length).to.equal(0)
+		expect(api.createStatus.mock.calls.length).to.equal(0)
 	})
 
 	describe('issues|milestoned|For pull request', () => {
 		it('Should create status success', async () => {
-			const createStatusMock = jest.fn()
-			const getPullRequestMock = jest.fn(
-				async () => ({ milestoneId: 1, headSHA: '123' } as PullRequest),
-			)
-			const d = new Dispatcher({
-				createStatus: createStatusMock,
-				getPullRequest: getPullRequestMock,
-			})
+			const api = mockAPI({ pr: { milestoneId: 1, headSHA: '123' } as PullRequest })
+			const d = new Dispatcher(api, new Subscriber())
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
@@ -264,26 +261,20 @@ describe('MilestoneCheck', () => {
 			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
-			expect(getPullRequestMock.mock.calls.length).to.equal(1)
-			expect(createStatusMock.mock.calls.length).to.equal(1)
-			expect(createStatusMock.mock.calls[0][0]).to.equal('123')
-			expect(createStatusMock.mock.calls[0][1]).to.equal('Milestone Check')
-			expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Success)
-			expect(createStatusMock.mock.calls[0][3]).to.equal('Milestone set')
-			expect(createStatusMock.mock.calls[0][4]).to.equal(undefined)
+			expect(api.getPullRequest.mock.calls.length).to.equal(1)
+			expect(api.createStatus.mock.calls.length).to.equal(1)
+			expect(api.createStatus.mock.calls[0][0]).to.equal('123')
+			expect(api.createStatus.mock.calls[0][1]).to.equal('Milestone Check')
+			expect(api.createStatus.mock.calls[0][2]).to.equal(CheckState.Success)
+			expect(api.createStatus.mock.calls[0][3]).to.equal('Milestone set')
+			expect(api.createStatus.mock.calls[0][4]).to.equal(undefined)
 		})
 	})
 
 	describe('issues|demilestoned|For pull request', () => {
 		it('Should create status failure', async () => {
-			const createStatusMock = jest.fn()
-			const getPullRequestMock = jest.fn(
-				async () => ({ milestoneId: null, headSHA: '123' } as PullRequest),
-			)
-			const d = new Dispatcher({
-				createStatus: createStatusMock,
-				getPullRequest: getPullRequestMock,
-			})
+			const api = mockAPI({ pr: { milestoneId: null, headSHA: '123' } as PullRequest })
+			const d = new Dispatcher(api, new Subscriber())
 			const c = new MilestoneCheck({})
 			c.subscribe(d)
 			context.eventName = 'issues'
@@ -296,13 +287,13 @@ describe('MilestoneCheck', () => {
 			} as EventPayloads.WebhookPayloadIssuesIssue
 			await d.dispatch(context)
 
-			expect(getPullRequestMock.mock.calls.length).to.equal(1)
-			expect(createStatusMock.mock.calls.length).to.equal(1)
-			expect(createStatusMock.mock.calls[0][0]).to.equal('123')
-			expect(createStatusMock.mock.calls[0][1]).to.equal('Milestone Check')
-			expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Failure)
-			expect(createStatusMock.mock.calls[0][3]).to.equal('Milestone not set')
-			expect(createStatusMock.mock.calls[0][4]).to.equal(undefined)
+			expect(api.getPullRequest.mock.calls.length).to.equal(1)
+			expect(api.createStatus.mock.calls.length).to.equal(1)
+			expect(api.createStatus.mock.calls[0][0]).to.equal('123')
+			expect(api.createStatus.mock.calls[0][1]).to.equal('Milestone Check')
+			expect(api.createStatus.mock.calls[0][2]).to.equal(CheckState.Failure)
+			expect(api.createStatus.mock.calls[0][3]).to.equal('Milestone not set')
+			expect(api.createStatus.mock.calls[0][4]).to.equal(undefined)
 		})
 	})
 })
