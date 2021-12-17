@@ -22,7 +22,7 @@ class CloseMilestone extends Action {
 			state: 'open',
 		})
 
-		for (const milestone of milestones) {
+		for (const milestone of milestones.data) {
 			if (milestone.title === version) {
 				await octokit.octokit.issues.updateMilestone({
 					owner,
