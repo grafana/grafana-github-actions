@@ -17,43 +17,24 @@ class CloseMilestone extends Action {
 		}
 
 		// get the milestone number
-		const milestone = await octokit.octokit.issues.listMilestonesForRepo({
+		const milestones = await octokit.octokit.issues.listMilestonesForRepo({
 			owner,
 			repo,
+      state: 'open',
 		})
-		// update the milestone to closed
 
-		// for (const issue of await getIssuesForVersion(octokit, version)) {
-		// 	await octokit.octokit.issues.update({
-		// 		owner,
-		// 		repo,
-		// 		issue_number: issue.number,
-		// 		milestone: null,
-		// 	})
-
-		// 	await octokit.octokit.issues.createComment({
-		// 		body: `This issue was removed from the ${version} milestone because ${version} is currently being released.`,
-		// 		issue_number: issue.number,
-		// 		owner,
-		// 		repo,
-		// 	})
-		// }
-
-		// for (const issue of await getPullRequestsForVersion(octokit, version)) {
-		// 	await octokit.octokit.issues.update({
-		// 		owner,
-		// 		repo,
-		// 		issue_number: issue.number,
-		// 		milestone: null,
-		// 	})
-
-		// 	await octokit.octokit.issues.createComment({
-		// 		body: `This pull request was removed from the ${version} milestone because ${version} is currently being released.`,
-		// 		issue_number: issue.number,
-		// 		owner,
-		// 		repo,
-		// 	})
-		// }
+    for (const milestone of milestones) {
+      if(milestone.title === version) {
+        await octokit.octokit.issues.updateMilestone({
+          owner,
+          repo,
+          milestone_number: milestone.number,
+          state: 'closed',
+          description: `${milestone.description}\n Closed by github action`,
+        });
+        return;
+      }
+    }
 	}
 }
 
