@@ -17,60 +17,60 @@ class BumpVersion extends Action {
 		const token = this.getToken()
 		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
 		const version = (payload.inputs as any).version
-		const version_call = (payload.inputs as any).version_call
+		console.log({ inputs: payload.inputs })
 
-		if (!version) {
-			throw new Error('Missing version input')
-		}
+		// 		if (!version) {
+		// 			throw new Error('Missing version input')
+		// 		}
 
-		await cloneRepo({ token, owner, repo })
+		// 		await cloneRepo({ token, owner, repo })
 
-		process.chdir(repo)
+		// 		process.chdir(repo)
 
-		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
-		const prBranch = `bump-version-${version}`
+		// 		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
+		// 		const prBranch = `bump-version-${version}`
 
-		// create branch
-		await git('switch', base)
-		await git('switch', '--create', prBranch)
+		// 		// create branch
+		// 		await git('switch', base)
+		// 		await git('switch', '--create', prBranch)
 
-		// Update version
-		await exec('npm', ['version', version, '--no-git-tag-version'])
-		await exec('npx', [
-			'lerna',
-			'version',
-			version,
-			'--no-push',
-			'--no-git-tag-version',
-			'--force-publish',
-			'--exact',
-			'--yes',
-		])
-		try {
-			//regenerate yarn.lock file
-			await exec('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } })
-		} catch (e) {
-			console.error('yarn failed', e)
-		}
+		// 		// Update version
+		// 		await exec('npm', ['version', version, '--no-git-tag-version'])
+		// 		await exec('npx', [
+		// 			'lerna',
+		// 			'version',
+		// 			version,
+		// 			'--no-push',
+		// 			'--no-git-tag-version',
+		// 			'--force-publish',
+		// 			'--exact',
+		// 			'--yes',
+		// 		])
+		// 		try {
+		// 			//regenerate yarn.lock file
+		// 			await exec('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } })
+		// 		} catch (e) {
+		// 			console.error('yarn failed', e)
+		// 		}
 
-		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
+		// 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 
-		// push
-		await git('push', '--set-upstream', 'origin', prBranch)
+		// 		// push
+		// 		await git('push', '--set-upstream', 'origin', prBranch)
 
-		const body = `Executed:\n
-npm version ${version} --no-git-tag-version\n
-npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
-yarn
-`
-		await octokit.octokit.pulls.create({
-			base,
-			body,
-			head: prBranch,
-			owner,
-			repo,
-			title: `Release: Bump version to ${version}`,
-		})
+		// 		const body = `Executed:\n
+		// npm version ${version} --no-git-tag-version\n
+		// npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
+		// yarn
+		// `
+		// 		await octokit.octokit.pulls.create({
+		// 			base,
+		// 			body,
+		// 			head: prBranch,
+		// 			owner,
+		// 			repo,
+		// 			title: `Release: Bump version to ${version}`,
+		// 		})
 	}
 }
 

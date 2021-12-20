@@ -6,7 +6,6 @@ const github_1 = require("@actions/github");
 // import { OctoKitIssue } from '../api/octokit'
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
-const git_1 = require("../common/git");
 class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -17,51 +16,51 @@ class BumpVersion extends Action_1.Action {
         const token = this.getToken();
         const payload = github_1.context.payload;
         const version = payload.inputs.version;
-        if (!version) {
-            throw new Error('Missing version input');
-        }
-        await (0, git_1.cloneRepo)({ token, owner, repo });
-        process.chdir(repo);
-        const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
-        const prBranch = `bump-version-${version}`;
-        // create branch
-        await git('switch', base);
-        await git('switch', '--create', prBranch);
-        // Update version
-        await (0, exec_1.exec)('npm', ['version', version, '--no-git-tag-version']);
-        await (0, exec_1.exec)('npx', [
-            'lerna',
-            'version',
-            version,
-            '--no-push',
-            '--no-git-tag-version',
-            '--force-publish',
-            '--exact',
-            '--yes',
-        ]);
-        try {
-            //regenerate yarn.lock file
-            await (0, exec_1.exec)('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } });
-        }
-        catch (e) {
-            console.error('yarn failed', e);
-        }
-        await git('commit', '-am', `"Release: Updated versions in package to ${version}"`);
-        // push
-        await git('push', '--set-upstream', 'origin', prBranch);
-        const body = `Executed:\n
-npm version ${version} --no-git-tag-version\n
-npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
-yarn
-`;
-        await octokit.octokit.pulls.create({
-            base,
-            body,
-            head: prBranch,
-            owner,
-            repo,
-            title: `Release: Bump version to ${version}`,
-        });
+        console.log({ inputs: payload.inputs });
+        // 		if (!version) {
+        // 			throw new Error('Missing version input')
+        // 		}
+        // 		await cloneRepo({ token, owner, repo })
+        // 		process.chdir(repo)
+        // 		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
+        // 		const prBranch = `bump-version-${version}`
+        // 		// create branch
+        // 		await git('switch', base)
+        // 		await git('switch', '--create', prBranch)
+        // 		// Update version
+        // 		await exec('npm', ['version', version, '--no-git-tag-version'])
+        // 		await exec('npx', [
+        // 			'lerna',
+        // 			'version',
+        // 			version,
+        // 			'--no-push',
+        // 			'--no-git-tag-version',
+        // 			'--force-publish',
+        // 			'--exact',
+        // 			'--yes',
+        // 		])
+        // 		try {
+        // 			//regenerate yarn.lock file
+        // 			await exec('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } })
+        // 		} catch (e) {
+        // 			console.error('yarn failed', e)
+        // 		}
+        // 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
+        // 		// push
+        // 		await git('push', '--set-upstream', 'origin', prBranch)
+        // 		const body = `Executed:\n
+        // npm version ${version} --no-git-tag-version\n
+        // npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
+        // yarn
+        // `
+        // 		await octokit.octokit.pulls.create({
+        // 			base,
+        // 			body,
+        // 			head: prBranch,
+        // 			owner,
+        // 			repo,
+        // 			title: `Release: Bump version to ${version}`,
+        // 		})
     }
 }
 const git = async (...args) => {
