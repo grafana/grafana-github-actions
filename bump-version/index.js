@@ -16,7 +16,7 @@ class BumpVersion extends Action_1.Action {
         const token = this.getToken();
         const payload = github_1.context.payload;
         const version = payload.inputs.version;
-        console.log({ inputs: payload.inputs });
+        console.log({ version, other: payload.inputs.version_call });
         // 		if (!version) {
         // 			throw new Error('Missing version input')
         // 		}

@@ -17,7 +17,7 @@ class BumpVersion extends Action {
 		const token = this.getToken()
 		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
 		const version = (payload.inputs as any).version
-		console.log({ version, version_call: (payload.inputs as any).version_call })
+		console.log({ version, other: (payload.inputs as any).version_call })
 
 		// 		if (!version) {
 		// 			throw new Error('Missing version input')
