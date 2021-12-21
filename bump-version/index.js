@@ -32,8 +32,12 @@ class BumpVersion extends Action_1.Action {
         }
         if (version_call) {
             // Action invoked by a workflow
-            const matches = /^(\d+.\d+).\d+(?:-beta.\d+)?$/.exec(version_call);
-            console.log({ ref: github_1.context.ref, matches });
+            const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/);
+            if (!matches || matches.length < 2) {
+                throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1');
+            }
+            const base = `${matches[1]}.x`;
+            await this.onTriggeredBase(octokit, base, version_call);
             return;
         }
     }
