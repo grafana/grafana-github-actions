@@ -33,7 +33,6 @@ export abstract class ActionBase {
 		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
 		const version = (payload.inputs as any).version
 		const version_call = getInput('version_call')
-		console.log({ version, version_call })
 
 		if (version) {
 			return version

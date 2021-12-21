@@ -23,7 +23,6 @@ class ActionBase {
         const payload = github_1.context.payload;
         const version = payload.inputs.version;
         const version_call = (0, core_1.getInput)('version_call');
-        console.log({ version, version_call });
         if (version) {
             return version;
         }
