@@ -1,7 +1,6 @@
 import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { OctoKit } from '../api/octokit'
-import { EventPayloads } from '@octokit/webhooks'
 import { Issue } from '../api/api'
 
 class RemoveMilestone extends Action {
@@ -9,12 +8,7 @@ class RemoveMilestone extends Action {
 
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
-		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
-		const version = (payload.inputs as any).version
-
-		if (!version) {
-			throw new Error('Missing version input')
-		}
+		const version = this.getVersion()
 
 		for (const issue of await getIssuesForVersion(octokit, version)) {
 			await octokit.octokit.issues.update({

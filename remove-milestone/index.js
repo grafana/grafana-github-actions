@@ -9,11 +9,7 @@ class RemoveMilestone extends Action_1.Action {
     }
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
-        const payload = github_1.context.payload;
-        const version = payload.inputs.version;
-        if (!version) {
-            throw new Error('Missing version input');
-        }
+        const version = this.getVersion();
         for (const issue of await getIssuesForVersion(octokit, version)) {
             await octokit.octokit.issues.update({
                 owner,

@@ -7,7 +7,6 @@ import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
-import { EventPayloads } from '@octokit/webhooks'
 
 class BumpVersion extends Action {
 	id = 'BumpVersion'
@@ -15,24 +14,47 @@ class BumpVersion extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
-		const version = (payload.inputs as any).version
-
-		if (!version) {
-			throw new Error('Missing version input')
-		}
 
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)
 
-		const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
-		const prBranch = `bump-version-${version}`
+		if (!this.isCalledFromWorkflow()) {
+			// Manually invoked the action
+			const version = this.getVersion()
+			const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
+			await this.onTriggeredBase(octokit, base, version)
+			return
+		}
 
+		// Action invoked by a workflow
+		const version_call = this.getVersion()
+		const matches = version_call.match(/^(\d+.\d+).\d+(?:-(beta)\d+)?$/)
+		if (!matches || matches.length < 2) {
+			throw new Error(
+				'The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta{number} format. Example: 7.4.3 or 7.4.3-beta1',
+			)
+		}
+
+		let semantic_version = version_call
+
+		// if the milestone is beta
+		if (matches[2] !== undefined) {
+			// transform the milestone to use semantic versioning
+			// i.e 8.2.3-beta1 --> 8.2.3-beta.1
+			semantic_version = version_call.replace('-beta', '-beta.')
+		}
+
+		const base = `v${matches[1]}.x`
+		await this.onTriggeredBase(octokit, base, semantic_version)
+	}
+
+	async onTriggeredBase(octokit: OctoKit, base: string, version: string) {
+		const { owner, repo } = context.repo
+		const prBranch = `bump-version-${version}`
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
-
 		// Update version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
 		await exec('npx', [
@@ -51,17 +73,14 @@ class BumpVersion extends Action {
 		} catch (e) {
 			console.error('yarn failed', e)
 		}
-
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
-
 		// push
 		await git('push', '--set-upstream', 'origin', prBranch)
-
 		const body = `Executed:\n
-npm version ${version} --no-git-tag-version\n
-npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
-yarn
-`
+		npm version ${version} --no-git-tag-version\n
+		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
+		yarn
+		`
 		await octokit.octokit.pulls.create({
 			base,
 			body,

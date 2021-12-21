@@ -6,7 +6,6 @@ import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
 import { OctoKit } from '../api/octokit'
-import { EventPayloads } from '@octokit/webhooks'
 import { FileUpdater } from './FileUpdater'
 import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
 import { writeDocsFiles } from './writeDocsFiles'
@@ -17,12 +16,7 @@ class UpdateChangelog extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
-		const version = (payload.inputs as any).version
-
-		if (!version) {
-			throw new Error('Missing version input')
-		}
+		const version = this.getVersion()
 
 		await cloneRepo({ token, owner, repo })
 

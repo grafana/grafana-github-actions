@@ -9,6 +9,7 @@ import { getRequiredInput, logErrorToIssue, getRateLimit, errorLoggingIssue } fr
 import { getInput, setFailed } from '@actions/core'
 import { aiHandle } from './telemetry'
 import { debug } from 'console'
+import { EventPayloads } from '@octokit/webhooks'
 
 export abstract class ActionBase {
 	abstract id: string
@@ -26,6 +27,26 @@ export abstract class ActionBase {
 
 	protected getToken() {
 		return this.token
+	}
+
+	protected getVersion() {
+		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
+		const version = (payload.inputs as any).version
+		const version_call = getInput('version_call')
+
+		if (version) {
+			return version
+		}
+
+		if (version_call) {
+			return version_call
+		}
+
+		throw new Error('Missing version input')
+	}
+
+	protected isCalledFromWorkflow() {
+		return Boolean(getInput('version_call'))
 	}
 
 	protected abstract runAction(): Promise<void>

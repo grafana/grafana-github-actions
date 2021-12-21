@@ -9,11 +9,7 @@ class CloseMilestone extends Action_1.Action {
     }
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
-        const payload = github_1.context.payload;
-        const version = payload.inputs.version;
-        if (!version) {
-            throw new Error('Missing version input');
-        }
+        const version = this.getVersion();
         // get all the milestones
         const milestones = await octokit.octokit.issues.listMilestonesForRepo({
             owner,
