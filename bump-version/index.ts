@@ -43,7 +43,7 @@ class BumpVersion extends Action {
 					'The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1',
 				)
 			}
-			const base = `${matches[1]}.x`
+			const base = `v${matches[1]}.x`
 			await this.onTriggeredBase(octokit, base, version_call)
 			return
 		}
