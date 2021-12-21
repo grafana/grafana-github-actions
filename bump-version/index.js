@@ -26,12 +26,19 @@ class BumpVersion extends Action_1.Action {
         }
         // Action invoked by a workflow
         const version_call = this.getVersion();
-        const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/);
+        const matches = version_call.match(/^(\d+.\d+).\d+(?:-(beta)\d+)?$/);
         if (!matches || matches.length < 2) {
-            throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1');
+            throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta{number} format. Example: 7.4.3 or 7.4.3-beta1');
+        }
+        let semantic_version = version_call;
+        // if the milestone is beta
+        if (matches[2] !== undefined) {
+            // transform the milestone to use semantic versioning
+            // i.e 8.2.3-beta1 --> 8.2.3-beta.1
+            semantic_version = version_call.replace('-beta', '-beta.');
         }
         const base = `v${matches[1]}.x`;
-        await this.onTriggeredBase(octokit, base, version_call);
+        await this.onTriggeredBase(octokit, base, semantic_version);
     }
     async onTriggeredBase(octokit, base, version) {
         const { owner, repo } = github_1.context.repo;
