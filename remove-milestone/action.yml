@@ -4,6 +4,8 @@ inputs:
   token:
     description: GitHub token with issue, comment, and label read/write permissions.
     default: ${{ github.token }}
+  version_call:
+    description: Version number invoked from workflow    
 runs:
   using: 'node16'
   main: 'index.js'
