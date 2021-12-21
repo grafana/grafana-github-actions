@@ -6,7 +6,9 @@ inputs:
     default: ${{ github.token }}
   metricsWriteAPIKey:
     description: Grafana Cloud metrics api key
-    required: false   
+    required: false
+  version_call:
+    description: Version number invoked from workflow
 runs:
   using: 'node16'
   main: 'index.js'
