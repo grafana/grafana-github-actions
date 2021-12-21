@@ -6,6 +6,7 @@ const github_1 = require("@actions/github");
 // import { OctoKitIssue } from '../api/octokit'
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
+const core_1 = require("@actions/core");
 class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -16,7 +17,8 @@ class BumpVersion extends Action_1.Action {
         const token = this.getToken();
         const payload = github_1.context.payload;
         const version = payload.inputs.version;
-        console.log({ version, other: payload.inputs.version_call });
+        const version_call = (0, core_1.getInput)('version_call');
+        console.log({ version, version_call });
         // 		if (!version) {
         // 			throw new Error('Missing version input')
         // 		}
