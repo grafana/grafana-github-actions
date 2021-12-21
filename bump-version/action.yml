@@ -7,6 +7,12 @@ inputs:
   metricsWriteAPIKey:
     description: Grafana Cloud metrics api key
     required: false
+  version:
+    description: Version (invoked manually)
+    required: false    
+  version_call:
+    description: Version (invoked from workflow)
+    required: false    
 runs:
   using: 'node16'
   main: 'index.js'
