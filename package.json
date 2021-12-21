@@ -35,7 +35,7 @@
 		"lodash": "^4.17.20",
 		"lodash.escaperegexp": "^4.1.2",
 		"micromatch": "^4.0.2",
-		"semver": "^7.3.2"
+		"semver": "^7.3.5"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.10",
