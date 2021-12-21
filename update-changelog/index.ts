@@ -16,7 +16,7 @@ class UpdateChangelog extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		const version = this.getToken()
+		const version = this.getVersion()
 
 		await cloneRepo({ token, owner, repo })
 

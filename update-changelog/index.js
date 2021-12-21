@@ -18,7 +18,7 @@ class UpdateChangelog extends Action_1.Action {
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
         const token = this.getToken();
-        const version = this.getToken();
+        const version = this.getVersion();
         await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
