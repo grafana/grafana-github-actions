@@ -19,6 +19,21 @@ class ActionBase {
     getToken() {
         return this.token;
     }
+    getVersion() {
+        const payload = github_1.context.payload;
+        const version = payload.inputs.version;
+        const version_call = (0, core_1.getInput)('version_call');
+        if (version) {
+            return version;
+        }
+        if (version_call) {
+            return version_call;
+        }
+        throw new Error('Missing version input');
+    }
+    isCalledFromWorkflow() {
+        return Boolean((0, core_1.getInput)('version_call'));
+    }
     async run() {
         console.log('running ', this.id, 'with context', {
             ...github_1.context,

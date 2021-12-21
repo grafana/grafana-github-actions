@@ -7,8 +7,6 @@ import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
-import { EventPayloads } from '@octokit/webhooks'
-import { getInput } from '@actions/core'
 
 class BumpVersion extends Action {
 	id = 'BumpVersion'
@@ -16,37 +14,29 @@ class BumpVersion extends Action {
 	async onTriggered(octokit: OctoKit) {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
-		const payload = context.payload as EventPayloads.WebhookPayloadWorkflowDispatch
-		const version = (payload.inputs as any).version
-		const version_call = getInput('version_call')
-
-		if (!version && !version_call) {
-			throw new Error('Missing version input')
-		}
 
 		await cloneRepo({ token, owner, repo })
 
 		process.chdir(repo)
 
-		if (version) {
+		if (!this.isCalledFromWorkflow()) {
 			// Manually invoked the action
+			const version = this.getVersion()
 			const base = context.ref.substring(context.ref.lastIndexOf('/') + 1)
 			await this.onTriggeredBase(octokit, base, version)
 			return
 		}
 
-		if (version_call) {
-			// Action invoked by a workflow
-			const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/)
-			if (!matches || matches.length < 2) {
-				throw new Error(
-					'The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1',
-				)
-			}
-			const base = `v${matches[1]}.x`
-			await this.onTriggeredBase(octokit, base, version_call)
-			return
+		// Action invoked by a workflow
+		const version_call = this.getVersion()
+		const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/)
+		if (!matches || matches.length < 2) {
+			throw new Error(
+				'The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1',
+			)
 		}
+		const base = `v${matches[1]}.x`
+		await this.onTriggeredBase(octokit, base, version_call)
 	}
 
 	async onTriggeredBase(octokit: OctoKit, base: string, version: string) {

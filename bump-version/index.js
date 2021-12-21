@@ -7,7 +7,6 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
-const core_1 = require("@actions/core");
 class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -16,30 +15,23 @@ class BumpVersion extends Action_1.Action {
     async onTriggered(octokit) {
         const { owner, repo } = github_1.context.repo;
         const token = this.getToken();
-        const payload = github_1.context.payload;
-        const version = payload.inputs.version;
-        const version_call = (0, core_1.getInput)('version_call');
-        if (!version && !version_call) {
-            throw new Error('Missing version input');
-        }
         await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
-        if (version) {
+        if (!this.isCalledFromWorkflow()) {
             // Manually invoked the action
+            const version = this.getVersion();
             const base = github_1.context.ref.substring(github_1.context.ref.lastIndexOf('/') + 1);
             await this.onTriggeredBase(octokit, base, version);
             return;
         }
-        if (version_call) {
-            // Action invoked by a workflow
-            const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/);
-            if (!matches || matches.length < 2) {
-                throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1');
-            }
-            const base = `v${matches[1]}.x`;
-            await this.onTriggeredBase(octokit, base, version_call);
-            return;
+        // Action invoked by a workflow
+        const version_call = this.getVersion();
+        const matches = version_call.match(/^(\d+.\d+).\d+(?:-beta.\d+)?$/);
+        if (!matches || matches.length < 2) {
+            throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta.number format. Example: 7.4.3 or 7.4.3-beta.1');
         }
+        const base = `v${matches[1]}.x`;
+        await this.onTriggeredBase(octokit, base, version_call);
     }
     async onTriggeredBase(octokit, base, version) {
         const { owner, repo } = github_1.context.repo;
