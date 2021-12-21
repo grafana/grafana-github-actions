@@ -36,14 +36,14 @@ class BumpVersion extends Action {
 			)
 		}
 
-    let semantic_version = version_call;
+		let semantic_version = version_call
 
-    // if the milestone is beta
-    if(matches[2] !== undefined) {
-      // transform the milestone to use semantic versioning
-      // i.e 8.2.3-beta1 --> 8.2.3-beta.1
-      semantic_version= version_call.replace('-beta', '-beta.');
-    }
+		// if the milestone is beta
+		if (matches[2] !== undefined) {
+			// transform the milestone to use semantic versioning
+			// i.e 8.2.3-beta1 --> 8.2.3-beta.1
+			semantic_version = version_call.replace('-beta', '-beta.')
+		}
 
 		const base = `v${matches[1]}.x`
 		await this.onTriggeredBase(octokit, base, semantic_version)
