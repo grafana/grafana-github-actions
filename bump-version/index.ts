@@ -37,7 +37,8 @@ class BumpVersion extends Action {
 
 		if (version_call) {
 			// Action invoked by a workflow
-			console.log({ ref: context.ref })
+			const matches = /^(\d+.\d+).\d+(?:-beta.\d+)?$/.exec(version_call)
+			console.log({ ref: context.ref, matches })
 			return
 		}
 	}
