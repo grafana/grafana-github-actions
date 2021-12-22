@@ -5,7 +5,6 @@
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Commands = void 0;
-const console_1 = require("console");
 const globmatcher_1 = require("../common/globmatcher");
 const telemetry_1 = require("../common/telemetry");
 const utils_1 = require("../common/utils");
@@ -69,9 +68,9 @@ class Commands {
         return false;
     }
     async perform(command, issue, changedFiles) {
-        (0, console_1.debug)('Would perform command:', command, ' on issue:', issue);
+        console.debug('Would perform command:', command, ' on issue:', issue);
         if (!(await this.matches(command, issue, changedFiles))) {
-            (0, console_1.debug)('Command ', JSON.stringify(command), ' did not match any criteria');
+            console.debug('Command ', JSON.stringify(command), ' did not match any criteria');
             return;
         }
         console.log('Running command', command);
