@@ -28,7 +28,9 @@ export interface GitHub {
 
 	addIssueToProject(project: number, issue: Issue, org?: string, columnName?: string): Promise<void>
 
-	createStatus(
+	removeIssueFromProject(project: number, issue: Issue, org?: string, columnName?: string): Promise<void>
+
+  createStatus(
 		sha: string,
 		context: string,
 		state: 'error' | 'failure' | 'pending' | 'success',
