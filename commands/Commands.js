@@ -1,6 +1,6 @@
 "use strict";
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -135,6 +135,18 @@ class Commands {
             }
             else {
                 console.debug('Could not parse project id from the provided URL', command.addToProject.url);
+            }
+        }
+        if (command.action === 'removeFromProject' &&
+            command.removeFromProject &&
+            command.removeFromProject.url &&
+            'label' in this.action && this.action.label === command.name) {
+            const projectId = (0, utils_1.getProjectIdFromUrl)(command.removeFromProject.url);
+            if (projectId) {
+                tasks.push(this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org));
+            }
+            else {
+                console.debug('Could not parse project id from the provided URL', command.removeFromProject.url);
             }
         }
         await Promise.all(tasks);

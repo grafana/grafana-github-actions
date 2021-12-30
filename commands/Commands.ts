@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
+  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -16,10 +16,11 @@ export type Command = { name: string } & (
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
 	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[] }
 ) & {
-		action?: 'close' | 'addToProject'
+		action?: 'close' | 'addToProject' | 'removeFromProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
 	Partial<{ requireLabel: string; disallowLabel: string }>
 	& Partial<{ addToProject: { url: string, org?: string, column?: string } }>
+	& Partial<{ removeFromProject: { url: string, org?: string } }>
 /* eslint-enable */
 
 export class Commands {
@@ -189,6 +190,26 @@ export class Commands {
 				)
 			} else {
 				console.debug('Could not parse project id from the provided URL', command.addToProject.url)
+			}
+		}
+
+		if (
+			command.action === 'removeFromProject' &&
+			command.removeFromProject &&
+			command.removeFromProject.url &&
+			'label' in this.action && this.action.label === command.name
+		) {
+			const projectId = getProjectIdFromUrl(command.removeFromProject.url)
+			if (projectId) {
+				tasks.push(
+					this.github.removeIssueFromProject(
+						projectId,
+						issue,
+						command.removeFromProject.org
+					),
+				)
+			} else {
+				console.debug('Could not parse project id from the provided URL', command.removeFromProject.url)
 			}
 		}
 		await Promise.all(tasks)

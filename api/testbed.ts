@@ -117,6 +117,11 @@ export class Testbed implements GitHub {
 		// pass...
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async removeIssueFromProject(_project: number, _issue: Issue, org?: string): Promise<void> {
+		// pass...
+	}
+
 	/* eslint-disable */
 	async createStatus(
 		_sha: string,

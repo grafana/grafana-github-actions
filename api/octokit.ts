@@ -352,6 +352,25 @@ export class OctoKit implements GitHub {
 		})
 	}
 
+	protected async removeIssueFromProjectOld(projectNodeId: string, issueNodeId: string) {
+		console.log(
+			'Running removeIssueFromProjectOld with: projectNodeId: ',
+			projectNodeId,
+			' issueNodeId: ',
+			issueNodeId,
+		)
+		const mutation = `mutation deleteProjectNextItem($projectNodeId: String!, $issueNodeId: String!) {
+			deleteProjectNextItem(input: {projectId: $projectNodeId, itemId: $issueNodeId}) {
+				deletedItemId
+			}
+		  }`
+		return await this._octokitGraphQL({
+			query: mutation,
+			projectNodeId,
+			issueNodeId,
+		})
+	}
+
 	protected async addIssueToProjectNext(projectNodeId: string, issueNodeId: string) {
 		console.log(
 			'Running addIssueToProjectNext with: projectNodeId: ',
@@ -367,6 +386,31 @@ export class OctoKit implements GitHub {
 			  }
 			}
 		}`
+		return await this._octokitGraphQL({
+			query: mutation,
+			projectNodeId,
+			issueNodeId,
+		})
+	}
+
+	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
+		console.log(
+			'Running removeIssueFromProjectNext with: projectNodeId: ',
+			projectNodeId,
+			' issueNodeId: ',
+			issueNodeId,
+		)
+
+		const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
+			deleteProjectNextItem(
+			  input: {
+				projectId: $projectNodeId
+				itemId: $issueNodeId
+			  }
+			) {
+			  deletedItemId
+			}
+		  }`
 		return await this._octokitGraphQL({
 			query: mutation,
 			projectNodeId,
@@ -397,6 +441,31 @@ export class OctoKit implements GitHub {
 			}
 		} catch (error) {
 			console.error('addIssueToProject failed: ' + error)
+		}
+	}
+
+	async removeIssueFromProject(
+		projectId: number,
+		issue: Issue,
+		org = 'grafana'
+	): Promise<void> {
+		console.debug('Running removeIssueFromProject for: ' + projectId)
+		try {
+			const project = await this.getProject(projectId, org)
+
+			if (!project) {
+				console.log('Could not find project for project id: ' + projectId)
+				return
+			}
+			if (project.projectType === projectType.ProjectNext) {
+				await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId)
+			} else if (project.projectType === projectType.Project) {
+				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
+			} else {
+				console.error('Unknown project type: ' + project)
+			}
+		} catch (error) {
+			console.error('removeIssueFromProject failed: ' + error)
 		}
 	}
 
