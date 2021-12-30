@@ -173,6 +173,9 @@ export abstract class Action extends ActionBase {
 						case 'synchronize':
 							await this.onSynchronized(octokit)
 							break
+						case 'unlabeled':
+							await this.onUnlabeled(octokit, context.payload.label.name)
+							break
 						default:
 							throw Error('Unexpected action: ' + context.payload.action)
 					}
@@ -192,6 +195,10 @@ export abstract class Action extends ActionBase {
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	protected async onLabeled(_issue: OctoKitIssue, _label: string): Promise<void> {
+		throw Error('not implemented')
+	}
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	protected async onUnlabeled(_issue: OctoKitIssue, _label: string): Promise<void> {
 		throw Error('not implemented')
 	}
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars

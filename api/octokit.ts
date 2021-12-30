@@ -352,21 +352,21 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-	protected async removeIssueFromProjectOld(projectColumnId: string, issueNodeId: string) {
+	protected async removeIssueFromProjectOld(projectNodeId: string, issueNodeId: string) {
 		console.log(
-			'Running removeIssueFromProjectOld with: projectColumnId: ',
-			projectColumnId,
+			'Running removeIssueFromProjectOld with: projectNodeId: ',
+			projectNodeId,
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation deleteProjectNextItem($projectColumnId: String!, $issueNodeId: String!) {
-			deleteProjectNextItem(input: {projectId: $projectColumnId, itemId: $issueNodeId}) {
+		const mutation = `mutation deleteProjectNextItem($projectNodeId: String!, $issueNodeId: String!) {
+			deleteProjectNextItem(input: {projectId: $projectNodeId, itemId: $issueNodeId}) {
 				deletedItemId
 			}
 		  }`
 		return await this._octokitGraphQL({
 			query: mutation,
-			projectColumnId,
+			projectNodeId,
 			issueNodeId,
 		})
 	}
@@ -447,12 +447,11 @@ export class OctoKit implements GitHub {
 	async removeIssueFromProject(
 		projectId: number,
 		issue: Issue,
-		org = 'grafana',
-		columnName?: string,
+		org = 'grafana'
 	): Promise<void> {
 		console.debug('Running removeIssueFromProject for: ' + projectId)
 		try {
-			const project = await this.getProject(projectId, org, columnName)
+			const project = await this.getProject(projectId, org)
 
 			if (!project) {
 				console.log('Could not find project for project id: ' + projectId)
@@ -460,10 +459,10 @@ export class OctoKit implements GitHub {
 			}
 			if (project.projectType === projectType.ProjectNext) {
 				await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId)
-			} else if (project.projectType === projectType.Project && project.columnNodeId) {
-				await this.removeIssueFromProjectOld(project.columnNodeId, issue.nodeId)
+			} else if (project.projectType === projectType.Project) {
+				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
 			} else {
-				console.error('Unknown project type or column name: ' + project)
+				console.error('Unknown project type: ' + project)
 			}
 		} catch (error) {
 			console.error('removeIssueFromProject failed: ' + error)

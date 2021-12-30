@@ -197,7 +197,7 @@ export class Commands {
 			command.action === 'removeFromProject' &&
 			command.removeFromProject &&
 			command.removeFromProject.url &&
-			issue.labels.includes(command.name)
+			'label' in this.action && this.action.label === command.name
 		) {
 			const projectId = getProjectIdFromUrl(command.removeFromProject.url)
 			if (projectId) {
@@ -205,8 +205,7 @@ export class Commands {
 					this.github.removeIssueFromProject(
 						projectId,
 						issue,
-						command.removeFromProject.org,
-						command.removeFromProject.column,
+						command.removeFromProject.org
 					),
 				)
 			} else {
