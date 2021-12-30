@@ -73,6 +73,10 @@ class Testbed {
     async addIssueToProject(_project, _issue, org) {
         // pass...
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async removeIssueFromProject(_project, _issue, org) {
+        // pass...
+    }
     /* eslint-disable */
     async createStatus(_sha, _context, _state, _description, _targetUrl) {
         return;
