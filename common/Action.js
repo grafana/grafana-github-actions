@@ -142,6 +142,9 @@ class Action extends ActionBase {
                         case 'synchronize':
                             await this.onSynchronized(octokit);
                             break;
+                        case 'unlabeled':
+                            await this.onUnlabeled(octokit, github_1.context.payload.label.name);
+                            break;
                         default:
                             throw Error('Unexpected action: ' + github_1.context.payload.action);
                     }
@@ -161,6 +164,10 @@ class Action extends ActionBase {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onLabeled(_issue, _label) {
+        throw Error('not implemented');
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async onUnlabeled(_issue, _label) {
         throw Error('not implemented');
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

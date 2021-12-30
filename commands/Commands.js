@@ -140,10 +140,10 @@ class Commands {
         if (command.action === 'removeFromProject' &&
             command.removeFromProject &&
             command.removeFromProject.url &&
-            issue.labels.includes(command.name)) {
+            'label' in this.action && this.action.label === command.name) {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.removeFromProject.url);
             if (projectId) {
-                tasks.push(this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org, command.removeFromProject.column));
+                tasks.push(this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org));
             }
             else {
                 console.debug('Could not parse project id from the provided URL', command.removeFromProject.url);

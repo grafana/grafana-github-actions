@@ -32,6 +32,10 @@ class CommandsRunner extends Action_1.Action {
         const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
         await new Commands_1.Commands(issue, commands, {}).run();
     }
+    async onUnlabeled(issue, label) {
+        const commands = await issue.readConfig((0, utils_1.getRequiredInput)('configPath'));
+        await new Commands_1.Commands(issue, commands, { label }).run();
+    }
 }
 new CommandsRunner().run(); // eslint-disable-line
 //# sourceMappingURL=index.js.map
