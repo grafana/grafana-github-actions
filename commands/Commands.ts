@@ -20,7 +20,7 @@ export type Command = { name: string } & (
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
 	Partial<{ requireLabel: string; disallowLabel: string }>
 	& Partial<{ addToProject: { url: string, org?: string, column?: string } }>
-	& Partial<{ removeFromProject: { url: string, org?: string, column?: string } }>
+	& Partial<{ removeFromProject: { url: string, org?: string } }>
 /* eslint-enable */
 
 export class Commands {
