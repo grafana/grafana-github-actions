@@ -359,13 +359,9 @@ export class OctoKit implements GitHub {
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {
-			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
-				cardEdge {
-					node {
-					  id
-					}
-				  }
+		const mutation = `mutation deleteProjectNextItem($projectColumnId: String!, $issueNodeId: String!) {
+			deleteProjectNextItem(input: {projectId: $projectColumnId, itemId: $issueNodeId}) {
+				deletedItemId
 			}
 		  }`
 		return await this._octokitGraphQL({
