@@ -78,7 +78,7 @@ class BumpVersion extends Action {
 		await git('push', '--set-upstream', 'origin', prBranch)
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
-		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
+		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
 		yarn
 		`
 		await octokit.octokit.pulls.create({
