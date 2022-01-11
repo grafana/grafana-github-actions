@@ -62,7 +62,8 @@ class BumpVersion extends Action_1.Action {
             //regenerate yarn.lock file
             await (0, exec_1.exec)('npm', ['install', '-g', 'corepack']);
             await (0, exec_1.exec)('corepack', ['enable']);
-            await (0, exec_1.exec)('yarn', ['set', 'version', '3.1.1']);
+            //await exec('yarn', ['set', 'version', '3.1.1'])
+            await (0, exec_1.exec)('yarn', ['--version']);
             await (0, exec_1.exec)('yarn', ['install', '--mode', 'update-lockfile']);
         }
         catch (e) {

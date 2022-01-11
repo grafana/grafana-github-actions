@@ -71,7 +71,8 @@ class BumpVersion extends Action {
 			//regenerate yarn.lock file
 			await exec('npm', ['install', '-g', 'corepack'])
 			await exec('corepack', ['enable'])
-			await exec('yarn', ['set', 'version', '3.1.1'])
+			//await exec('yarn', ['set', 'version', '3.1.1'])
+			await exec('yarn', ['--version'])
 			await exec('yarn', ['install', '--mode', 'update-lockfile'])
 		} catch (e) {
 			console.error('yarn failed', e)
