@@ -60,7 +60,11 @@ class BumpVersion extends Action_1.Action {
         ]);
         try {
             //regenerate yarn.lock file
-            await (0, exec_1.exec)('yarn', undefined, { env: { YARN_ENABLE_IMMUTABLE_INSTALLS: 'false' } });
+            await (0, exec_1.exec)('npm', ['install', '-g', 'corepack']);
+            await (0, exec_1.exec)('corepack', ['enable']);
+            //await exec('yarn', ['set', 'version', '3.1.1'])
+            await (0, exec_1.exec)('yarn', ['--version']);
+            await (0, exec_1.exec)('yarn', ['install', '--mode', 'update-lockfile']);
         }
         catch (e) {
             console.error('yarn failed', e);
@@ -70,8 +74,8 @@ class BumpVersion extends Action_1.Action {
         await git('push', '--set-upstream', 'origin', prBranch);
         const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
-		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes
-		yarn
+		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
+		yarn install --mode update-lockfile
 		`;
         await octokit.octokit.pulls.create({
             base,

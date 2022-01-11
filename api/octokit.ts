@@ -444,11 +444,7 @@ export class OctoKit implements GitHub {
 		}
 	}
 
-	async removeIssueFromProject(
-		projectId: number,
-		issue: Issue,
-		org = 'grafana'
-	): Promise<void> {
+	async removeIssueFromProject(projectId: number, issue: Issue, org = 'grafana'): Promise<void> {
 		console.debug('Running removeIssueFromProject for: ' + projectId)
 		try {
 			const project = await this.getProject(projectId, org)

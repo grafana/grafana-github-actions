@@ -30,7 +30,7 @@ export interface GitHub {
 
 	removeIssueFromProject(project: number, issue: Issue, org?: string): Promise<void>
 
-  createStatus(
+	createStatus(
 		sha: string,
 		context: string,
 		state: 'error' | 'failure' | 'pending' | 'success',

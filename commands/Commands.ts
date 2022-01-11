@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------------------------------------
-  *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
@@ -197,19 +197,19 @@ export class Commands {
 			command.action === 'removeFromProject' &&
 			command.removeFromProject &&
 			command.removeFromProject.url &&
-			'label' in this.action && this.action.label === command.name
+			'label' in this.action &&
+			this.action.label === command.name
 		) {
 			const projectId = getProjectIdFromUrl(command.removeFromProject.url)
 			if (projectId) {
 				tasks.push(
-					this.github.removeIssueFromProject(
-						projectId,
-						issue,
-						command.removeFromProject.org
-					),
+					this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org),
 				)
 			} else {
-				console.debug('Could not parse project id from the provided URL', command.removeFromProject.url)
+				console.debug(
+					'Could not parse project id from the provided URL',
+					command.removeFromProject.url,
+				)
 			}
 		}
 		await Promise.all(tasks)
