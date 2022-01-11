@@ -50,7 +50,7 @@ class BumpVersion extends Action {
 	}
 
 	async onTriggeredBase(octokit: OctoKit, base: string, version: string) {
-		//const { owner, repo } = context.repo
+		const { owner, repo } = context.repo
 		const prBranch = `bump-version-${version}`
 		// create branch
 		await git('switch', base)
@@ -80,20 +80,19 @@ class BumpVersion extends Action {
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 		// push
 		await git('push', '--set-upstream', 'origin', prBranch)
-		/*const body = `Executed:\n
+		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
-		yarn
-		`*/
-		//@FIXME remove this once testing is done
-		/*await octokit.octokit.pulls.create({
+		yarn install --mode update-lockfile
+		`
+		await octokit.octokit.pulls.create({
 			base,
 			body,
 			head: prBranch,
 			owner,
 			repo,
 			title: `Release: Bump version to ${version}`,
-		})*/
+		})
 	}
 }
 
