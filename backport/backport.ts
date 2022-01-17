@@ -7,7 +7,7 @@ import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
 
-const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/
+const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 
 const getLabelNames = ({
 	action,
