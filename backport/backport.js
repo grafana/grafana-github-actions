@@ -9,7 +9,7 @@ const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
-const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
+const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const getLabelNames = ({ action, label, labels, }) => {
     switch (action) {
         case 'closed':
