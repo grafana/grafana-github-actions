@@ -346,13 +346,13 @@ class OctoKit {
             issueNodeId,
         });
     }
-    async removeIssueFromProjectNext(projectNodeId, itemId) {
-        console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'itemId: ', itemId);
+    async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
+        console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);
         const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId
-				itemId: $itemId
+				itemId: $issueNodeId
 			  }
 			) {
 			  deletedItemId
@@ -361,7 +361,7 @@ class OctoKit {
         return await this._octokitGraphQL({
             query: mutation,
             projectNodeId,
-            itemId,
+            issueNodeId,
         });
     }
     async addIssueToProject(projectId, issue, org = 'grafana', columnName) {
@@ -395,8 +395,14 @@ class OctoKit {
                 return;
             }
             if (project.projectType === api_1.projectType.ProjectNext) {
-                const itemId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId);
-                await this.removeIssueFromProjectNext(project.projectNodeId, itemId);
+                const issueNodeId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId);
+                if (issueNodeId) {
+                    await this.removeIssueFromProjectNext(project.projectNodeId, issueNodeId);
+                }
+                else {
+                    console.error('Could not find item id for issue: ' + issue.nodeId);
+                    return;
+                }
             }
             else if (project.projectType === api_1.projectType.Project) {
                 await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId);
