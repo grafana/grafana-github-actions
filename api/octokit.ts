@@ -419,7 +419,7 @@ export class OctoKit implements GitHub {
 				issueNodeId,
 			})) as GraphQlQueryResponseData
 
-			console.debug('getProject results' + JSON.stringify(results))
+			console.debug('getItemIdFromIssueProjectNext results' + JSON.stringify(results))
 
 			return results.addIssueToProject.projectNextItem.id
 		} catch (error) {
