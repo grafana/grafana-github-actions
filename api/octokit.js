@@ -331,13 +331,28 @@ class OctoKit {
             issueNodeId,
         });
     }
-    async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
-        console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+    async getItemIdFromIssueProjectNext(projectNodeId, issueNodeId) {
+        console.log('Running getItemIdFromIssueProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+        const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`;
+        return await this._octokitGraphQL({
+            query: mutation,
+            projectNodeId,
+            issueNodeId,
+        });
+    }
+    async removeIssueFromProjectNext(projectNodeId, itemId) {
+        console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'itemId: ', itemId);
         const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId
-				itemId: $issueNodeId
+				itemId: $itemId
 			  }
 			) {
 			  deletedItemId
@@ -346,7 +361,7 @@ class OctoKit {
         return await this._octokitGraphQL({
             query: mutation,
             projectNodeId,
-            issueNodeId,
+            itemId,
         });
     }
     async addIssueToProject(projectId, issue, org = 'grafana', columnName) {
@@ -380,7 +395,8 @@ class OctoKit {
                 return;
             }
             if (project.projectType === api_1.projectType.ProjectNext) {
-                await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId);
+                const itemId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId);
+                await this.removeIssueFromProjectNext(project.projectNodeId, itemId);
             }
             else if (project.projectType === api_1.projectType.Project) {
                 await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId);
