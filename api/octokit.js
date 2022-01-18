@@ -340,13 +340,19 @@ class OctoKit {
 			  }
 			}
 		}`;
-        const results = (await this._octokitGraphQL({
-            query: mutation,
-            projectNodeId,
-            issueNodeId,
-        }));
-        console.debug('getProject results' + JSON.stringify(results));
-        return results.addIssueToProject.projectNextItem.id;
+        try {
+            const results = (await this._octokitGraphQL({
+                query: mutation,
+                projectNodeId,
+                issueNodeId,
+            }));
+            console.debug('getProject results' + JSON.stringify(results));
+            return results.addIssueToProject.projectNextItem.id;
+        }
+        catch (error) {
+            console.error('getItemIdFromIssueProjectNext failed: ' + error);
+        }
+        return undefined;
     }
     async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
         console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);

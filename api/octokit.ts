@@ -396,7 +396,7 @@ export class OctoKit implements GitHub {
 	protected async getItemIdFromIssueProjectNext(
 		projectNodeId: string,
 		issueNodeId: string,
-	): Promise<string> {
+	): Promise<string | undefined> {
 		console.log(
 			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
 			projectNodeId,
@@ -411,15 +411,21 @@ export class OctoKit implements GitHub {
 			  }
 			}
 		}`
-		const results = (await this._octokitGraphQL({
-			query: mutation,
-			projectNodeId,
-			issueNodeId,
-		})) as GraphQlQueryResponseData
 
-		console.debug('getProject results' + JSON.stringify(results))
+		try {
+			const results = (await this._octokitGraphQL({
+				query: mutation,
+				projectNodeId,
+				issueNodeId,
+			})) as GraphQlQueryResponseData
 
-		return results.addIssueToProject.projectNextItem.id
+			console.debug('getProject results' + JSON.stringify(results))
+
+			return results.addIssueToProject.projectNextItem.id
+		} catch (error) {
+			console.error('getItemIdFromIssueProjectNext failed: ' + error)
+		}
+		return undefined
 	}
 
 	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
