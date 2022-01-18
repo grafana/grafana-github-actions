@@ -347,7 +347,7 @@ class OctoKit {
                 issueNodeId,
             }));
             console.debug('getItemIdFromIssueProjectNext results' + JSON.stringify(results));
-            return results.addIssueToProject.projectNextItem.id;
+            return results.addProjectNextItem.projectNextItem.id;
         }
         catch (error) {
             console.error('getItemIdFromIssueProjectNext failed: ' + error);
