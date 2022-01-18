@@ -141,7 +141,8 @@ class Commands {
             command.removeFromProject &&
             command.removeFromProject.url &&
             'label' in this.action &&
-            this.action.label === command.name) {
+            this.action.label === command.name &&
+            !issue.labels.includes(command.name)) {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.removeFromProject.url);
             if (projectId) {
                 tasks.push(this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org));

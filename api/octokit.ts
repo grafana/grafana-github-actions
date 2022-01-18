@@ -393,7 +393,10 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-  protected async getItemIdFromIssueProjectNext(projectNodeId: string, issueNodeId: string): Promise<string>  {
+	protected async getItemIdFromIssueProjectNext(
+		projectNodeId: string,
+		issueNodeId: string,
+	): Promise<string> {
 		console.log(
 			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
 			projectNodeId,
@@ -413,8 +416,7 @@ export class OctoKit implements GitHub {
 			projectNodeId,
 			issueNodeId,
 		})
-  }
-
+	}
 
 	protected async removeIssueFromProjectNext(projectNodeId: string, itemId: string) {
 		console.log(
@@ -477,7 +479,7 @@ export class OctoKit implements GitHub {
 				return
 			}
 			if (project.projectType === projectType.ProjectNext) {
-        const itemId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId)
+				const itemId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId)
 				await this.removeIssueFromProjectNext(project.projectNodeId, itemId)
 			} else if (project.projectType === projectType.Project) {
 				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
