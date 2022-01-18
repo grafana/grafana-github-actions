@@ -340,11 +340,13 @@ class OctoKit {
 			  }
 			}
 		}`;
-        return await this._octokitGraphQL({
+        const results = (await this._octokitGraphQL({
             query: mutation,
             projectNodeId,
             issueNodeId,
-        });
+        }));
+        console.debug('getProject results' + JSON.stringify(results));
+        return results.addIssueToProject.projectNextItem.id;
     }
     async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
         console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);

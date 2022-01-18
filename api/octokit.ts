@@ -411,11 +411,15 @@ export class OctoKit implements GitHub {
 			  }
 			}
 		}`
-		return await this._octokitGraphQL({
+		const results = (await this._octokitGraphQL({
 			query: mutation,
 			projectNodeId,
 			issueNodeId,
-		})
+		})) as GraphQlQueryResponseData
+
+		console.debug('getProject results' + JSON.stringify(results))
+
+		return results.addIssueToProject.projectNextItem.id
 	}
 
 	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
@@ -479,7 +483,10 @@ export class OctoKit implements GitHub {
 				return
 			}
 			if (project.projectType === projectType.ProjectNext) {
-				const issueNodeId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId)
+				const issueNodeId = await this.getItemIdFromIssueProjectNext(
+					project.projectNodeId,
+					issue.nodeId,
+				)
 				if (issueNodeId) {
 					await this.removeIssueFromProjectNext(project.projectNodeId, issueNodeId)
 				} else {
