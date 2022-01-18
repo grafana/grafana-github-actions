@@ -393,19 +393,42 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
+  protected async getItemIdFromIssueProjectNext(projectNodeId: string, issueNodeId: string): Promise<string>  {
 		console.log(
-			'Running removeIssueFromProjectNext with: projectNodeId: ',
+			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
 			projectNodeId,
 			' issueNodeId: ',
 			issueNodeId,
+		)
+
+		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`
+		return await this._octokitGraphQL({
+			query: mutation,
+			projectNodeId,
+			issueNodeId,
+		})
+  }
+
+
+	protected async removeIssueFromProjectNext(projectNodeId: string, itemId: string) {
+		console.log(
+			'Running removeIssueFromProjectNext with: projectNodeId: ',
+			projectNodeId,
+			'itemId: ',
+			itemId,
 		)
 
 		const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId
-				itemId: $issueNodeId
+				itemId: $itemId
 			  }
 			) {
 			  deletedItemId
@@ -414,7 +437,7 @@ export class OctoKit implements GitHub {
 		return await this._octokitGraphQL({
 			query: mutation,
 			projectNodeId,
-			issueNodeId,
+			itemId,
 		})
 	}
 
@@ -454,7 +477,8 @@ export class OctoKit implements GitHub {
 				return
 			}
 			if (project.projectType === projectType.ProjectNext) {
-				await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId)
+        const itemId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId)
+				await this.removeIssueFromProjectNext(project.projectNodeId, itemId)
 			} else if (project.projectType === projectType.Project) {
 				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
 			} else {
