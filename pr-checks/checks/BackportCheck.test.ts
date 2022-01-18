@@ -69,40 +69,92 @@ describe('BackportCheck', () => {
 		})
 
 		describe('No skip labels|Matching backport label', () => {
-			it('Should create status success with enabled message', async () => {
-				const createStatusMock = jest.fn()
-				const getPullRequestMock = jest.fn()
-				const d = new Dispatcher({
-					createStatus: createStatusMock,
-					getPullRequest: getPullRequestMock,
-				})
-				const c = new BackportCheck({ skipLabels: [] })
-				c.subscribe(d)
-				context.eventName = 'pull_request'
-				context.payload = {
+			test.each([
+				{
+					eventName: 'pull_request',
 					action: 'labeled',
-				}
-				context.payload.pull_request = {
-					state: 'open',
-					labels: [
-						{ name: 'add to changelog' },
-						{ name: 'backport' },
-						{ name: 'backport v7.2.x' },
-						{ name: 'no-backport' },
-					],
-					head: {
-						sha: '123',
-					},
-				} as EventPayloads.WebhookPayloadPullRequestPullRequest
-				await d.dispatch(context)
+				},
+				{
+					eventName: 'pull_request',
+					action: 'unlabeled',
+				},
+				{
+					eventName: 'pull_request',
+					action: 'opened',
+				},
+				{
+					eventName: 'pull_request',
+					action: 'reopened',
+				},
+				{
+					eventName: 'pull_request',
+					action: 'ready_for_review',
+				},
+				{
+					eventName: 'pull_request',
+					action: 'synchronize',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'labeled',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'unlabeled',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'opened',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'reopened',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'ready_for_review',
+				},
+				{
+					eventName: 'pull_request_target',
+					action: 'synchronize',
+				},
+			])(
+				'$eventName - $action - Should create status success with enabled message',
+				async ({ eventName, action }) => {
+					const createStatusMock = jest.fn()
+					const getPullRequestMock = jest.fn()
+					const d = new Dispatcher({
+						createStatus: createStatusMock,
+						getPullRequest: getPullRequestMock,
+					})
+					const c = new BackportCheck({ skipLabels: [] })
+					c.subscribe(d)
+					context.eventName = eventName
+					context.payload = {
+						action,
+					}
+					context.payload.pull_request = {
+						state: 'open',
+						labels: [
+							{ name: 'add to changelog' },
+							{ name: 'backport' },
+							{ name: 'backport v7.2.x' },
+							{ name: 'no-backport' },
+						],
+						head: {
+							sha: '123',
+						},
+					} as EventPayloads.WebhookPayloadPullRequestPullRequest
+					await d.dispatch(context)
 
-				expect(getPullRequestMock.mock.calls.length).to.equal(0)
-				expect(createStatusMock.mock.calls.length).to.equal(1)
-				expect(createStatusMock.mock.calls[0][0]).to.equal('123')
-				expect(createStatusMock.mock.calls[0][1]).to.equal(defaultConfig.title)
-				expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Success)
-				expect(createStatusMock.mock.calls[0][3]).to.equal(defaultConfig.backportEnabled)
-			})
+					expect(getPullRequestMock.mock.calls.length).to.equal(0)
+					expect(createStatusMock.mock.calls.length).to.equal(1)
+					expect(createStatusMock.mock.calls[0][0]).to.equal('123')
+					expect(createStatusMock.mock.calls[0][1]).to.equal(defaultConfig.title)
+					expect(createStatusMock.mock.calls[0][2]).to.equal(CheckState.Success)
+					expect(createStatusMock.mock.calls[0][3]).to.equal(defaultConfig.backportEnabled)
+				},
+			)
 		})
 
 		describe('One skip label set|Not matching backport label, matching skip label', () => {

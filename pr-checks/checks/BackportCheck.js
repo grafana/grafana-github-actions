@@ -17,7 +17,7 @@ class BackportCheck extends Check_1.Check {
         this.id = 'backport';
     }
     subscribe(s) {
-        s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled'], async (ctx) => {
+        s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'], async (ctx) => {
             const payload = github_1.context.payload;
             if (!payload) {
                 return;
