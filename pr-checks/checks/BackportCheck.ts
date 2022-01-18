@@ -28,39 +28,43 @@ export class BackportCheck extends Check {
 	}
 
 	subscribe(s: CheckSubscriber) {
-		s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled'], async (ctx) => {
-			const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
-			if (!payload) {
-				return
-			}
-
-			if (payload.pull_request.state !== 'open') {
-				return
-			}
-
-			for (let n = 0; n < payload.pull_request.labels.length; n++) {
-				const existingLabel = payload.pull_request.labels[n]
-				const matches = labelRegExp.exec(existingLabel.name)
-				if (matches !== null) {
-					return this.successEnabled(ctx, payload.pull_request.head.sha)
+		s.on(
+			['pull_request', 'pull_request_target'],
+			['labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'],
+			async (ctx) => {
+				const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
+				if (!payload) {
+					return
 				}
-			}
 
-			if (this.config.skipLabels) {
+				if (payload.pull_request.state !== 'open') {
+					return
+				}
+
 				for (let n = 0; n < payload.pull_request.labels.length; n++) {
 					const existingLabel = payload.pull_request.labels[n]
+					const matches = labelRegExp.exec(existingLabel.name)
+					if (matches !== null) {
+						return this.successEnabled(ctx, payload.pull_request.head.sha)
+					}
+				}
 
-					for (let n = 0; n < this.config.skipLabels.length; n++) {
-						const l = this.config.skipLabels[n]
-						if (l === existingLabel.name) {
-							return this.successSkip(ctx, payload.pull_request.head.sha)
+				if (this.config.skipLabels) {
+					for (let n = 0; n < payload.pull_request.labels.length; n++) {
+						const existingLabel = payload.pull_request.labels[n]
+
+						for (let n = 0; n < this.config.skipLabels.length; n++) {
+							const l = this.config.skipLabels[n]
+							if (l === existingLabel.name) {
+								return this.successSkip(ctx, payload.pull_request.head.sha)
+							}
 						}
 					}
 				}
-			}
 
-			return this.failure(ctx, payload.pull_request.head.sha)
-		})
+				return this.failure(ctx, payload.pull_request.head.sha)
+			},
+		)
 	}
 
 	private successEnabled(ctx: CheckContext, sha: string) {
