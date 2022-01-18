@@ -198,7 +198,8 @@ export class Commands {
 			command.removeFromProject &&
 			command.removeFromProject.url &&
 			'label' in this.action &&
-			this.action.label === command.name
+			this.action.label === command.name &&
+			!issue.labels.includes(command.name)
 		) {
 			const projectId = getProjectIdFromUrl(command.removeFromProject.url)
 			if (projectId) {
