@@ -14,7 +14,6 @@ export async function writeDocsFiles({ version, builder }: DocsReleaseNotesWrite
 
 	const content = `+++
 title = "${title}"
-[_build]
 hide_menu = false
 +++
 
