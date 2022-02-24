@@ -33,7 +33,7 @@ ${notes}
 	const indexFileContent = fs.readFileSync(indexFileFullPath, 'utf8')
 
 	// check if reference already exists
-	const findExistingReference = indexFileContent.indexOf(releaseNotesName)
+	const findExistingReference = indexFileContent.indexOf('"' + releaseNotesName + '"')
 
 	// only add reference if it does not exist already
 	if (findExistingReference === -1) {

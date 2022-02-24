@@ -27,7 +27,7 @@ ${notes}
     const indexFileFullPath = `${releaseNotesDocsPath}/${indexFilePath}`;
     const indexFileContent = fs_1.default.readFileSync(indexFileFullPath, 'utf8');
     // check if reference already exists
-    const findExistingReference = indexFileContent.indexOf(releaseNotesName);
+    const findExistingReference = indexFileContent.indexOf('"' + releaseNotesName + '"');
     // only add reference if it does not exist already
     if (findExistingReference === -1) {
         // find the right place to put release notes into.
