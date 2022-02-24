@@ -12,6 +12,10 @@ Type: `label`
 - `addToProject` - an object that is required when the `action` is `addToProject` and is optional otherwise.
 - `addToProject.url`: Absolute url of the project, the project `id` will be parsed.
 - `addToProject.column`: Column name to add the issues to, required for old type of projects
+- `removeFromProject` - an object that is required when the `action` is `removeFromProject` and is optional otherwise.
+- `removeFromProject.url`: Absolute url of the project, the project `id` will be parsed.
+
+Note: removeFromProject doesn't current work for old type of projects
 
 **Syntax**:
 ```json
