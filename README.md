@@ -15,7 +15,7 @@ Type: `label`
 - `removeFromProject` - an object that is required when the `action` is `removeFromProject` and is optional otherwise.
 - `removeFromProject.url`: Absolute url of the project, the project `id` will be parsed.
 
-Note: removeFromProject doesn't current work for old type of projects
+Note: When removed, the issue will irreversibly loose the project-specific metadata assigned to it. removeFromProject doesn't current work for old type of projects.
 
 **Syntax**:
 ```json
