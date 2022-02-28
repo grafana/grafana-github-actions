@@ -379,7 +379,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
