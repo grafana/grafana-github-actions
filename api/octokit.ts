@@ -336,7 +336,7 @@ export class OctoKit implements GitHub {
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {
+		const mutation = `mutation addProjectCard($projectColumnId: ID!, $issueNodeId: ID!) {
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
 				cardEdge {
 					node {
@@ -359,7 +359,7 @@ export class OctoKit implements GitHub {
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation deleteProjectNextItem($projectNodeId: String!, $issueNodeId: String!) {
+		const mutation = `mutation deleteProjectNextItem($projectNodeId: ID!, $issueNodeId: ID!) {
 			deleteProjectNextItem(input: {projectId: $projectNodeId, itemId: $issueNodeId}) {
 				deletedItemId
 			}
@@ -379,7 +379,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
@@ -393,6 +393,41 @@ export class OctoKit implements GitHub {
 		})
 	}
 
+	protected async getItemIdFromIssueProjectNext(
+		projectNodeId: string,
+		issueNodeId: string,
+	): Promise<string | undefined> {
+		console.log(
+			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
+			projectNodeId,
+			' issueNodeId: ',
+			issueNodeId,
+		)
+
+		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`
+
+		try {
+			const results = (await this._octokitGraphQL({
+				query: mutation,
+				projectNodeId,
+				issueNodeId,
+			})) as GraphQlQueryResponseData
+
+			console.debug('getItemIdFromIssueProjectNext results' + JSON.stringify(results))
+
+			return results.addProjectNextItem.projectNextItem.id
+		} catch (error) {
+			console.error('getItemIdFromIssueProjectNext failed: ' + error)
+		}
+		return undefined
+	}
+
 	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
 		console.log(
 			'Running removeIssueFromProjectNext with: projectNodeId: ',
@@ -401,7 +436,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId

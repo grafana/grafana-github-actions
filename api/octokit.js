@@ -288,7 +288,7 @@ class OctoKit {
     }
     async addIssueToProjectOld(projectColumnId, issueNodeId) {
         console.log('Running addIssueToProjectOld with: projectColumnId: ', projectColumnId, ' issueNodeId: ', issueNodeId);
-        const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {
+        const mutation = `mutation addProjectCard($projectColumnId: ID!, $issueNodeId: ID!) {
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
 				cardEdge {
 					node {
@@ -305,7 +305,7 @@ class OctoKit {
     }
     async removeIssueFromProjectOld(projectNodeId, issueNodeId) {
         console.log('Running removeIssueFromProjectOld with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
-        const mutation = `mutation deleteProjectNextItem($projectNodeId: String!, $issueNodeId: String!) {
+        const mutation = `mutation deleteProjectNextItem($projectNodeId: ID!, $issueNodeId: ID!) {
 			deleteProjectNextItem(input: {projectId: $projectNodeId, itemId: $issueNodeId}) {
 				deletedItemId
 			}
@@ -318,7 +318,7 @@ class OctoKit {
     }
     async addIssueToProjectNext(projectNodeId, issueNodeId) {
         console.log('Running addIssueToProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
-        const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+        const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
@@ -331,9 +331,32 @@ class OctoKit {
             issueNodeId,
         });
     }
+    async getItemIdFromIssueProjectNext(projectNodeId, issueNodeId) {
+        console.log('Running getItemIdFromIssueProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+        const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
+			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+			  projectNextItem {
+				id
+			  }
+			}
+		}`;
+        try {
+            const results = (await this._octokitGraphQL({
+                query: mutation,
+                projectNodeId,
+                issueNodeId,
+            }));
+            console.debug('getItemIdFromIssueProjectNext results' + JSON.stringify(results));
+            return results.addProjectNextItem.projectNextItem.id;
+        }
+        catch (error) {
+            console.error('getItemIdFromIssueProjectNext failed: ' + error);
+        }
+        return undefined;
+    }
     async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
         console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);
-        const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
+        const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId
