@@ -393,41 +393,6 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-	protected async getItemIdFromIssueProjectNext(
-		projectNodeId: string,
-		issueNodeId: string,
-	): Promise<string | undefined> {
-		console.log(
-			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
-			projectNodeId,
-			' issueNodeId: ',
-			issueNodeId,
-		)
-
-		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
-			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
-			  projectNextItem {
-				id
-			  }
-			}
-		}`
-
-		try {
-			const results = (await this._octokitGraphQL({
-				query: mutation,
-				projectNodeId,
-				issueNodeId,
-			})) as GraphQlQueryResponseData
-
-			console.debug('getItemIdFromIssueProjectNext results' + JSON.stringify(results))
-
-			return results.addProjectNextItem.projectNextItem.id
-		} catch (error) {
-			console.error('getItemIdFromIssueProjectNext failed: ' + error)
-		}
-		return undefined
-	}
-
 	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
 		console.log(
 			'Running removeIssueFromProjectNext with: projectNodeId: ',
@@ -489,18 +454,11 @@ export class OctoKit implements GitHub {
 				return
 			}
 			if (project.projectType === projectType.ProjectNext) {
-				const issueNodeId = await this.getItemIdFromIssueProjectNext(
-					project.projectNodeId,
-					issue.nodeId,
-				)
-				if (issueNodeId) {
-					await this.removeIssueFromProjectNext(project.projectNodeId, issueNodeId)
-				} else {
-					console.error('Could not find item id for issue: ' + issue.nodeId)
-					return
-				}
+				await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId)
+				return
 			} else if (project.projectType === projectType.Project) {
 				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
+				return
 			} else {
 				console.error('Unknown project type: ' + project)
 			}
