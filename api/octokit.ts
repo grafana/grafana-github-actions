@@ -336,7 +336,7 @@ export class OctoKit implements GitHub {
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation addProjectCard($projectColumnId: String!, $issueNodeId: String!) {
+		const mutation = `mutation addProjectCard($projectColumnId: ID!, $issueNodeId: ID!) {
 			addProjectCard(input: {projectColumnId: $projectColumnId, contentId: $issueNodeId}) {
 				cardEdge {
 					node {
@@ -359,7 +359,7 @@ export class OctoKit implements GitHub {
 			' issueNodeId: ',
 			issueNodeId,
 		)
-		const mutation = `mutation deleteProjectNextItem($projectNodeId: String!, $issueNodeId: String!) {
+		const mutation = `mutation deleteProjectNextItem($projectNodeId: ID!, $issueNodeId: ID!) {
 			deleteProjectNextItem(input: {projectId: $projectNodeId, itemId: $issueNodeId}) {
 				deletedItemId
 			}
@@ -379,7 +379,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
@@ -404,7 +404,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
@@ -436,7 +436,7 @@ export class OctoKit implements GitHub {
 			issueNodeId,
 		)
 
-		const mutation = `mutation removeIssueFromProject($projectNodeId: String!, $issueNodeId: String!){
+		const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
 			deleteProjectNextItem(
 			  input: {
 				projectId: $projectNodeId
