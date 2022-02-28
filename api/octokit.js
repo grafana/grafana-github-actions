@@ -333,7 +333,7 @@ class OctoKit {
     }
     async getItemIdFromIssueProjectNext(projectNodeId, issueNodeId) {
         console.log('Running getItemIdFromIssueProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
-        const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
+        const mutation = `mutation addIssueToProject($projectNodeId: String!, $issueNodeId: String!){
 			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
 			  projectNextItem {
 				id
