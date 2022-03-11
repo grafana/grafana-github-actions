@@ -331,6 +331,45 @@ class OctoKit {
             issueNodeId,
         });
     }
+    async getItemIdFromIssueProjectNext(projectNodeId, issueNodeId) {
+        console.log('Running getItemIdFromIssueProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+        const mutation = `query getIssueProjectNextNodeId($issueNodeId: ID!) {
+			node(id: $issueNodeId) {
+			  id
+			  ... on Issue {
+				id
+				projectNextItems(first: 100) {
+				  nodes {
+					id
+					title
+					project {
+					  url
+					}
+				  }
+				}
+			  }
+			}
+		}`;
+        try {
+            const results = (await this._octokitGraphQL({
+                query: mutation,
+                issueNodeId,
+            }));
+            // finding the right issueProjectNextNodeId
+            for (const issueProjectNextNode of results.node.projectNextItems.nodes) {
+                if (issueProjectNextNode.project &&
+                    issueProjectNextNode.project.id &&
+                    issueProjectNextNode.project.id === projectNodeId) {
+                    return issueProjectNextNode.id;
+                }
+            }
+            throw new Error('Could not find the right project' + JSON.stringify(results));
+        }
+        catch (error) {
+            console.error('getItemIdFromIssueProjectNext failed: ' + error);
+        }
+        return undefined;
+    }
     async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
         console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);
         const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
@@ -380,7 +419,11 @@ class OctoKit {
                 return;
             }
             if (project.projectType === api_1.projectType.ProjectNext) {
-                await this.removeIssueFromProjectNext(project.projectNodeId, issue.nodeId);
+                const issueProjectNextItemNodeId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId);
+                if (!issueProjectNextItemNodeId) {
+                    throw new Error('Could not get issueProjectNextItemNodeId');
+                }
+                await this.removeIssueFromProjectNext(project.projectNodeId, issueProjectNextItemNodeId);
                 return;
             }
             else if (project.projectType === api_1.projectType.Project) {
