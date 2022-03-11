@@ -414,7 +414,7 @@ export class OctoKit implements GitHub {
 					id
 					title
 					project {
-					  url
+					  id
 					}
 				  }
 				}

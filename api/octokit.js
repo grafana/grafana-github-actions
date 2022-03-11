@@ -343,7 +343,7 @@ class OctoKit {
 					id
 					title
 					project {
-					  url
+					  id
 					}
 				  }
 				}
