@@ -1,6 +1,6 @@
-import { setFailed } from '@actions/core'
+import { setOutput, setFailed } from '@actions/core'
 import { getRequiredInput } from '../common/utils'
-import { setOutput } from '@actions/core'
+import { coerce } from 'semver'
 
 let forcePrefix = 'v'
 let trimPrefixes: string[] = ['release-', 'v']
@@ -13,31 +13,25 @@ function setTarget(target: string) {
 
 function run() {
 	try {
-		var ref_name: string = getRequiredInput('ref_name')
-		console.log('Input ref_name: ' + ref_name)
+		var ref = getRequiredInput('ref_name')
+		console.log('Input ref_name: ' + ref)
 
-		var target = knownRefs.get(ref_name)
-		if (target != undefined) {
-			setTarget(target)
+		if (knownRefs.has(ref)) {
+			setTarget(knownRefs.get(ref)!)
 			return
 		}
 
 		trimPrefixes.forEach((prefix) => {
-			if (ref_name.startsWith(prefix)) {
-				ref_name = ref_name.slice(prefix.length)
+			if (ref.startsWith(prefix)) {
+				ref = ref.slice(prefix.length)
 			}
 		})
 
-		// The node semver package can't parse things like "x.y" without patch
-		// https://github.com/npm/node-semver/issues/164#issuecomment-247157991
-		// So doing cheap way to get major.minor
-		let parts = ref_name.split('.', 2)
-		if (parts.length != 2) {
-			throw 'ref_name invalid: ' + ref_name
+		var ver = coerce(ref)
+		if (ver == null) {
+			throw 'ref_name invalid: ' + ref
 		}
-
-		target = forcePrefix + parts[0] + '.' + parts[1]
-		setTarget(target)
+		setTarget(forcePrefix + ver.major + '.' + ver.minor)
 	} catch (error: any) {
 		setFailed(error)
 	}
