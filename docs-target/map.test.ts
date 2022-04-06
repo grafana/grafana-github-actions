@@ -5,6 +5,8 @@ test('mappings', () => {
 	expect(map('release-1.3', ['release-', 'v'])).toBe('v1.3')
 	expect(map('release-1.4.0', ['release-', 'v'])).toBe('v1.4')
 	expect(map('main', ['release-', 'v'])).toBe('next')
+	// Should fail but doesn't
+	expect(map('mimir-2.0.1', ['release-', 'v'])).toBe('v2.0')
 	expect(map('mimir-2.0.1', ['release-', 'mimir-'])).toBe('v2.0')
 
 	expect(() => map('foo')).toThrow()
