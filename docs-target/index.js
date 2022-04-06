@@ -5,8 +5,9 @@ const utils_1 = require("../common/utils");
 const map_1 = require("./map");
 try {
     var ref = (0, utils_1.getRequiredInput)('ref_name');
+    var trimPrefixes = (0, utils_1.getRequiredInput)('trim_prefixes').split(':');
     console.log('Input ref_name: ' + ref);
-    let target = (0, map_1.map)(ref);
+    let target = (0, map_1.map)(ref, trimPrefixes);
     console.log('Output target: ' + target);
     (0, core_1.setOutput)('target', target);
 }

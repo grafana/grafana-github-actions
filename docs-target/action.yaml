@@ -4,9 +4,12 @@ inputs:
   ref_name:
     description: Branch or tag name to extract from
     default: ${{ github.ref_name }}
+  trim_prefixes:
+    description: Colon `:` separated list of prefixes to be trimmed from references
+    default: 'release-:v'
 outputs:
   target:
-    description: The folder name for the given 
+    description: Website documentation version for the given reference
 runs:
   using: 'node16'
   main: 'index.js'
