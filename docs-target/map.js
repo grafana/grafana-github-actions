@@ -3,20 +3,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.map = void 0;
 const semver_1 = require("semver");
 let forcePrefix = 'v';
-let trimPrefixes = ['release-', 'v'];
 let knownRefs = new Map([['main', 'next']]);
 // map the given git reference (branch or tag name) to the corresponding
-// documentation subfolder. The output will be "vMajor.Minor"
+// documentation subfolder.
+// The output will be "vMajor.Minor".
+// The coercion performed is very permissive and most any reference will
+// result in some output.
+// All references that approximate semantic version, but deviate perhaps
+// by having a prefix, should be coerced into a reasonable output.
 function map(ref) {
     // Hard-coded mapping?
     if (knownRefs.has(ref)) {
         return knownRefs.get(ref);
     }
-    trimPrefixes.forEach((prefix) => {
-        if (ref.startsWith(prefix)) {
-            ref = ref.slice(prefix.length);
-        }
-    });
     var ver = (0, semver_1.coerce)(ref);
     if (ver == null) {
         throw 'ref_name invalid: ' + ref;

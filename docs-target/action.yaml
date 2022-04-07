@@ -6,7 +6,7 @@ inputs:
     default: ${{ github.ref_name }}
 outputs:
   target:
-    description: The folder name for the given 
+    description: Technical documentation version for the given reference
 runs:
   using: 'node16'
   main: 'index.js'
