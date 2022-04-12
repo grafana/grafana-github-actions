@@ -1,7 +1,10 @@
 import { coerce } from 'semver'
 
 let forcePrefix = 'v'
-let knownRefs = new Map<string, string>([['main', 'next']])
+let knownRefs = new Map<string, string>([
+	['main', 'next'],
+	['master', 'next'],
+])
 
 // map the given git reference (branch or tag name) to the corresponding
 // documentation subfolder.
