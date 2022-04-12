@@ -3,7 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.map = void 0;
 const semver_1 = require("semver");
 let forcePrefix = 'v';
-let knownRefs = new Map([['main', 'next']]);
+let knownRefs = new Map([
+    ['main', 'next'],
+    ['master', 'next'],
+]);
 // map the given git reference (branch or tag name) to the corresponding
 // documentation subfolder.
 // The output will be "vMajor.Minor".
