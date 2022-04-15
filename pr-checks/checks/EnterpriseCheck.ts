@@ -17,7 +17,7 @@ export const defaultConfig = {
 	success: 'Enterprise build passed',
 	enterpriseFailure: 'Enterprise build failed',
 	noLabelFailure: 'Waiting for Enterprise build to complete',
-	tooManyLabelsFailure: 'Too many enterprise-XX labels, only one should be set', 
+	tooManyLabelsFailure: 'Too many enterprise-XX labels, only one should be set',
 	override: 'Any failure in Enterprise build was ignored',
 }
 
@@ -57,7 +57,12 @@ export class EnterpriseCheck extends Check {
 						if (enterpriseLabel === '') {
 							enterpriseLabel = matches[0]
 						} else {
-							return this.response(ctx, sha, this.config.tooManyLabelsFailure ?? defaultConfig.tooManyLabelsFailure, false)
+							return this.response(
+								ctx,
+								sha,
+								this.config.tooManyLabelsFailure ?? defaultConfig.tooManyLabelsFailure,
+								false,
+							)
 						}
 					}
 				}
@@ -68,11 +73,20 @@ export class EnterpriseCheck extends Check {
 					case EnterpriseOverrideLabel:
 						return this.response(ctx, sha, this.config.override ?? defaultConfig.override, true)
 					case EnterpriseKOLabel:
-						return this.response(ctx, sha, this.config.enterpriseFailure ?? defaultConfig.enterpriseFailure, false)
-
+						return this.response(
+							ctx,
+							sha,
+							this.config.enterpriseFailure ?? defaultConfig.enterpriseFailure,
+							false,
+						)
 				}
 
-				return this.response(ctx, sha, this.config.noLabelFailure ?? defaultConfig.noLabelFailure, false)
+				return this.response(
+					ctx,
+					sha,
+					this.config.noLabelFailure ?? defaultConfig.noLabelFailure,
+					false,
+				)
 			},
 		)
 	}

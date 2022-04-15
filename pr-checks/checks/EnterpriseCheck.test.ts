@@ -134,10 +134,7 @@ describe('EnterpriseCheck', () => {
 					}
 					context.payload.pull_request = {
 						state: 'open',
-						labels: [
-							{ name: 'add to changelog' },
-							{ name: 'enterprise-ok' },
-						],
+						labels: [{ name: 'add to changelog' }, { name: 'enterprise-ok' }],
 						head: {
 							sha: '123',
 						},
