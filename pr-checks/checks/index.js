@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getChecks = void 0;
 const BackportCheck_1 = require("./BackportCheck");
 const MilestoneCheck_1 = require("./MilestoneCheck");
+const EnterpriseCheck_1 = require("./EnterpriseCheck");
 function getChecks(config) {
     const checks = [];
     for (let n = 0; n < config.length; n++) {
@@ -13,6 +14,9 @@ function getChecks(config) {
                 break;
             case 'check-backport':
                 checks.push(new BackportCheck_1.BackportCheck(checkConfig));
+                break;
+            case 'check-enterprise':
+                checks.push(new EnterpriseCheck_1.EnterpriseCheck(checkConfig));
                 break;
         }
     }
