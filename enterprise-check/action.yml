@@ -1,0 +1,16 @@
+name: Enterprise check
+description: Check if an Enterprise branch exist for the OSS PR check, else create it
+inputs:
+  token:
+    description: GitHub token with branch read/write permissions
+    default: ${{ github.token }}
+  source_branch:
+    description: Source branch of the OSS PR
+    required: true
+  target_branch:
+    description: Target branch of the OSS PR
+  pr_number:
+    description: OSS PR number
+runs:
+  using: 'node16'
+  main: 'index.js'
