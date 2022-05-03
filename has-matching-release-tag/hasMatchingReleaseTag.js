@@ -3,7 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.hasMatchingReleaseTagWithRefNames = exports.filterRefNames = exports.hasMatchingReleaseTag = void 0;
 const child_process_1 = require("child_process");
 function hasMatchingReleaseTag(refName, releaseTagRegexp, releaseBranchRegexp, releaseBranchWithPatchRegexp) {
-    return hasMatchingReleaseTagWithRefNames((0, child_process_1.execFileSync)('git', ['tag'], { encoding: 'utf8' }).split(/(?:\r\n|\r|\n)/g), refName, releaseTagRegexp, releaseBranchRegexp, releaseBranchWithPatchRegexp);
+    let refNames = (0, child_process_1.execFileSync)('git', ['tag'], { encoding: 'utf8' }).split(/(?:\r\n|\r|\n)/g);
+    if (refNames.length == 0) {
+        throw 'No tags found. Is there an `actions/checkout` step with `fetch-depth: 0` before this action? https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches';
+    }
+    return hasMatchingReleaseTagWithRefNames(refNames, refName, releaseTagRegexp, releaseBranchRegexp, releaseBranchWithPatchRegexp);
 }
 exports.hasMatchingReleaseTag = hasMatchingReleaseTag;
 function filterRefNames(refNames, regexp) {
