@@ -85,6 +85,6 @@ export function hasMatchingReleaseTagWithRefNames(
 		}
 	}
 
-	console.log(`Found corresponding release tag for reference '${refName}'`)
+	console.log(`Did not find a corresponding release tag for reference '${refName}'`)
 	return 'false'
 }
