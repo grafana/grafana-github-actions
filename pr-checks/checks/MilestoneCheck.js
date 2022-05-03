@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MilestoneCheck = void 0;
 const github_1 = require("@actions/github");
-const Check_1 = require("../Check");
+const Check_1 = require("./Check");
 class MilestoneCheck extends Check_1.Check {
     constructor(config) {
         super();
         this.config = config;
-        this.id = 'milestone';
+        this.id = 'check-milestone';
     }
     subscribe(s) {
         s.on(['pull_request', 'pull_request_target'], ['opened', 'reopened', 'ready_for_review', 'synchronize'], async (ctx) => {

@@ -1,9 +1,10 @@
 import { context } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
-import { Check } from '../Check'
-import { CheckContext, CheckSubscriber } from '../types'
+import { CheckContext } from '../types'
+import { Check } from './Check'
+import { CheckSubscriber } from '../Subscriber'
 
-export type MilestoneCheckConfig = {
+export interface MilestoneCheckConfig {
 	title?: string
 	targetUrl?: string
 	success?: string
@@ -11,7 +12,7 @@ export type MilestoneCheckConfig = {
 }
 
 export class MilestoneCheck extends Check {
-	id = 'milestone'
+	id = 'check-milestone'
 
 	constructor(private config: MilestoneCheckConfig) {
 		super()

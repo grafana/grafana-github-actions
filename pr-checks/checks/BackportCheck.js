@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BackportCheck = exports.defaultConfig = void 0;
 const github_1 = require("@actions/github");
-const Check_1 = require("../Check");
+const Check_1 = require("./Check");
 exports.defaultConfig = {
     title: 'Backport Check',
     backportEnabled: 'Backport enabled',
@@ -14,7 +14,7 @@ class BackportCheck extends Check_1.Check {
     constructor(config) {
         super();
         this.config = config;
-        this.id = 'backport';
+        this.id = 'check-backport';
     }
     subscribe(s) {
         s.on(['pull_request', 'pull_request_target'], ['labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'], async (ctx) => {

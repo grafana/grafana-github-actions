@@ -6,6 +6,7 @@ const utils_1 = require("../common/utils");
 const Action_1 = require("../common/Action");
 const checks_1 = require("./checks");
 const Dispatcher_1 = require("./Dispatcher");
+const Subscriber_1 = require("./Subscriber");
 class PRChecksAction extends Action_1.ActionBase {
     constructor() {
         super(...arguments);
@@ -17,7 +18,8 @@ class PRChecksAction extends Action_1.ActionBase {
             return;
         }
         const api = new octokit_1.OctoKitIssue(this.getToken(), github_1.context.repo, { number: issue });
-        const dispatcher = new Dispatcher_1.Dispatcher(api);
+        const subscriber = new Subscriber_1.Subscriber();
+        const dispatcher = new Dispatcher_1.Dispatcher(api, subscriber);
         const config = await api.readConfig((0, utils_1.getRequiredInput)('configPath'));
         const checks = (0, checks_1.getChecks)(config);
         for (let n = 0; n < checks.length; n++) {

@@ -1,51 +1,16 @@
 import { Context } from '@actions/github/lib/context'
-import { API, CheckContext, CheckSubscriber, SubscribeCallback } from './types'
+import { CheckSubscriber, SubscribeCallback, Subscriber } from './Subscriber'
+import { API, CheckContext } from './types'
 
 export class Dispatcher implements CheckSubscriber {
-	private subscribers: {
-		events: string[]
-		actions: string[]
-		callback: SubscribeCallback
-	}[] = []
-
-	constructor(private api: API) {}
+	constructor(private api: API, private subscriber: Subscriber) {}
 
 	on(
 		...args:
 			| [events: string | string[], callback: SubscribeCallback]
 			| [events: string | string[], actions: string | string[], callback: SubscribeCallback]
 	): void {
-		const eventsArg = args[0]
-		let actionsArg: string | string[] = ''
-		let callback: SubscribeCallback
-
-		if (args.length > 2) {
-			actionsArg = args[1] as string | string[]
-			callback = args[2] as SubscribeCallback
-		} else {
-			callback = args[1] as SubscribeCallback
-		}
-
-		let events: string[] = []
-		let actions: string[] = []
-
-		if (typeof eventsArg === 'string') {
-			events = [eventsArg]
-		} else if (Array.isArray(eventsArg)) {
-			events = eventsArg
-		}
-
-		if (typeof actionsArg === 'string' && actionsArg.length > 0) {
-			actions = [actionsArg]
-		} else if (Array.isArray(actionsArg)) {
-			actions = actionsArg
-		}
-
-		this.subscribers.push({
-			events,
-			actions,
-			callback,
-		})
+		this.subscriber.on(...args)
 	}
 
 	async dispatch(context: Context): Promise<void> {
@@ -53,13 +18,10 @@ export class Dispatcher implements CheckSubscriber {
 			eventName: context.eventName,
 			action: context.payload?.action,
 		})
-		const matches = this.subscribers.filter((s) => {
-			return (
-				s.events.includes(context.eventName) &&
-				(s.actions.length === 0 ||
-					(context.payload.action && s.actions.includes(context.payload?.action)))
-			)
-		})
+		const matches = this.subscriber.subscriptionsByEventAction(
+			context?.eventName,
+			context?.payload?.action,
+		)
 		console.debug('got matches', matches)
 
 		for (let n = 0; n < matches.length; n++) {

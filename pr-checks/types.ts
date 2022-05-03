@@ -1,4 +1,4 @@
-import { PullRequest } from '../api/api'
+import { PullRequest, StatusesByRef } from '../api/api'
 
 export enum CheckState {
 	Error = 'error',
@@ -6,6 +6,8 @@ export enum CheckState {
 	Pending = 'pending',
 	Success = 'success',
 }
+
+export type State = 'error' | 'failure' | 'pending' | 'success'
 
 export type CheckResult = {
 	state: CheckState
@@ -15,15 +17,9 @@ export type CheckResult = {
 	targetURL?: string
 }
 
-export type SubscribeCallback = (checkContext: CheckContext) => Promise<void>
-
-export type CheckSubscriber = {
-	on(events: string | string[], callback: SubscribeCallback): void
-	on(events: string | string[], actions: string | string[], callback: SubscribeCallback): void
-}
-
 export type ChecksAPI = {
 	getPullRequest(): Promise<PullRequest>
+	listStatusesByRef(ref: string): Promise<StatusesByRef>
 }
 
 export type API = {

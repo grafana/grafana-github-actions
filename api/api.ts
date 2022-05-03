@@ -37,6 +37,8 @@ export interface GitHub {
 		description?: string,
 		targetUrl?: string,
 	): Promise<void>
+
+	listStatusesByRef(ref: string): Promise<StatusesByRef>
 }
 
 export interface GitHubIssue extends GitHub {
@@ -146,4 +148,11 @@ export interface ProjectAndColumnIds {
 	columnNodeId?: string
 	projectNodeId: string
 	projectType: projectType
+}
+
+export interface StatusesByRef {
+	statuses: {
+		context: string
+		state: string
+	}[]
 }

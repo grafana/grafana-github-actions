@@ -13,6 +13,7 @@ import {
 	projectType,
 	PullRequest,
 	Query,
+	StatusesByRef,
 	User,
 } from './api'
 
@@ -133,6 +134,11 @@ export class Testbed implements GitHub {
 		return
 	}
 	/* eslint-enable */
+
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async listStatusesByRef(ref: string): Promise<StatusesByRef> {
+		return { statuses: [] }
+	}
 }
 
 type TestbedIssueConfig = {

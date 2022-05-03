@@ -1,9 +1,10 @@
 import { context } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
-import { Check } from '../Check'
-import { CheckContext, CheckSubscriber } from '../types'
+import { CheckContext } from '../types'
+import { Check } from './Check'
+import { CheckSubscriber } from '../Subscriber'
 
-export type BackportCheckConfig = {
+export interface BackportCheckConfig {
 	title?: string
 	targetUrl?: string
 	backportEnabled?: string
@@ -21,7 +22,7 @@ export const defaultConfig = {
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/
 
 export class BackportCheck extends Check {
-	id = 'backport'
+	id = 'check-backport'
 
 	constructor(private config: BackportCheckConfig) {
 		super()
