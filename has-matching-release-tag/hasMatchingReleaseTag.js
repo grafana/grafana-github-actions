@@ -28,6 +28,7 @@ exports.filterRefNames = filterRefNames;
 // Otherwise, the function returns "false".
 function hasMatchingReleaseTagWithRefNames(refNames, refName, releaseTagRegexp, releaseBranchRegexp, releaseBranchWithPatchRegexp) {
     if (refName.match(releaseTagRegexp)) {
+        console.log(`Reference name is a release tag`);
         return 'true';
     }
     let releaseTags = filterRefNames(refNames, releaseTagRegexp);
@@ -39,6 +40,7 @@ function hasMatchingReleaseTagWithRefNames(refNames, refName, releaseTagRegexp, 
                 tagMatches[1] == branchMatches[1] &&
                 tagMatches[2] == branchMatches[2] &&
                 tagMatches[3] == '0') {
+                console.log(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`);
                 return 'true';
             }
         }
@@ -52,11 +54,13 @@ function hasMatchingReleaseTagWithRefNames(refNames, refName, releaseTagRegexp, 
                     tagMatches[1] == branchMatches[1] &&
                     tagMatches[2] == branchMatches[2] &&
                     tagMatches[3] == branchMatches[3]) {
+                    console.log(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`);
                     return 'true';
                 }
             }
         }
     }
+    console.log(`Found corresponding release tag for reference '${refName}'`);
     return 'false';
 }
 exports.hasMatchingReleaseTagWithRefNames = hasMatchingReleaseTagWithRefNames;

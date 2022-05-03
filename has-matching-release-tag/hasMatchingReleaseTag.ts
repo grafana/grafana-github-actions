@@ -43,6 +43,7 @@ export function hasMatchingReleaseTagWithRefNames(
 	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
 	if (refName.match(releaseTagRegexp)) {
+		console.log(`Reference name is a release tag`)
 		return 'true'
 	}
 
@@ -58,6 +59,7 @@ export function hasMatchingReleaseTagWithRefNames(
 				tagMatches[2] == branchMatches[2] &&
 				tagMatches[3] == '0'
 			) {
+				console.log(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`)
 				return 'true'
 			}
 		}
@@ -74,11 +76,15 @@ export function hasMatchingReleaseTagWithRefNames(
 					tagMatches[2] == branchMatches[2] &&
 					tagMatches[3] == branchMatches[3]
 				) {
+					console.log(
+						`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`,
+					)
 					return 'true'
 				}
 			}
 		}
 	}
 
+	console.log(`Found corresponding release tag for reference '${refName}'`)
 	return 'false'
 }
