@@ -1,27 +1,16 @@
-import { exec, ExecOptions } from '@actions/exec'
+import { execFileSync } from 'child_process'
 
-export async function hasMatchingReleaseTag(
+export function hasMatchingReleaseTag(
 	refName: string,
 	releaseTagRegexp: RegExp,
-	releaseBranchWithoutPatchRegexp: RegExp,
-	releaseBranchWithPatchRegexp: RegExp,
-): Promise<string> {
-	let refNames: Array<string> = []
-	const options: ExecOptions = {
-		listeners: {
-			stdout: (data: Buffer) => {
-				refNames = data.toString().split(/(?:\r\n|\r|\n)/g)
-			},
-		},
-	}
-
-	await exec('git', ['tag'], options)
-
+	releaseBranchRegexp: RegExp,
+	releaseBranchWithPatchRegexp: RegExp | undefined,
+): string {
 	return hasMatchingReleaseTagWithRefNames(
-		refNames,
+		execFileSync('git', ['tag'], { encoding: 'utf8' }).split(/(?:\r\n|\r|\n)/g),
 		refName,
 		releaseTagRegexp,
-		releaseBranchWithoutPatchRegexp,
+		releaseBranchRegexp,
 		releaseBranchWithPatchRegexp,
 	)
 }
@@ -30,12 +19,23 @@ export function filterRefNames(refNames: Array<string>, regexp: RegExp): Array<s
 	return refNames.filter((name) => name.match(regexp))
 }
 
+// hasMatchingReleaseTagWithRefNames returns either the string "true" or "false".
+// "true" is returned for each of the following cases:
+// - releaseTagRegexp matches refName and is therefore a release tag reference name.
+// - releaseBranchRegexp matches refName and there is a corresponding reference name in
+//   refNames that matched by releaseTagRegexp. For a reference name to be corresponding,
+//   it must share the major and minor versions with refName, and it must have a '0'
+//   patch version.
+// - releaseBranchWithPatchRegexp is defined, matches refName, and there is a corresponding
+//   reference name in matched by releaseTagRegexp. For a reference name to be corresponding,
+//   it must share the major, minor, and patch versions with the refName.
+// Otherwise, the function returns "false".
 export function hasMatchingReleaseTagWithRefNames(
 	refNames: Array<string>,
 	refName: string,
 	releaseTagRegexp: RegExp,
-	releaseBranchWithoutPatchRegexp: RegExp,
-	releaseBranchWithPatchRegexp: RegExp,
+	releaseBranchRegexp: RegExp,
+	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
 	if (refName.match(releaseTagRegexp)) {
 		return 'true'
@@ -43,22 +43,7 @@ export function hasMatchingReleaseTagWithRefNames(
 
 	let releaseTags = filterRefNames(refNames, releaseTagRegexp)
 
-	let branchMatches = refName.match(releaseBranchWithPatchRegexp)
-	if (branchMatches) {
-		for (var i = 0; i < releaseTags.length; i++) {
-			let tagMatches = releaseTags[i].match(releaseTagRegexp)
-			if (
-				tagMatches &&
-				tagMatches[1] == branchMatches[1] &&
-				tagMatches[2] == branchMatches[2] &&
-				tagMatches[3] == branchMatches[3]
-			) {
-				return 'true'
-			}
-		}
-	}
-
-	branchMatches = refName.match(releaseBranchWithoutPatchRegexp)
+	let branchMatches = refName.match(releaseBranchRegexp)
 	if (branchMatches) {
 		for (var i = 0; i < releaseTags.length; i++) {
 			let tagMatches = releaseTags[i].match(releaseTagRegexp)
@@ -69,6 +54,23 @@ export function hasMatchingReleaseTagWithRefNames(
 				tagMatches[3] == '0'
 			) {
 				return 'true'
+			}
+		}
+	}
+
+	if (releaseBranchWithPatchRegexp) {
+		branchMatches = refName.match(releaseBranchWithPatchRegexp)
+		if (branchMatches) {
+			for (var i = 0; i < releaseTags.length; i++) {
+				let tagMatches = releaseTags[i].match(releaseTagRegexp)
+				if (
+					tagMatches &&
+					tagMatches[1] == branchMatches[1] &&
+					tagMatches[2] == branchMatches[2] &&
+					tagMatches[3] == branchMatches[3]
+				) {
+					return 'true'
+				}
 			}
 		}
 	}
