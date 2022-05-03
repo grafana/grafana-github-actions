@@ -22,15 +22,21 @@ inputs:
     release_tag_regexp:
         description: |
             Regexp to match release tag references.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
             The regexp must have three capture groups, one for each of major, minor, and patch versions.
+            For example: "^v(\\d+)\\.(\\d+)\\.(\\d+)$"
     release_branch_regexp:
         description: |
             Regexp to match release branches that do not include a patch version.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
             The regexp must have two capture groups, one for each of major and minor versions.
+            For example: "^release-(\\d+)\\.(\\d+)$"
     release_branch_with_patch_regexp:
         description: |
             Regexp to match release branches that include a patch version.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
             The regexp must have three capture groups, one for each of major, minor, and patch versions.
+            For example: "^release-(\\d+)\\.(\\d+)\\.(\\d+)$"
             Can be omitted if not required.
 outputs:
     bool:
