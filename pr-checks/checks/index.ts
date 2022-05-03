@@ -1,10 +1,12 @@
 import { Check } from '../Check'
 import { BackportCheck, BackportCheckConfig } from './BackportCheck'
+import { LabelCheck, LabelCheckConfig } from './LabelCheck'
 import { MilestoneCheck, MilestoneCheckConfig } from './MilestoneCheck'
 
 export type CheckConfig =
 	| ({ type: 'check-milestone' } & MilestoneCheckConfig)
 	| ({ type: 'check-backport' } & BackportCheckConfig)
+	| ({ type: 'check-label' } & LabelCheckConfig)
 
 export function getChecks(config: CheckConfig[]) {
 	const checks: Check[] = []
@@ -18,6 +20,9 @@ export function getChecks(config: CheckConfig[]) {
 				break
 			case 'check-backport':
 				checks.push(new BackportCheck(checkConfig))
+				break
+			case 'check-label':
+				checks.push(new LabelCheck(checkConfig))
 				break
 		}
 	}
