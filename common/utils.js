@@ -130,7 +130,7 @@ ${JSON.stringify(github_1.context, null, 2)
 };
 exports.logErrorToIssue = logErrorToIssue;
 function splitStringIntoLines(content) {
-    return content.split(/\r?\n/);
+    return content.split(/(?:\r\n|\r|\n)/g);
 }
 exports.splitStringIntoLines = splitStringIntoLines;
 const getProjectIdFromUrl = (url) => {
