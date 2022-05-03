@@ -7,7 +7,7 @@ export function hasMatchingReleaseTag(
 	releaseBranchRegexp: RegExp,
 	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
-	let refNames = splitStringIntoLines(execFileSync('git', ['tag'], { encoding: 'utf8' }))
+	let refNames = splitStringIntoLines(execFileSync('git', ['tag'], { encoding: 'utf8' })).filter((e) => e)
 	if (refNames.length == 0) {
 		throw 'No tags found. Is there an `actions/checkout` step with `fetch-depth: 0` before this action? https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches'
 	}

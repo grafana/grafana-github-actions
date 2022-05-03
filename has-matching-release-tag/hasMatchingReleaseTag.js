@@ -4,7 +4,7 @@ exports.hasMatchingReleaseTagWithRefNames = exports.filterRefNames = exports.has
 const child_process_1 = require("child_process");
 const utils_1 = require("../common/utils");
 function hasMatchingReleaseTag(refName, releaseTagRegexp, releaseBranchRegexp, releaseBranchWithPatchRegexp) {
-    let refNames = (0, utils_1.splitStringIntoLines)((0, child_process_1.execFileSync)('git', ['tag'], { encoding: 'utf8' }));
+    let refNames = (0, utils_1.splitStringIntoLines)((0, child_process_1.execFileSync)('git', ['tag'], { encoding: 'utf8' })).filter((e) => e);
     if (refNames.length == 0) {
         throw 'No tags found. Is there an `actions/checkout` step with `fetch-depth: 0` before this action? https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches';
     }
