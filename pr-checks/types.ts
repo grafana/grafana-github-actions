@@ -76,4 +76,8 @@ export class CheckContext {
 			...status,
 		}
 	}
+
+	reset() {
+		this.result = undefined
+	}
 }

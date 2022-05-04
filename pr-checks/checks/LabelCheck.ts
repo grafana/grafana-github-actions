@@ -36,40 +36,44 @@ export class LabelCheck extends Check {
 			['pull_request', 'pull_request_target'],
 			['labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'],
 			async (ctx) => {
-				const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
-				if (!payload) {
-					return
-				}
-
-				if (payload.pull_request.state !== 'open') {
-					return
-				}
-
-				for (let n = 0; n < payload.pull_request.labels.length; n++) {
-					const existingLabel = payload.pull_request.labels[n]
-
-					for (let i = 0; i < this.config.labels.matches.length; i++) {
-						if (stringMatchesLabel(this.config.labels.matches[i], existingLabel.name)) {
-							return this.successEnabled(ctx, payload.pull_request.head.sha)
-						}
-					}
-				}
-
-				if (this.config.skip) {
-					for (let n = 0; n < payload.pull_request.labels.length; n++) {
-						const existingLabel = payload.pull_request.labels[n]
-
-						for (let i = 0; i < this.config.skip.matches.length; i++) {
-							if (stringMatchesLabel(this.config.skip.matches[i], existingLabel.name)) {
-								return this.successSkip(ctx, payload.pull_request.head.sha)
-							}
-						}
-					}
-				}
-
-				return this.failure(ctx, payload.pull_request.head.sha)
+				await this.runCheck(ctx)
 			},
 		)
+	}
+
+	async runCheck(ctx: CheckContext) {
+		const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
+		if (!payload) {
+			return
+		}
+
+		if (payload.pull_request.state !== 'open') {
+			return
+		}
+
+		for (let n = 0; n < payload.pull_request.labels.length; n++) {
+			const existingLabel = payload.pull_request.labels[n]
+
+			for (let i = 0; i < this.config.labels.matches.length; i++) {
+				if (stringMatchesLabel(this.config.labels.matches[i], existingLabel.name)) {
+					return this.successEnabled(ctx, payload.pull_request.head.sha)
+				}
+			}
+		}
+
+		if (this.config.skip) {
+			for (let n = 0; n < payload.pull_request.labels.length; n++) {
+				const existingLabel = payload.pull_request.labels[n]
+
+				for (let i = 0; i < this.config.skip.matches.length; i++) {
+					if (stringMatchesLabel(this.config.skip.matches[i], existingLabel.name)) {
+						return this.successSkip(ctx, payload.pull_request.head.sha)
+					}
+				}
+			}
+		}
+
+		return this.failure(ctx, payload.pull_request.head.sha)
 	}
 
 	private successEnabled(ctx: CheckContext, sha: string) {

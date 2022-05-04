@@ -42,6 +42,9 @@ class CheckContext {
             ...status,
         };
     }
+    reset() {
+        this.result = undefined;
+    }
 }
 exports.CheckContext = CheckContext;
 //# sourceMappingURL=types.js.map
