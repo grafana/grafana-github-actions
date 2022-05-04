@@ -68,7 +68,7 @@ export class ChangelogCheck extends Check {
 	subscribe(s: CheckSubscriber) {
 		s.on(
 			['pull_request', 'pull_request_target'],
-			['labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'],
+			['edited', 'labeled', 'unlabeled', 'opened', 'reopened', 'ready_for_review', 'synchronize'],
 			async (ctx) => {
 				const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
 				if (!payload) {

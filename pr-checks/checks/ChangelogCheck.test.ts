@@ -22,6 +22,10 @@ function mockAPI() {
 const eventsAndActions = [
 	{
 		eventName: 'pull_request',
+		action: 'edited',
+	},
+	{
+		eventName: 'pull_request',
 		action: 'labeled',
 	},
 	{
@@ -43,6 +47,10 @@ const eventsAndActions = [
 	{
 		eventName: 'pull_request',
 		action: 'synchronize',
+	},
+	{
+		eventName: 'pull_request_target',
+		action: 'edited',
 	},
 	{
 		eventName: 'pull_request_target',
