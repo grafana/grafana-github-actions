@@ -1,0 +1,46 @@
+name: 'Has matching release tag'
+description: |
+    Produce a boolean output that has the value "true" if and only if there is a release tag that
+    matches the release branch.
+
+    If the provided `ref_name` is a release tag reference, the output value is "true".
+    If the provided `ref_name` is a release branch reference, the output value is "true" if
+    and only if there is a corresponding release tag as defined by the `release_tag_regexp`.
+
+    For release branches without a patch version, the capture groups for major and minor
+    versions must match between the `release_branch_without_patch_regexp` and the
+    `release_tag_regexp` and the release tag must have a `0` patch version.
+
+    For release branches with a patch version, the capture groups for major, minor, and patch
+    versions must match between the `release_branch_with_patch_regexp` and the
+    `release_tag_regexp`.
+
+inputs:
+    ref_name:
+        description: 'Branch or tag name'
+        default: '${{ github.ref_name }}'
+    release_tag_regexp:
+        description: |
+            Regexp to match release tag references.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
+            The regexp must have three capture groups, one for each of major, minor, and patch versions.
+            For example: "^v(\\d+)\\.(\\d+)\\.(\\d+)$"
+    release_branch_regexp:
+        description: |
+            Regexp to match release branches that do not include a patch version.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
+            The regexp must have two capture groups, one for each of major and minor versions.
+            For example: "^release-(\\d+)\\.(\\d+)$"
+    release_branch_with_patch_regexp:
+        description: |
+            Regexp to match release branches that include a patch version.
+            Must be an escaped string suitable for passing to new RegExp (https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/regexp).
+            The regexp must have three capture groups, one for each of major, minor, and patch versions.
+            For example: "^release-(\\d+)\\.(\\d+)\\.(\\d+)$"
+            Can be omitted if not required.
+outputs:
+    bool:
+        description: 'Boolean represented by either the string value "true" or "false".'
+runs:
+    using: 'node16'
+    main: 'index.js'

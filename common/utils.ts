@@ -121,7 +121,7 @@ ${JSON.stringify(context, null, 2)
 }
 
 export function splitStringIntoLines(content: string) {
-	return content.split(/\r?\n/)
+	return content.split(/(?:\r\n|\r|\n)/g)
 }
 
 export const getProjectIdFromUrl = (url: string) => {
