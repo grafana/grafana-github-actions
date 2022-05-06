@@ -51,7 +51,7 @@ export function hasMatchingReleaseTagWithRefNames(
 
 	let branchMatches = refName.match(releaseBranchRegexp)
 	if (branchMatches) {
-		for (var i = 0; i < releaseTags.length; i++) {
+		for (let i = 0; i < releaseTags.length; i++) {
 			let tagMatches = releaseTags[i].match(releaseTagRegexp)
 			if (
 				tagMatches &&
@@ -68,7 +68,7 @@ export function hasMatchingReleaseTagWithRefNames(
 	if (releaseBranchWithPatchRegexp) {
 		branchMatches = refName.match(releaseBranchWithPatchRegexp)
 		if (branchMatches) {
-			for (var i = 0; i < releaseTags.length; i++) {
+			for (let i = 0; i < releaseTags.length; i++) {
 				let tagMatches = releaseTags[i].match(releaseTagRegexp)
 				if (
 					tagMatches &&
