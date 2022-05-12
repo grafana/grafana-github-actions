@@ -13,12 +13,14 @@ class RepositoryDispatch extends Action_1.Action {
             throw new Error('Missing repository');
         }
         const [owner, repo] = repository.split('/');
-        await octokit.octokit.repos.createDispatchEvent({
+        console.log('creating dispatch event', owner, repo);
+        const resp = await octokit.octokit.repos.createDispatchEvent({
             owner: owner,
             repo: repo,
             event_type: (0, core_1.getInput)('event_type'),
             client_payload: JSON.parse((0, core_1.getInput)('client_payload')),
         });
+        console.log(resp.status);
     }
 }
 new RepositoryDispatch().run(); // eslint-disable-line
