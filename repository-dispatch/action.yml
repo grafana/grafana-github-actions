@@ -1,0 +1,18 @@
+name: Repository dispatch
+description: Create a repository dispatch event
+inputs:
+  token:
+    description: GitHub token with repo permissions
+    default: ${{ github.token }}
+  repository:
+    description: Full name of the repository to send the dispatch event to
+    default: ${{ github.repository }}
+  event_type:
+    description: Custom webhook event name
+    require: true
+  client_payload:
+    description: JSON payload with extra information that your action or workflow may use
+    default: '{}'
+runs:
+  using: 'node16'
+  main: 'index.js'
