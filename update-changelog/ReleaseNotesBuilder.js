@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_RUNTIME_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ReleaseNotesBuilder = exports.DEPENDENCIES_LABEL = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_RUNTIME_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
@@ -11,6 +11,7 @@ exports.GRAFANA_RUNTIME_LABEL = 'area/grafana/runtime';
 exports.BREAKING_SECTION_START = 'Release notice breaking change';
 exports.DEPRECATION_SECTION_START = 'Deprecation notice';
 exports.ENTERPRISE_LABEL = 'enterprise';
+exports.DEPENDENCIES_LABEL = 'dependencies';
 const githubGrafanaUrl = 'https://github.com/grafana/grafana';
 class ReleaseNotesBuilder {
     constructor(octokit, version) {
@@ -21,6 +22,7 @@ class ReleaseNotesBuilder {
         const lines = [];
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];
+        const dependencyUpdateIssues = [];
         const breakingChanges = [];
         const deprecationChanges = [];
         let headerLine = null;
@@ -28,6 +30,9 @@ class ReleaseNotesBuilder {
             if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
                 if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL, exports.GRAFANA_UI_LABEL, exports.GRAFANA_RUNTIME_LABEL)) {
                     pluginDeveloperIssues.push(issue);
+                }
+                else if (issueHasLabel(issue, exports.DEPENDENCIES_LABEL)) {
+                    dependencyUpdateIssues.push(issue);
                 }
                 else {
                     grafanaIssues.push(issue);
@@ -55,6 +60,7 @@ class ReleaseNotesBuilder {
             lines.push(...deprecationChanges);
         }
         lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues));
+        lines.push(...this.getDependencyUpdateNotes(dependencyUpdateIssues));
         return lines.join('\n');
     }
     async getIssuesForVersion() {
@@ -127,6 +133,22 @@ class ReleaseNotesBuilder {
             lines.push(this.getMarkdownLineForIssue(issue));
         }
         lines.push('');
+        return lines;
+    }
+    getDependencyUpdateNotes(issues) {
+        if (issues.length === 0) {
+            return [];
+        }
+        const lines = [
+            '### Dependency updates',
+            '<details>',
+            '<summary>Click to expand</summary>',
+            '',
+        ];
+        for (const issue of issues) {
+            lines.push(this.getMarkdownLineForIssue(issue));
+        }
+        lines.push('</details>');
         return lines;
     }
     getGrafanaReleaseNotes(issues) {

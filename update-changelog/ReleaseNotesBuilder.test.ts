@@ -9,6 +9,7 @@ import {
 	BUG_LABEL,
 	CHANGELOG_LABEL,
 	GRAFANA_UI_LABEL,
+	DEPENDENCIES_LABEL,
 } from './ReleaseNotesBuilder'
 
 describe('ReleaseNotesBuilder', () => {
@@ -46,6 +47,16 @@ describe('ReleaseNotesBuilder', () => {
 					},
 				},
 				labels: [CHANGELOG_LABEL],
+			},
+			{
+				issue: {
+					title: 'Dependencies: Update dependency react to v18',
+					isPullRequest: true,
+					author: {
+						name: 'torkelo',
+					},
+				},
+				labels: [CHANGELOG_LABEL, DEPENDENCIES_LABEL],
 			},
 			{
 				issue: {

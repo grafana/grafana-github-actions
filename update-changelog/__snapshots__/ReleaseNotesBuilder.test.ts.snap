@@ -37,5 +37,12 @@ Variables have been deprecated Issue [#1](https://github.com/grafana/grafana/iss
 
 - **Button:** Changed prop name for button. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
 - **Button:** Changed prop name for button. (Enterprise)
-"
+
+### Dependency updates
+<details>
+<summary>Click to expand</summary>
+
+- **Dependencies:** Update dependency react to v18. [#1](https://github.com/grafana/grafana/pull/1), [@torkelo](https://github.com/torkelo)
+- **Dependencies:** Update dependency react to v18. (Enterprise)
+</details>"
 `;

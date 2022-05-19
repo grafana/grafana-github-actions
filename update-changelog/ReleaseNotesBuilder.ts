@@ -10,6 +10,7 @@ export const GRAFANA_RUNTIME_LABEL = 'area/grafana/runtime'
 export const BREAKING_SECTION_START = 'Release notice breaking change'
 export const DEPRECATION_SECTION_START = 'Deprecation notice'
 export const ENTERPRISE_LABEL = 'enterprise'
+export const DEPENDENCIES_LABEL = 'dependencies'
 
 const githubGrafanaUrl = 'https://github.com/grafana/grafana'
 
@@ -28,6 +29,7 @@ export class ReleaseNotesBuilder {
 		const lines: string[] = []
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []
+		const dependencyUpdateIssues: Issue[] = []
 		const breakingChanges: string[] = []
 		const deprecationChanges: string[] = []
 		let headerLine: string | null = null
@@ -36,6 +38,8 @@ export class ReleaseNotesBuilder {
 			if (issueHasLabel(issue, CHANGELOG_LABEL)) {
 				if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL, GRAFANA_UI_LABEL, GRAFANA_RUNTIME_LABEL)) {
 					pluginDeveloperIssues.push(issue)
+				} else if (issueHasLabel(issue, DEPENDENCIES_LABEL)) {
+					dependencyUpdateIssues.push(issue)
 				} else {
 					grafanaIssues.push(issue)
 				}
@@ -69,6 +73,8 @@ export class ReleaseNotesBuilder {
 		}
 
 		lines.push(...this.getPluginDevelopmentNotes(pluginDeveloperIssues))
+
+		lines.push(...this.getDependencyUpdateNotes(dependencyUpdateIssues))
 
 		return lines.join('\n')
 	}
@@ -159,6 +165,25 @@ export class ReleaseNotesBuilder {
 		}
 
 		lines.push('')
+		return lines
+	}
+
+	private getDependencyUpdateNotes(issues: Issue[]): string[] {
+		if (issues.length === 0) {
+			return []
+		}
+
+		const lines: string[] = [
+			'### Dependency updates',
+			'<details>',
+			'<summary>Click to expand</summary>',
+			'',
+		]
+		for (const issue of issues) {
+			lines.push(this.getMarkdownLineForIssue(issue))
+		}
+
+		lines.push('</details>')
 		return lines
 	}
 
