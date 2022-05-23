@@ -59,23 +59,6 @@ This will check if a milestone is set on a pull request or not. All properties b
 }
 ```
 
-### Backport Check
-
-This check will enforce that an active decision of backporting needs to be taken for every pull request. All properties below except `type` is optional.
-
-**Syntax**:
-```json
-{
-  "type": "check-backport",
-  "title": "Backport Check",
-  "backportEnabled": "Backport enabled",
-  "backportSkipped": "Backport skipped",
-  "failure": "Backport decision needed",
-  "targetUrl": "https://github.com/grafana/grafana/blob/main/contribute/merge-pull-request.md#should-the-pull-request-be-backported",
-  "skipLabels": [ "backport", "no-backport"]
-}
-```
-
 ### Label Check
 
 This will check if `labels.matches` matches any labels on a pull request.

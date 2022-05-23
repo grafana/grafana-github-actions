@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getChecks = void 0;
-const BackportCheck_1 = require("./BackportCheck");
 const ChangelogCheck_1 = require("./ChangelogCheck");
 const LabelCheck_1 = require("./LabelCheck");
 const MilestoneCheck_1 = require("./MilestoneCheck");
@@ -12,9 +11,6 @@ function getChecks(config) {
         switch (checkConfig.type) {
             case 'check-milestone':
                 checks.push(new MilestoneCheck_1.MilestoneCheck(checkConfig));
-                break;
-            case 'check-backport':
-                checks.push(new BackportCheck_1.BackportCheck(checkConfig));
                 break;
             case 'check-label':
                 checks.push(new LabelCheck_1.LabelCheck(checkConfig));
