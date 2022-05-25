@@ -12,7 +12,7 @@ class RepositoryDispatch extends Action {
 			throw new Error('Missing repository')
 		}
 
-        const api = new OctoKit(this.getToken(), context.repo)
+		const api = new OctoKit(this.getToken(), context.repo)
 
 		const [owner, repo] = repository.split('/')
 

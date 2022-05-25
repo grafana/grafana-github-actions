@@ -6,138 +6,38 @@ import { Dispatcher } from '../Dispatcher'
 import { CheckState } from '../types'
 import { MilestoneCheck } from './MilestoneCheck'
 
+const prEvents = ['pull_request', 'pull_request_target']
+const prActions = ['opened', 'reopened', 'ready_for_review', 'synchronize', 'labeled', 'unlabeled']
+
+const prTestCases = prEvents
+	.flatMap((event) => {
+		return prActions.map((action) => ({
+			eventName: event,
+			action: action,
+		}))
+	})
+	.flatMap((tc) => [
+		{
+			testCaseName: 'without milestone set',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Failure,
+			description: 'Failed',
+			pull_request_payload: {},
+		},
+		{
+			testCaseName: 'with milestone set',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Success,
+			description: 'Milestone set',
+			pull_request_payload: { milestone: {} },
+		},
+	])
+
 describe('MilestoneCheck', () => {
 	describe('Pull Requests', () => {
-		test.each([
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request',
-				action: 'opened',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request',
-				action: 'reopened',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request',
-				action: 'synchronize',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request',
-				action: 'ready_for_review',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request_target',
-				action: 'opened',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request_target',
-				action: 'reopened',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request_target',
-				action: 'ready_for_review',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'without milestone set',
-				eventName: 'pull_request_target',
-				action: 'synchronize',
-				checkState: CheckState.Failure,
-				description: 'Failed',
-				pull_request_payload: {},
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request',
-				action: 'opened',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request',
-				action: 'reopened',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request',
-				action: 'ready_for_review',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request',
-				action: 'synchronize',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request_target',
-				action: 'opened',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request_target',
-				action: 'reopened',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request_target',
-				action: 'ready_for_review',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-			{
-				testCaseName: 'with milestone set',
-				eventName: 'pull_request_target',
-				action: 'synchronize',
-				checkState: CheckState.Success,
-				description: 'Milestone set',
-				pull_request_payload: { milestone: {} },
-			},
-		])(
+		test.each(prTestCases)(
 			'$eventName - $action - $testCaseName - Should create status $checkState',
 			async ({ eventName, action, checkState, description, pull_request_payload }) => {
 				const createStatusMock = jest.fn()
