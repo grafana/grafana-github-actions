@@ -4,7 +4,7 @@ import { OctoKit } from '../api/octokit'
 import { getInput } from '@actions/core'
 
 class RepositoryDispatch extends Action {
-	public id = 'RepositoryDispatch'
+	id = 'RepositoryDispatch'
 
 	constructor() {
 		const token = getInput('token')
