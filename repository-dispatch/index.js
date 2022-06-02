@@ -6,7 +6,11 @@ const octokit_1 = require("../api/octokit");
 const core_1 = require("@actions/core");
 class RepositoryDispatch extends Action_1.Action {
     constructor() {
-        super(...arguments);
+        const token = (0, core_1.getInput)('token');
+        if (!token && (0, core_1.getInput)('event_type') === 'oss-pull-request') {
+            console.log("Token is empty, can't dispatch event. This is expected for PRs coming from forks, please check that the changes are compatible with Enterprise before merging this PR.");
+        }
+        super();
         this.id = 'RepositoryDispatch';
     }
     async runAction() {

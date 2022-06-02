@@ -4,7 +4,18 @@ import { OctoKit } from '../api/octokit'
 import { getInput } from '@actions/core'
 
 class RepositoryDispatch extends Action {
-	id = 'RepositoryDispatch'
+	public id = 'RepositoryDispatch'
+
+	constructor() {
+		const token = getInput('token')
+		if (!token && getInput('event_type') === 'oss-pull-request') {
+			console.log(
+				"Token is empty, can't dispatch event. This is expected for PRs coming from forks, please check that the changes are compatible with Enterprise before merging this PR.",
+			)
+		}
+
+		super()
+	}
 
 	async runAction(): Promise<void> {
 		const repository = getInput('repository')
@@ -12,7 +23,7 @@ class RepositoryDispatch extends Action {
 			throw new Error('Missing repository')
 		}
 
-        const api = new OctoKit(this.getToken(), context.repo)
+		const api = new OctoKit(this.getToken(), context.repo)
 
 		const [owner, repo] = repository.split('/')
 
