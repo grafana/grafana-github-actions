@@ -7,7 +7,8 @@ const core_1 = require("@actions/core");
 class RepositoryDispatch extends Action_1.Action {
     constructor() {
         const token = (0, core_1.getInput)('token');
-        if (!token && (0, core_1.getInput)('event_type') === 'oss-pull-request') {
+        const eventType = (0, core_1.getInput)('event_type');
+        if (!token && eventType === 'oss-pull-request') {
             console.log("Token is empty, can't dispatch event. This is expected for PRs coming from forks, please check that the changes are compatible with Enterprise before merging this PR.");
         }
         super();
