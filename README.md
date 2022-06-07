@@ -8,7 +8,7 @@ Based on work from: https://github.com/microsoft/vscode-github-triage-actions
 Type: `label`
 
 - `action`: defines what action to perform (`close` or `addToProject`)
-- `name`: defines which label to match on
+- `name`: defines which label to match on (or specify `*` to match all labels)
 - `addToProject` - an object that is required when the `action` is `addToProject` and is optional otherwise.
 - `addToProject.url`: Absolute url of the project, the project `id` will be parsed.
 - `addToProject.column`: Column name to add the issues to, required for old type of projects

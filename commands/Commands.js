@@ -63,7 +63,8 @@ class Commands {
             }
         }
         if ('label' in this.action) {
-            return command.type === 'label' && this.action.label === command.name;
+            return ((command.type === 'label' && this.action.label === command.name) ||
+                (command.type === 'label' && command.name === '*'));
         }
         return false;
     }
