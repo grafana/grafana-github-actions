@@ -16,6 +16,7 @@ class Commands {
         this.action = action;
     }
     async matches(command, issue, changedFiles) {
+        console.debug('starting matching logic on command', command);
         if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
             return false;
         }

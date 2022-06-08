@@ -32,6 +32,9 @@ export class Commands {
 	) {}
 
 	private async matches(command: Command, issue: Issue, changedFiles: string[]): Promise<boolean> {
+
+		console.debug('starting matching logic on command', command)
+
 		if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
 			return false
 		}
