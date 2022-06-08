@@ -202,12 +202,10 @@ export class Commands {
 			command.action === 'removeFromProject' &&
 			command.removeFromProject &&
 			command.removeFromProject.url &&
-			(
-				('label' in this.action &&
+			(('label' in this.action &&
 				this.action.label === command.name &&
-				!issue.labels.includes(command.name))
-				|| command.type === 'allissuestoproject'
-			)
+				!issue.labels.includes(command.name)) ||
+				command.type === 'allissuestoproject')
 		) {
 			const projectId = getProjectIdFromUrl(command.removeFromProject.url)
 			if (projectId) {
