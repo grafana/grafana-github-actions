@@ -16,7 +16,6 @@ class Commands {
         this.action = action;
     }
     async matches(command, issue, changedFiles) {
-        console.debug('starting matching logic on command', command);
         if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
             return false;
         }
@@ -136,6 +135,7 @@ class Commands {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.addToProject.url);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue, command.addToProject.org, command.addToProject.column));
+                console.debug('Added issue to project', projectId, issue, command.addToProject.org, command.addToProject.column);
             }
             else {
                 console.debug('Could not parse project id from the provided URL', command.addToProject.url);

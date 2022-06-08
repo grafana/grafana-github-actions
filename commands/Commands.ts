@@ -32,9 +32,6 @@ export class Commands {
 	) {}
 
 	private async matches(command: Command, issue: Issue, changedFiles: string[]): Promise<boolean> {
-
-		console.debug('starting matching logic on command', command)
-
 		if (command.requireLabel && !issue.labels.includes(command.requireLabel)) {
 			return false
 		}
@@ -196,6 +193,10 @@ export class Commands {
 						command.addToProject.column,
 					),
 				)
+				console.debug('Added issue to project', projectId,
+				issue,
+				command.addToProject.org,
+				command.addToProject.column)
 			} else {
 				console.debug('Could not parse project id from the provided URL', command.addToProject.url)
 			}
