@@ -8,7 +8,7 @@ Based on work from: https://github.com/microsoft/vscode-github-triage-actions
 Type: `label`
 
 - `action`: defines what action to perform (`close` or `addToProject`)
-- `name`: defines which label to match on (or specify `*` to match all labels)
+- `name`: defines which label to match on
 - `addToProject` - an object that is required when the `action` is `addToProject` and is optional otherwise.
 - `addToProject.url`: Absolute url of the project, the project `id` will be parsed.
 - `addToProject.column`: Column name to add the issues to, required for old type of projects
@@ -124,5 +124,32 @@ If the PR title is valid it will continue to validate the PR body. If you use `b
     ]
   },
   "targetUrl": "https://github.com/grafana/grafana/blob/main/contribute/merge-pull-request.md#include-in-changelog-and-release-notes"
+}
+```
+
+### All issues to project
+
+Type: `allissuestoproject`
+
+Used to add all created issues to a project.
+
+- `action`: defines what action to perform (`close` or `addToProject`)
+- `addToProject` - an object that is required when the `action` is `addToProject` and is optional otherwise.
+- `addToProject.url`: Absolute url of the project, the project `id` will be parsed.
+- `addToProject.column`: Column name to add the issues to, required for old type of projects
+- `removeFromProject` - an object that is required when the `action` is `removeFromProject` and is optional otherwise.
+- `removeFromProject.url`: Absolute url of the project, the project `id` will be parsed.
+
+Note: When removed, the issue will irreversibly loose the project-specific metadata assigned to it. removeFromProject doesn't current work for old type of projects.
+
+**Syntax**:
+```json
+{
+  "type": "allissuestoproject",
+  "action": "addToProject",
+  "addToProject": {
+    "url": "https://github.com/orgs/grafana/projects/76",
+    "column": "To Do"
+  }
 }
 ```

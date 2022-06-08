@@ -63,8 +63,10 @@ class Commands {
             }
         }
         if ('label' in this.action) {
-            return ((command.type === 'label' && this.action.label === command.name) ||
-                (command.type === 'label' && command.name === '*'));
+            return command.type === 'label' && this.action.label === command.name;
+        }
+        if (command.type === 'allissuestoproject') {
+            return true;
         }
         return false;
     }
@@ -129,7 +131,7 @@ class Commands {
         if (command.action === 'addToProject' &&
             command.addToProject &&
             command.addToProject.url &&
-            issue.labels.includes(command.name)) {
+            (issue.labels.includes(command.name) || command.type === 'allissuestoproject')) {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.addToProject.url);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue, command.addToProject.org, command.addToProject.column));
@@ -141,9 +143,10 @@ class Commands {
         if (command.action === 'removeFromProject' &&
             command.removeFromProject &&
             command.removeFromProject.url &&
-            'label' in this.action &&
-            this.action.label === command.name &&
-            !issue.labels.includes(command.name)) {
+            (('label' in this.action &&
+                this.action.label === command.name &&
+                !issue.labels.includes(command.name)) ||
+                command.type === 'allissuestoproject')) {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.removeFromProject.url);
             if (projectId) {
                 tasks.push(this.github.removeIssueFromProject(projectId, issue, command.removeFromProject.org));
