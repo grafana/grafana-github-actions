@@ -22,6 +22,9 @@ class Commands {
         if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
             return false;
         }
+        if (command.type === 'allissuestoproject') {
+            return true;
+        }
         if ('comment' in this.action) {
             return (command.type === 'comment' &&
                 !!this.action.comment.match(new RegExp(`(/|\\\\)${escapeRegExp(command.name)}(\\s|$)`, 'i')) &&
@@ -64,9 +67,6 @@ class Commands {
         }
         if ('label' in this.action) {
             return command.type === 'label' && this.action.label === command.name;
-        }
-        if (command.type === 'allissuestoproject') {
-            return true;
         }
         return false;
     }

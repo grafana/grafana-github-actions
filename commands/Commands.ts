@@ -39,6 +39,10 @@ export class Commands {
 			return false
 		}
 
+		if (command.type === 'allissuestoproject') {
+			return true
+		}
+
 		if ('comment' in this.action) {
 			return (
 				command.type === 'comment' &&
@@ -90,10 +94,6 @@ export class Commands {
 
 		if ('label' in this.action) {
 			return command.type === 'label' && this.action.label === command.name
-		}
-
-		if (command.type === 'allissuestoproject') {
-			return true
 		}
 
 		return false
