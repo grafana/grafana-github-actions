@@ -193,10 +193,13 @@ export class Commands {
 						command.addToProject.column,
 					),
 				)
-				console.debug('Added issue to project', projectId,
-				issue,
-				command.addToProject.org,
-				command.addToProject.column)
+				console.debug(
+					'Added issue to project',
+					projectId,
+					issue,
+					command.addToProject.org,
+					command.addToProject.column,
+				)
 			} else {
 				console.debug('Could not parse project id from the provided URL', command.addToProject.url)
 			}
