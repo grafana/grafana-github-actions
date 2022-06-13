@@ -2,6 +2,7 @@ import { Action } from '../common/Action'
 import { Octokit } from '@octokit/rest'
 import { OctoKit } from '../api/octokit'
 import { getInput } from '@actions/core'
+import { RequestError } from '@octokit/request-error'
 
 class EnterpriseCheck extends Action {
 	id = 'EnterpriseCheck'
@@ -29,23 +30,7 @@ class EnterpriseCheck extends Action {
 				}
 			}
 
-			const res = await octokit.octokit.git.createRef({
-				owner: 'grafana',
-				repo: 'grafana-enterprise',
-				ref: `refs/heads/pr-check-${prNumber}/${sourceBranch}`,
-				sha: branch.commit.sha,
-			})
-			
-			// Branch already exists - need to update the branch to trigger a new build
-			if (res.status === 422) {
-				await octokit.octokit.git.updateRef({
-					owner: 'grafana',
-					repo: 'grafana-enterprise',
-					ref: `refs/heads/pr-check-${prNumber}/${sourceBranch}`,
-					sha: branch.commit.sha,
-					force: true,
-				})
-			}
+			await createOrUpdateRef(octokit, `refs/heads/pr-check-${prNumber}/${sourceBranch}`, branch.commit.sha)
 		}
 	}
 }
@@ -65,6 +50,29 @@ async function getBranch(octokit: OctoKit, branch: string): Promise<Octokit.Repo
 	}
 
 	return null
+}
+
+async function createOrUpdateRef(octokit: OctoKit, ref: string, sha: string) {
+	try {
+		await octokit.octokit.git.createRef({
+			owner: 'grafana',
+			repo: 'grafana-enterprise',
+			ref: ref,
+			sha: sha,
+		})
+	} catch (err) {
+		if (err instanceof RequestError && err.message === 'Reference already exists') {
+			await octokit.octokit.git.updateRef({
+				owner: 'grafana',
+				repo: 'grafana-enterprise',
+				ref: ref,
+				sha: sha,
+				force: true,
+			})
+		} else {
+			throw err
+		}
+	}
 }
 
 new EnterpriseCheck().run() // eslint-disable-line
