@@ -26,12 +26,22 @@ class EnterpriseCheck extends Action_1.Action {
                     throw new Error('error retrieving main branch');
                 }
             }
-            await octokit.octokit.git.createRef({
+            const res = await octokit.octokit.git.createRef({
                 owner: 'grafana',
                 repo: 'grafana-enterprise',
                 ref: `refs/heads/pr-check-${prNumber}/${sourceBranch}`,
                 sha: branch.commit.sha,
             });
+            // Branch already exists - need to update the branch to trigger a new build
+            if (res.status === 422) {
+                await octokit.octokit.git.updateRef({
+                    owner: 'grafana',
+                    repo: 'grafana-enterprise',
+                    ref: `refs/heads/pr-check-${prNumber}/${sourceBranch}`,
+                    sha: branch.commit.sha,
+                    force: true,
+                });
+            }
         }
     }
 }
