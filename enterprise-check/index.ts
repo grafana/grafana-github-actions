@@ -30,7 +30,11 @@ class EnterpriseCheck extends Action {
 				}
 			}
 
-			await createOrUpdateRef(octokit, `refs/heads/pr-check-${prNumber}/${sourceBranch}`, branch.commit.sha)
+			await createOrUpdateRef(
+				octokit,
+				`refs/heads/pr-check-${prNumber}/${sourceBranch}`,
+				branch.commit.sha,
+			)
 		}
 	}
 }
