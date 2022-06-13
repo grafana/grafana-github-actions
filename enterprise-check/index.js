@@ -27,7 +27,7 @@ class EnterpriseCheck extends Action_1.Action {
                     throw new Error('error retrieving main branch');
                 }
             }
-            await createOrUpdateRef(octokit, `refs/heads/pr-check-${prNumber}/${sourceBranch}`, branch.commit.sha);
+            await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha);
         }
     }
 }
@@ -46,12 +46,12 @@ async function getBranch(octokit, branch) {
     }
     return null;
 }
-async function createOrUpdateRef(octokit, ref, sha) {
+async function createOrUpdateRef(octokit, prNumber, branch, sha) {
     try {
         await octokit.octokit.git.createRef({
             owner: 'grafana',
             repo: 'grafana-enterprise',
-            ref: ref,
+            ref: `refs/heads/pr-check-${prNumber}/${branch}`,
             sha: sha,
         });
     }
@@ -60,7 +60,7 @@ async function createOrUpdateRef(octokit, ref, sha) {
             await octokit.octokit.git.updateRef({
                 owner: 'grafana',
                 repo: 'grafana-enterprise',
-                ref: ref,
+                ref: `heads/pr-check-${prNumber}/${branch}`,
                 sha: sha,
                 force: true,
             });
