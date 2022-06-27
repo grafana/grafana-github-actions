@@ -1,12 +1,14 @@
 // Based on code from https://github.com/tibdex/backport/blob/master/src/backport.ts
 
 import { error as logError, group, info } from '@actions/core'
-import { exec } from '@actions/exec'
+import { exec, getExecOutput } from '@actions/exec'
 import { GitHub } from '@actions/github'
+import { merge } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
 
+const BETTERER_RESULTS_PATH = '.betterer.results'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 
 const getLabelNames = ({
@@ -82,13 +84,36 @@ const backportOnce = async ({
 		await exec('git', args, { cwd: repo })
 	}
 
+	const isBettererConflict = async () => {
+		const { stdout } = await getExecOutput('git', ['diff', '--name-only', '--diff-filter=U'], {
+			cwd: repo,
+		})
+		return stdout.trim() === BETTERER_RESULTS_PATH
+	}
+
+	const fixBettererConflict = async () => {
+		await merge()
+		await git('add', BETTERER_RESULTS_PATH)
+		// Setting -c core.editor=true will prevent the commit message editor from opening
+		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
+	}
+
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
 		await git('cherry-pick', '-x', commitToBackport)
 	} catch (error) {
-		await git('cherry-pick', '--abort')
-		throw error
+		if (await isBettererConflict()) {
+			try {
+				await fixBettererConflict()
+			} catch (error) {
+				await git('cherry-pick', '--abort')
+				throw error
+			}
+		} else {
+			await git('cherry-pick', '--abort')
+			throw error
+		}
 	}
 
 	await git('push', '--set-upstream', 'origin', head)
