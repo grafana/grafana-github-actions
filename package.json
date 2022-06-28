@@ -24,6 +24,7 @@
 		"@actions/core": "^1.6.0",
 		"@actions/exec": "^1.1.0",
 		"@actions/github": "^2.1.1",
+		"@betterer/betterer": "^5.3.6",
 		"@octokit/graphql": "^4.8.0",
 		"@octokit/request-error": "^2.1.0",
 		"@octokit/webhooks": "^7.12.2",
