@@ -92,7 +92,7 @@ const backportOnce = async ({
 	}
 
 	const fixBettererConflict = async () => {
-		await betterer({ update: true })
+		await betterer({ update: true, configPaths: ['./.betterer.ts'] })
 		await git('add', BETTERER_RESULTS_PATH)
 		// Setting -c core.editor=true will prevent the commit message editor from opening
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
