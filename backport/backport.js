@@ -7,7 +7,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.backport = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
-const betterer_1 = require("@betterer/betterer");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
@@ -44,7 +43,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         return stdout.trim() === BETTERER_RESULTS_PATH;
     };
     const fixBettererConflict = async () => {
-        await (0, betterer_1.betterer)({ update: true, configPaths: ['./.betterer.ts'] });
+        await (0, exec_1.exec)('yarn', ['betterer', '-u'], { cwd: repo });
         await git('add', BETTERER_RESULTS_PATH);
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
