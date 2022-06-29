@@ -59,7 +59,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/code-frame@npm:^7.10.3, @babel/code-frame@npm:^7.12.13, @babel/code-frame@npm:^7.16.7":
+"@babel/code-frame@npm:^7.10.3":
+  version: 7.18.6
+  resolution: "@babel/code-frame@npm:7.18.6"
+  dependencies:
+    "@babel/highlight": ^7.18.6
+  checksum: 195e2be3172d7684bf95cff69ae3b7a15a9841ea9d27d3c843662d50cdd7d6470fd9c8e64be84d031117e4a4083486effba39f9aef6bbb2c89f7f21bcfba33ba
+  languageName: node
+  linkType: hard
+
+"@babel/code-frame@npm:^7.12.13, @babel/code-frame@npm:^7.16.7":
   version: 7.16.7
   resolution: "@babel/code-frame@npm:7.16.7"
   dependencies:
@@ -389,6 +398,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/helper-validator-identifier@npm:^7.18.6":
+  version: 7.18.6
+  resolution: "@babel/helper-validator-identifier@npm:7.18.6"
+  checksum: e295254d616bbe26e48c196a198476ab4d42a73b90478c9842536cf910ead887f5af6b5c4df544d3052a25ccb3614866fa808dc1e3a5a4291acd444e243c0648
+  languageName: node
+  linkType: hard
+
 "@babel/helper-validator-option@npm:^7.14.5":
   version: 7.14.5
   resolution: "@babel/helper-validator-option@npm:7.14.5"
@@ -444,6 +460,17 @@ __metadata:
     chalk: ^2.0.0
     js-tokens: ^4.0.0
   checksum: f7e04e7e03b83c2cca984f4d3e180c9b018784f45d03367e94daf983861229ddc47264045f3b58dfeb0007f9c67bc2a76c4de1693bad90e5394876ef55ece5bb
+  languageName: node
+  linkType: hard
+
+"@babel/highlight@npm:^7.18.6":
+  version: 7.18.6
+  resolution: "@babel/highlight@npm:7.18.6"
+  dependencies:
+    "@babel/helper-validator-identifier": ^7.18.6
+    chalk: ^2.0.0
+    js-tokens: ^4.0.0
+  checksum: 92d8ee61549de5ff5120e945e774728e5ccd57fd3b2ed6eace020ec744823d4a98e242be1453d21764a30a14769ecd62170fba28539b211799bbaf232bbb2789
   languageName: node
   linkType: hard
 
@@ -716,6 +743,29 @@ __metadata:
     typescript:
       optional: true
   checksum: 95a81c99d37941cef5b45163619e4280de07d418a981785fd115e870b1147570bf99144d8624b836625dcaf9bc672889a28a08028e036fb85c75cfce0798c215
+  languageName: node
+  linkType: hard
+
+"@betterer/cli@npm:^5.3.6":
+  version: 5.3.6
+  resolution: "@betterer/cli@npm:5.3.6"
+  dependencies:
+    "@betterer/betterer": ^5.3.6
+    "@betterer/errors": ^5.3.0
+    "@betterer/render": ^5.3.4
+    "@betterer/tasks": ^5.3.6
+    "@phenomnomnominal/tsquery": ^4.1.1
+    "@phenomnomnominal/tstemplate": ^0.1.0
+    "@phenomnomnominal/worker-require": ^0.0.34
+    chalk: ^4.1.2
+    commander: ^8.3.0
+    find-up: ^5.0.0
+    jest-diff: ^27.1.0
+    prettier: ^2.3.2
+    tslib: ^2.3.1
+  bin:
+    betterer: bin/betterer
+  checksum: 343a6d46846e9f3117fa0d173f6f2727e833c3508595beefdf1934359e2f338b020f5f91d107e51444ba7d0c2d7b928ac088f2630e69d835cdfea8ce960fa118
   languageName: node
   linkType: hard
 
@@ -1304,6 +1354,24 @@ __metadata:
     esquery: ^1.3.1
     tslib: ^2.0.3
   checksum: af8edc142f7004d604b12964fd72ae27469ae223f6166175fd1177d7909ed67a582b41b2b3e0d83662127d32b37ae1c3a514d7dd810c5f1ced0a964f9c261cae
+  languageName: node
+  linkType: hard
+
+"@phenomnomnominal/tsquery@npm:^4.1.1":
+  version: 4.2.0
+  resolution: "@phenomnomnominal/tsquery@npm:4.2.0"
+  dependencies:
+    esquery: ^1.0.1
+  peerDependencies:
+    typescript: ^3 || ^4
+  checksum: c55cdd8c5041a71c873a5f90cc7d14ce869558599dcd7b8f7a8d8517f2a06a6ca59c5a687709fa8ba4aaf396d33fda1870dd1d3e76f831e736f8ff31b8877654
+  languageName: node
+  linkType: hard
+
+"@phenomnomnominal/tstemplate@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@phenomnomnominal/tstemplate@npm:0.1.0"
+  checksum: ee8bac21d8a8b745bca971f6266209d1c9607d9c4f3c4a2d6ad64dcd223323ebe2bd09603481fee528334626048251213d2c31ffef4992c85b4f1cdc771da57e
   languageName: node
   linkType: hard
 
@@ -2387,6 +2455,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^8.3.0":
+  version: 8.3.0
+  resolution: "commander@npm:8.3.0"
+  checksum: 0f82321821fc27b83bd409510bb9deeebcfa799ff0bf5d102128b500b7af22872c0c92cb6a0ebc5a4cf19c6b550fba9cedfa7329d18c6442a625f851377bacf0
+  languageName: node
+  linkType: hard
+
 "compare-versions@npm:^3.6.0":
   version: 3.6.0
   resolution: "compare-versions@npm:3.6.0"
@@ -2934,7 +3009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esquery@npm:^1.3.1, esquery@npm:^1.4.0":
+"esquery@npm:^1.0.1, esquery@npm:^1.3.1, esquery@npm:^1.4.0":
   version: 1.4.0
   resolution: "esquery@npm:1.4.0"
   dependencies:
@@ -3838,7 +3913,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-diff@npm:^27.0.6":
+"jest-diff@npm:^27.0.6, jest-diff@npm:^27.1.0":
   version: 27.5.1
   resolution: "jest-diff@npm:27.5.1"
   dependencies:
@@ -6108,7 +6183,7 @@ __metadata:
     "@actions/core": ^1.6.0
     "@actions/exec": ^1.1.0
     "@actions/github": ^2.1.1
-    "@betterer/betterer": ^5.3.6
+    "@betterer/cli": ^5.3.6
     "@octokit/graphql": ^4.8.0
     "@octokit/request-error": ^2.1.0
     "@octokit/webhooks": ^7.12.2
