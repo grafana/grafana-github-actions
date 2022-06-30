@@ -3,7 +3,7 @@
 import { error as logError, group, info } from '@actions/core'
 import { exec, getExecOutput } from '@actions/exec'
 import { GitHub } from '@actions/github'
-import { betterer } from '@betterer/betterer'
+import { merge } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
@@ -92,7 +92,7 @@ const backportOnce = async ({
 	}
 
 	const fixBettererConflict = async () => {
-		await betterer({ update: true, cwd: repo })
+		await merge()
 		await git('add', BETTERER_RESULTS_PATH)
 		// Setting -c core.editor=true will prevent the commit message editor from opening
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
