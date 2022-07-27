@@ -44,9 +44,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         return stdout.trim() === BETTERER_RESULTS_PATH;
     };
     const fixBettererConflict = async () => {
-        await (0, betterer_1.merge)({
-            cwd: repo,
-        });
+        await (0, betterer_1.betterer)({ update: true, cwd: repo });
         await git('add', BETTERER_RESULTS_PATH);
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
