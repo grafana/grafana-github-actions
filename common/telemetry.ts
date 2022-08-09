@@ -71,7 +71,7 @@ if (apiKey) {
 
 function getMetricsNamePrefix() {
 	if (!context || context.repo.repo === 'grafana') {
-		// this is for grafana repo, did not make this multi repo at the start and do not want to loose past metrics
+		// this is for grafana repo, did not make this multi repo at the start and do not want to lose past metrics
 		return 'gh_action'
 	}
 	return `repo_stats.${context.repo.repo}`
