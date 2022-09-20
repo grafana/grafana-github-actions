@@ -7,7 +7,7 @@ exports.writeDocsFiles = void 0;
 const fs_1 = __importDefault(require("fs"));
 const semver_1 = require("semver");
 async function writeDocsFiles({ version, builder }) {
-    const notes = await builder.buildReleaseNotes({ useDocsHeader: true });
+    const notes = await builder.buildChangelog({ useDocsHeader: true });
     const title = builder.getTitle();
     const content = `+++
 title = "${title}"

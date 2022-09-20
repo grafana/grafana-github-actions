@@ -8,7 +8,7 @@ const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const FileUpdater_1 = require("./FileUpdater");
-const ReleaseNotesBuilder_1 = require("./ReleaseNotesBuilder");
+const ChangelogBuilder_1 = require("./ChangelogBuilder");
 const writeDocsFiles_1 = require("./writeDocsFiles");
 class UpdateChangelog extends Action_1.Action {
     constructor() {
@@ -22,16 +22,16 @@ class UpdateChangelog extends Action_1.Action {
         await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
-        const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
+        const builder = new ChangelogBuilder_1.ChangelogBuilder(octokit, version);
         const changelogFile = './CHANGELOG.md';
-        const branchName = 'update-changelog-and-release-notes';
-        const releaseNotes = await builder.buildReleaseNotes({ useDocsHeader: false });
-        const title = `ReleaseNotes: Updated changelog and release notes for ${version}`;
+        const branchName = 'update-changelog';
+        const changelog = await builder.buildChangelog({ useDocsHeader: false });
+        const title = `Changelog: Updated changelog for ${version}`;
         // Update main changelog
         fileUpdater.loadFile(changelogFile);
         fileUpdater.update({
             version: version,
-            content: releaseNotes,
+            content: changelog,
         });
         fileUpdater.writeFile(changelogFile);
         await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
