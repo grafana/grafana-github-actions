@@ -3,15 +3,15 @@ import { Query } from '../api/api'
 import { OctoKit } from '../api/octokit'
 import { Testbed, TestbedIssueConstructorArgs } from '../api/testbed'
 import {
-	ReleaseNotesBuilder,
+	ChangelogBuilder,
 	BREAKING_SECTION_START,
 	DEPRECATION_SECTION_START,
 	BUG_LABEL,
 	CHANGELOG_LABEL,
 	GRAFANA_UI_LABEL,
-} from './ReleaseNotesBuilder'
+} from './ChangelogBuilder'
 
-describe('ReleaseNotesBuilder', () => {
+describe('ChangelogBuilder', () => {
 	it('Should build correct release notes', async () => {
 		const issues: TestbedIssueConstructorArgs[] = [
 			{
@@ -100,8 +100,8 @@ Variables have been deprecated`,
 			milestone: { closed_at: '2020-11-11T17:15:26Z', number: 123, title: '7.3.3' },
 		})
 
-		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
-		const text = await builder.buildReleaseNotes({ useDocsHeader: false })
+		const builder = new ChangelogBuilder(testbed, '7.3.3')
+		const text = await builder.buildChangelog({ useDocsHeader: false })
 		expect(text).toMatchSnapshot('v1')
 	})
 
@@ -124,10 +124,10 @@ Variables have been deprecated`,
 			milestone: { closed_at: '2020-11-11T17:15:26Z' },
 		})
 
-		const builder = new ReleaseNotesBuilder(testbed, '7.3.3')
+		const builder = new ChangelogBuilder(testbed, '7.3.3')
 		// Calling this first as this is how  it's used from the action
-		await builder.buildReleaseNotes({ useDocsHeader: false })
-		const text = await builder.buildReleaseNotes({ useDocsHeader: true })
+		await builder.buildChangelog({ useDocsHeader: false })
+		const text = await builder.buildChangelog({ useDocsHeader: true })
 		expect(text).toMatchInlineSnapshot(`
 		"# Release notes for Grafana 7.3.3
 
@@ -149,8 +149,8 @@ Variables have been deprecated`,
 		const owner = process.env.OWNER
 
 		const octokit = new OctoKit(token, { repo, owner })
-		const builder = new ReleaseNotesBuilder(octokit, '1.0.0')
-		const text = await builder.buildReleaseNotes({})
+		const builder = new ChangelogBuilder(octokit, '1.0.0')
+		const text = await builder.buildChangelog({})
 		console.log(text)
 		expect(text).toEqual('asd')
 	})

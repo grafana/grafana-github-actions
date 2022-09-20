@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import mock from 'mock-fs'
 import path from 'path'
-import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
+import { ChangelogBuilder } from './ChangelogBuilder'
 import { writeDocsFiles } from './writeDocsFiles'
 
 describe('writeDocsFiles', () => {
@@ -23,15 +23,15 @@ describe('writeDocsFiles', () => {
 		const version = '8.3.3'
 		const file = './docs/sources/release-notes/release-notes-8-3-3.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).not.toContain('Empty file')
 		expect(result).toContain('Release notes')
@@ -53,15 +53,15 @@ describe('writeDocsFiles', () => {
 		const version = '8.3.3'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).toContain('- [Release notes for 8.3.3]({{< relref "release-notes-8-3-3" >}})')
 	})
@@ -81,15 +81,15 @@ describe('writeDocsFiles', () => {
 		const version = '8.3.2'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		const stringToMatch = new RegExp(`Release notes for ${version}`, 'g')
 		const matches = (result.match(stringToMatch) || []).length
@@ -111,15 +111,15 @@ describe('writeDocsFiles', () => {
 		const version = '7.5.13'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).toContain(
 			'- [Release notes for 8.0.0-beta1]({{< relref "release-notes-8-0-0-beta1" >}})\n- [Release notes for 7.5.13]({{< relref "release-notes-7-5-13" >}})',
@@ -141,15 +141,15 @@ describe('writeDocsFiles', () => {
 		const version = '9.0.0-beta1'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).toContain(
 			'- [Release notes for 9.0.0-beta1]({{< relref "release-notes-9-0-0-beta1" >}})\n- [Release notes for 8.4.0-beta1]({{< relref "release-notes-8-4-0-beta1" >}})',
@@ -171,15 +171,15 @@ describe('writeDocsFiles', () => {
 		const version = '7.2.0'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).toContain(
 			'- [Release notes for 7.3.0]({{< relref "release-notes-7-3-0" >}})\n- [Release notes for 7.2.0]({{< relref "release-notes-7-2-0" >}})',
@@ -200,15 +200,15 @@ describe('writeDocsFiles', () => {
 		const version = '8.4.0'
 		const file = './docs/sources/release-notes/_index.md'
 		const builder = {
-			buildReleaseNotes: jest.fn().mockResolvedValue('Release notes'),
+			buildChangelog: jest.fn().mockResolvedValue('Release notes'),
 			getTitle: jest.fn().mockReturnValue('This is my test title'),
-		} as unknown as ReleaseNotesBuilder
+		} as unknown as ChangelogBuilder
 
 		// Act
 		await writeDocsFiles({ version, builder })
 
 		// Assert
-		expect(builder.buildReleaseNotes).toHaveBeenCalledTimes(1)
+		expect(builder.buildChangelog).toHaveBeenCalledTimes(1)
 		const result = readFileSync(file, 'utf8')
 		expect(result).toContain(
 			'- [Release notes for 8.4.0]({{< relref "release-notes-8-4-0" >}})\n- [Release notes for 8.4.0-beta1]({{< relref "release-notes-8-4-0-beta1" >}})',

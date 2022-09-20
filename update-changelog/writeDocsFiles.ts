@@ -1,15 +1,15 @@
-import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
+import { ChangelogBuilder } from './ChangelogBuilder'
 import fs from 'fs'
 
 import { compare } from 'semver'
 
-interface DocsReleaseNotesWriterOptions {
+interface DocsChangelogWriterOptions {
 	version: string
-	builder: ReleaseNotesBuilder
+	builder: ChangelogBuilder
 }
 
-export async function writeDocsFiles({ version, builder }: DocsReleaseNotesWriterOptions) {
-	const notes = await builder.buildReleaseNotes({ useDocsHeader: true })
+export async function writeDocsFiles({ version, builder }: DocsChangelogWriterOptions) {
+	const notes = await builder.buildChangelog({ useDocsHeader: true })
 	const title = builder.getTitle()
 
 	const content = `+++

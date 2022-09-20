@@ -18,13 +18,13 @@ export interface NotesBuilderOptions {
 	noHeader?: boolean
 }
 
-export class ReleaseNotesBuilder {
+export class ChangelogBuilder {
 	private issueList?: Issue[]
 	private title?: string
 
 	constructor(private octokit: GitHub, private version: string) {}
 
-	async buildReleaseNotes(options: NotesBuilderOptions): Promise<string> {
+	async buildChangelog(options: NotesBuilderOptions): Promise<string> {
 		const lines: string[] = []
 		const grafanaIssues: Issue[] = []
 		const pluginDeveloperIssues: Issue[] = []
@@ -54,7 +54,7 @@ export class ReleaseNotesBuilder {
 			lines.push('')
 		}
 
-		lines.push(...this.getGrafanaReleaseNotes(grafanaIssues))
+		lines.push(...this.getGrafanaChangelog(grafanaIssues))
 
 		if (breakingChanges.length > 0) {
 			lines.push('### Breaking changes')
@@ -164,7 +164,7 @@ export class ReleaseNotesBuilder {
 		return lines
 	}
 
-	private getGrafanaReleaseNotes(issues: Issue[]): string[] {
+	private getGrafanaChangelog(issues: Issue[]): string[] {
 		if (issues.length === 0) {
 			return []
 		}

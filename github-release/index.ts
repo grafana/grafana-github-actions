@@ -2,9 +2,10 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { OctoKit } from '../api/octokit'
 import { EventPayloads } from '@octokit/webhooks'
-import { ReleaseNotesBuilder } from '../update-changelog/ReleaseNotesBuilder'
 import { isPreRelease } from '../common/utils'
 import { RequestError } from '@octokit/request-error'
+import { ChangelogBuilder } from '../update-changelog/ChangelogBuilder'
+
 class GitHubRelease extends Action {
 	id = 'GitHubRelease'
 
@@ -17,9 +18,9 @@ class GitHubRelease extends Action {
 			throw new Error('Missing version input')
 		}
 
-		const builder = new ReleaseNotesBuilder(octokit, version)
+		const builder = new ChangelogBuilder(octokit, version)
 		const tag = `v${version}`
-		const notes = await builder.buildReleaseNotes({ noHeader: true })
+		const notes = await builder.buildChangelog({ noHeader: true })
 		const title = builder.getTitle()
 		const content = `
 [Download page](https://grafana.com/grafana/download/${version})
