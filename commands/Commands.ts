@@ -39,6 +39,7 @@ export class Commands {
 		}
 
 		if (command.type === 'comment') {
+			console.debug('this is command.type comment')
 			return true
 		}
 
@@ -163,13 +164,18 @@ export class Commands {
 			tasks.push(this.github.removeLabel(command.removeLabel))
 		}
 
+		console.debug('before add to project check')
 		if (
 			command.action === 'addToProject' &&
 			command.addToProject &&
 			command.addToProject.url &&
 			issue.labels.includes(command.name)
 		) {
+			console.debug('in add to project check')
+
 			const projectId = getProjectIdFromUrl(command.addToProject.url)
+			console.debug('projectId', projectId)
+
 			if (projectId) {
 				tasks.push(
 					this.github.addIssueToProject(

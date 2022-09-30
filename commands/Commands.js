@@ -23,6 +23,7 @@ class Commands {
             return false;
         }
         if (command.type === 'comment') {
+            console.debug('this is command.type comment');
             return true;
         }
         if (command.type === 'changedfiles' && command.matches) {
@@ -120,11 +121,14 @@ class Commands {
         if (command.removeLabel) {
             tasks.push(this.github.removeLabel(command.removeLabel));
         }
+        console.debug('before add to project check');
         if (command.action === 'addToProject' &&
             command.addToProject &&
             command.addToProject.url &&
             issue.labels.includes(command.name)) {
+            console.debug('in add to project check');
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.addToProject.url);
+            console.debug('projectId', projectId);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue, command.addToProject.org, command.addToProject.column));
             }
