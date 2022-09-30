@@ -30,6 +30,9 @@ class Commands {
                     command.allowUsers.includes('*') ||
                     (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
         }
+        if (command.type === 'comment') {
+            return true;
+        }
         if (command.type === 'changedfiles' && command.matches) {
             if (!command.name) {
                 command.name = 'changedfiles';

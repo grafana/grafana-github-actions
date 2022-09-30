@@ -51,6 +51,10 @@ export class Commands {
 			)
 		}
 
+		if (command.type === 'comment') {
+			return true
+		}
+
 		if (command.type === 'changedfiles' && command.matches) {
 			if (!command.name) {
 				command.name = 'changedfiles'
