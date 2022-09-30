@@ -22,14 +22,6 @@ class Commands {
         if (command.disallowLabel && issue.labels.includes(command.disallowLabel)) {
             return false;
         }
-        if ('comment' in this.action) {
-            return (command.type === 'comment' &&
-                !!this.action.comment.match(new RegExp(`(/|\\\\)${escapeRegExp(command.name)}(\\s|$)`, 'i')) &&
-                ((await this.github.hasWriteAccess(this.action.user)) ||
-                    command.allowUsers.includes(this.action.user.name) ||
-                    command.allowUsers.includes('*') ||
-                    (this.action.user.name === issue.author.name && command.allowUsers.includes('@author'))));
-        }
         if (command.type === 'comment') {
             return true;
         }
@@ -168,8 +160,4 @@ class Commands {
     }
 }
 exports.Commands = Commands;
-// From user CoolAJ86 on https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
-function escapeRegExp(string) {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-}
 //# sourceMappingURL=Commands.js.map

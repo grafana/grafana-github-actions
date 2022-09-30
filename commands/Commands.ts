@@ -38,19 +38,6 @@ export class Commands {
 			return false
 		}
 
-		if ('comment' in this.action) {
-			return (
-				command.type === 'comment' &&
-				!!this.action.comment.match(
-					new RegExp(`(/|\\\\)${escapeRegExp(command.name)}(\\s|$)`, 'i'),
-				) &&
-				((await this.github.hasWriteAccess(this.action.user)) ||
-					command.allowUsers.includes(this.action.user.name) ||
-					command.allowUsers.includes('*') ||
-					(this.action.user.name === issue.author.name && command.allowUsers.includes('@author')))
-			)
-		}
-
 		if (command.type === 'comment') {
 			return true
 		}
@@ -231,9 +218,4 @@ export class Commands {
 		console.debug('Would perform commands:', this.config)
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))
 	}
-}
-
-// From user CoolAJ86 on https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
-function escapeRegExp(string: string) {
-	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') // $& means the whole matched string
 }
