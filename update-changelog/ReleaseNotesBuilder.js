@@ -103,12 +103,14 @@ class ReleaseNotesBuilder {
     getChangeLogNotice(issue, sectionMarker) {
         const noticeLines = [];
         let startFound = false;
-        for (const line of (0, utils_1.splitStringIntoLines)(issue.body)) {
-            if (startFound) {
-                noticeLines.push(line);
-            }
-            if (line.indexOf(sectionMarker) >= 0) {
-                startFound = true;
+        if (issue.body) {
+            for (const line of (0, utils_1.splitStringIntoLines)(issue.body)) {
+                if (startFound) {
+                    noticeLines.push(line);
+                }
+                if (line.indexOf(sectionMarker) >= 0) {
+                    startFound = true;
+                }
             }
         }
         if (noticeLines.length > 0) {

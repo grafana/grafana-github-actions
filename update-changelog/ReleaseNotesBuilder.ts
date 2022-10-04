@@ -128,13 +128,15 @@ export class ReleaseNotesBuilder {
 		const noticeLines: string[] = []
 		let startFound = false
 
-		for (const line of splitStringIntoLines(issue.body)) {
-			if (startFound) {
-				noticeLines.push(line)
-			}
+		if (issue.body) {
+			for (const line of splitStringIntoLines(issue.body)) {
+				if (startFound) {
+					noticeLines.push(line)
+				}
 
-			if (line.indexOf(sectionMarker) >= 0) {
-				startFound = true
+				if (line.indexOf(sectionMarker) >= 0) {
+					startFound = true
+				}
 			}
 		}
 
