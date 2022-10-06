@@ -8,7 +8,6 @@ import { cloneRepo } from '../common/git'
 import { OctoKit } from '../api/octokit'
 import { FileUpdater } from './FileUpdater'
 import { ChangelogBuilder } from './ChangelogBuilder'
-import { writeDocsFiles } from './writeDocsFiles'
 
 class UpdateChangelog extends Action {
 	id = 'UpdateChangelog'
@@ -37,7 +36,6 @@ class UpdateChangelog extends Action {
 		})
 		fileUpdater.writeFile(changelogFile)
 
-		await writeDocsFiles({ version, builder })
 		await npx(
 			'prettier',
 			'--no-config',
