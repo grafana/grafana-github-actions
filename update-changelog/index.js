@@ -9,7 +9,6 @@ const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const FileUpdater_1 = require("./FileUpdater");
 const ChangelogBuilder_1 = require("./ChangelogBuilder");
-const writeDocsFiles_1 = require("./writeDocsFiles");
 class UpdateChangelog extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -34,7 +33,6 @@ class UpdateChangelog extends Action_1.Action {
             content: changelog,
         });
         fileUpdater.writeFile(changelogFile);
-        await (0, writeDocsFiles_1.writeDocsFiles)({ version, builder });
         await npx('prettier', '--no-config', '--trailing-comma', 'es5', '--single-quote', '--print-width', '120', '--list-different', '**/*.md', '--write');
         // look for the branch
         let branchExists;
