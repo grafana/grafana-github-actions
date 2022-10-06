@@ -37,7 +37,7 @@ class UpdateChangelog extends Action {
 		})
 		fileUpdater.writeFile(changelogFile)
 
-		await writeDocsFiles({ version, builder })
+		// await writeDocsFiles({ version, builder })
 		await npx(
 			'prettier',
 			'--no-config',
