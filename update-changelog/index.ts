@@ -7,8 +7,7 @@ import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
 import { OctoKit } from '../api/octokit'
 import { FileUpdater } from './FileUpdater'
-import { ReleaseNotesBuilder } from './ReleaseNotesBuilder'
-import { writeDocsFiles } from './writeDocsFiles'
+import { ChangelogBuilder } from './ChangelogBuilder'
 
 class UpdateChangelog extends Action {
 	id = 'UpdateChangelog'
@@ -23,21 +22,20 @@ class UpdateChangelog extends Action {
 		process.chdir(repo)
 
 		const fileUpdater = new FileUpdater()
-		const builder = new ReleaseNotesBuilder(octokit, version)
+		const builder = new ChangelogBuilder(octokit, version)
 		const changelogFile = './CHANGELOG.md'
-		const branchName = 'update-changelog-and-release-notes'
-		const releaseNotes = await builder.buildReleaseNotes({ useDocsHeader: false })
-		const title = `ReleaseNotes: Updated changelog and release notes for ${version}`
+		const branchName = 'update-changelog'
+		const changelog = await builder.buildChangelog({ useDocsHeader: false })
+		const title = `Changelog: Updated changelog for ${version}`
 
 		// Update main changelog
 		fileUpdater.loadFile(changelogFile)
 		fileUpdater.update({
 			version: version,
-			content: releaseNotes,
+			content: changelog,
 		})
 		fileUpdater.writeFile(changelogFile)
 
-		await writeDocsFiles({ version, builder })
 		await npx(
 			'prettier',
 			'--no-config',

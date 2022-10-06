@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ReleaseNotesBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_RUNTIME_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
+exports.ChangelogBuilder = exports.ENTERPRISE_LABEL = exports.DEPRECATION_SECTION_START = exports.BREAKING_SECTION_START = exports.GRAFANA_RUNTIME_LABEL = exports.GRAFANA_UI_LABEL = exports.GRAFANA_TOOLKIT_LABEL = exports.BUG_LABEL = exports.CHANGELOG_LABEL = void 0;
 const lodash_1 = require("lodash");
 const utils_1 = require("../common/utils");
 exports.CHANGELOG_LABEL = 'add to changelog';
@@ -12,12 +12,12 @@ exports.BREAKING_SECTION_START = 'Release notice breaking change';
 exports.DEPRECATION_SECTION_START = 'Deprecation notice';
 exports.ENTERPRISE_LABEL = 'enterprise';
 const githubGrafanaUrl = 'https://github.com/grafana/grafana';
-class ReleaseNotesBuilder {
+class ChangelogBuilder {
     constructor(octokit, version) {
         this.octokit = octokit;
         this.version = version;
     }
-    async buildReleaseNotes(options) {
+    async buildChangelog(options) {
         const lines = [];
         const grafanaIssues = [];
         const pluginDeveloperIssues = [];
@@ -43,7 +43,7 @@ class ReleaseNotesBuilder {
             lines.push(headerLine);
             lines.push('');
         }
-        lines.push(...this.getGrafanaReleaseNotes(grafanaIssues));
+        lines.push(...this.getGrafanaChangelog(grafanaIssues));
         if (breakingChanges.length > 0) {
             lines.push('### Breaking changes');
             lines.push('');
@@ -131,7 +131,7 @@ class ReleaseNotesBuilder {
         lines.push('');
         return lines;
     }
-    getGrafanaReleaseNotes(issues) {
+    getGrafanaChangelog(issues) {
         if (issues.length === 0) {
             return [];
         }
@@ -181,7 +181,7 @@ class ReleaseNotesBuilder {
         return markdown;
     }
 }
-exports.ReleaseNotesBuilder = ReleaseNotesBuilder;
+exports.ChangelogBuilder = ChangelogBuilder;
 function linkToIssue(item) {
     return `[#${item.number}](${githubGrafanaUrl}/issues/${item.number})`;
 }
@@ -197,4 +197,4 @@ function isBugFix(item) {
     }
     return false;
 }
-//# sourceMappingURL=ReleaseNotesBuilder.js.map
+//# sourceMappingURL=ChangelogBuilder.js.map

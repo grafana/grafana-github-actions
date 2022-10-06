@@ -2,9 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
-const ReleaseNotesBuilder_1 = require("../update-changelog/ReleaseNotesBuilder");
 const utils_1 = require("../common/utils");
 const request_error_1 = require("@octokit/request-error");
+const ChangelogBuilder_1 = require("../update-changelog/ChangelogBuilder");
 class GitHubRelease extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -17,9 +17,9 @@ class GitHubRelease extends Action_1.Action {
         if (!version) {
             throw new Error('Missing version input');
         }
-        const builder = new ReleaseNotesBuilder_1.ReleaseNotesBuilder(octokit, version);
+        const builder = new ChangelogBuilder_1.ChangelogBuilder(octokit, version);
         const tag = `v${version}`;
-        const notes = await builder.buildReleaseNotes({ noHeader: true });
+        const notes = await builder.buildChangelog({ noHeader: true });
         const title = builder.getTitle();
         const content = `
 [Download page](https://grafana.com/grafana/download/${version})

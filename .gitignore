@@ -4,6 +4,7 @@ classifier/issue_data.json
 classifier/issue_labels.json
 **/.DS_Store
 .env
+.idea/
 
 # Yarn
 .yarn/*
