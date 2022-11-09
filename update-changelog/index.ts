@@ -100,7 +100,7 @@ class UpdateChangelog extends Action {
 		await git('commit', '-m', `${title}`)
 		await git('push', '--set-upstream', 'origin', branchName)
 
-		await octokit.octokit.pulls.create({
+		const pr = await octokit.octokit.pulls.create({
 			base: 'main',
 			body: 'This exciting! So much has changed!\nDO NOT CHANGE THE TITLES DIRECTLY IN THIS PR, everything in the PR is auto-generated.',
 			head: branchName,
@@ -108,6 +108,15 @@ class UpdateChangelog extends Action {
 			repo,
 			title,
 		})
+
+		if (pr.data.number) {
+			await octokit.octokit.issues.addLabels({
+				issue_number: pr.data.number,
+				owner,
+				repo,
+				labels: ['no-backport', 'no-changelog'],
+			})
+		}
 	}
 }
 
