@@ -16,6 +16,8 @@ class UpdateChangelog extends Action {
 		const { owner, repo } = context.repo
 		const token = this.getToken()
 		const version = this.getVersion()
+		const versionSplitted = version.split('.')
+		const versionMajorBranch = 'v' + versionSplitted[0] + '.' + versionSplitted[1] + '.' + 'x'
 
 		await cloneRepo({ token, owner, repo })
 
@@ -114,7 +116,7 @@ class UpdateChangelog extends Action {
 				issue_number: pr.data.number,
 				owner,
 				repo,
-				labels: ['no-backport', 'no-changelog'],
+				labels: ['backport ' + versionMajorBranch, 'no-changelog'],
 			})
 		}
 	}
