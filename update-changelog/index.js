@@ -18,6 +18,8 @@ class UpdateChangelog extends Action_1.Action {
         const { owner, repo } = github_1.context.repo;
         const token = this.getToken();
         const version = this.getVersion();
+        const versionSplitted = version.split('.');
+        const versionMajorBranch = 'v' + versionSplitted[0] + '.' + versionSplitted[1] + '.' + 'x';
         await (0, git_1.cloneRepo)({ token, owner, repo });
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
@@ -75,7 +77,7 @@ class UpdateChangelog extends Action_1.Action {
         await git('add', '-A');
         await git('commit', '-m', `${title}`);
         await git('push', '--set-upstream', 'origin', branchName);
-        await octokit.octokit.pulls.create({
+        const pr = await octokit.octokit.pulls.create({
             base: 'main',
             body: 'This exciting! So much has changed!\nDO NOT CHANGE THE TITLES DIRECTLY IN THIS PR, everything in the PR is auto-generated.',
             head: branchName,
@@ -83,6 +85,14 @@ class UpdateChangelog extends Action_1.Action {
             repo,
             title,
         });
+        if (pr.data.number) {
+            await octokit.octokit.issues.addLabels({
+                issue_number: pr.data.number,
+                owner,
+                repo,
+                labels: ['backport ' + versionMajorBranch, 'no-changelog'],
+            });
+        }
     }
 }
 const git = async (...args) => {
