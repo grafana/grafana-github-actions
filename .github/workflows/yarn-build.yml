@@ -33,5 +33,6 @@ jobs:
         run: yarn build
 
       - name: Git checkout
-        uses: actions/checkout@v2
-        run: git diff --exit-code
+        run: | 
+            git diff --exit-code
+            echo "You need to run `yarn build` and push your changes"
