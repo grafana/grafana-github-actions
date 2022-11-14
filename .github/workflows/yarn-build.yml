@@ -36,4 +36,5 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             echo "ERROR: Please run *yarn build* and commit your changes.";
+            git diff --exit-code
           fi
