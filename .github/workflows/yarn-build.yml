@@ -1,0 +1,40 @@
+name: yarn build
+
+on: pull_request
+
+jobs:
+  yarn-build:
+    name: yarn build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.16.0
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - name: Restore yarn cache
+        uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-cache-folder-${{ hashFiles('**/yarn.lock', '.yarnrc.yml') }}
+          restore-keys: |
+            yarn-cache-folder-
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build yarn
+        run: yarn build
+
+      - name: Git checkout
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "ERROR: Please run *yarn build* and commit your changes.";
+            git diff --exit-code
+          fi
