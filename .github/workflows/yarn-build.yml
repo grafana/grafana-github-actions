@@ -33,6 +33,7 @@ jobs:
         run: yarn build
 
       - name: Git checkout
-        run: | 
-            git diff --exit-code
-            echo "You need to run `yarn build` and push your changes"
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "ERROR: Please run *yarn build* and commit your changes.";
+          fi
