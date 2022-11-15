@@ -237,7 +237,7 @@ const backport = async ({
 	sender,
 }: BackportArgs) => {
 	let labelsString = labels.map(({ name }) => name)
-	if (!(labelsString.includes('bug') || labelsString.includes('product-approved'))) {
+	if (!(labelsString.includes('bug') || labelsString.includes('product-approved') || labelsString.includes('type/docs'))) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +
@@ -249,9 +249,10 @@ const backport = async ({
 				'Hello ' + '@' + sender.login + '!',
 				'Backport pull requests need to be either:',
 				'* Pull requests which address bugs,',
-				'* Urgent fixes which need product approval, in order to get merged.\n',
+				'* Urgent fixes which need product approval, in order to get merged,',
+				'* Docs changes.\n',
 				'Please, if the current pull request addresses a bug fix, label it with the `bug` label.',
-				'If it already has the product approval, please add the `product-approved` label.',
+				'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label',
 				'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
 				'Thanks!',
 			].join('\n'),
