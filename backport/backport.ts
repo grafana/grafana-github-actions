@@ -237,7 +237,13 @@ const backport = async ({
 	sender,
 }: BackportArgs) => {
 	let labelsString = labels.map(({ name }) => name)
-	if (!(labelsString.includes('bug') || labelsString.includes('product-approved') || labelsString.includes('type/docs'))) {
+	if (
+		!(
+			labelsString.includes('bug') ||
+			labelsString.includes('product-approved') ||
+			labelsString.includes('type/docs')
+		)
+	) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +
