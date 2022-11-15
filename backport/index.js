@@ -25,6 +25,7 @@ class Backport extends Action_1.Action {
                 titleTemplate: (0, core_1.getInput)('title'),
                 github: issue.octokit,
                 token: this.getToken(),
+                sender: github_1.context.payload.sender,
             });
         }
         catch (error) {

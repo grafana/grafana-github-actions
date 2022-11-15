@@ -209,6 +209,7 @@ interface BackportArgs {
 	titleTemplate: string
 	token: string
 	github: GitHub
+	sender: EventPayloads.PayloadSender
 }
 
 const backport = async ({
@@ -233,7 +234,34 @@ const backport = async ({
 	titleTemplate,
 	token,
 	github,
+	sender,
 }: BackportArgs) => {
+	let labelsString = labels.map(({ name }) => name)
+	if (!(labelsString.includes('bug') || labelsString.includes('product-approved'))) {
+		console.log(
+			'PR intended to be backported, but not labeled properly. Labels: ' +
+				labelsString +
+				'\n Author: ' +
+				sender.login,
+		)
+		await github.issues.createComment({
+			body: [
+				'Hello ' + '@' + sender.login + '!',
+				'Backport pull requests need to be either:',
+				'* Pull requests which address bugs,',
+				'* Urgent fixes which need product approval, in order to get merged.\n',
+				'Please, if the current pull request addresses a bug fix, label it with the `bug` label.',
+				'If it already has the product approval, please add the `product-approved` label.',
+				'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
+				'Thanks!',
+			].join('\n'),
+			issue_number: pullRequestNumber,
+			owner,
+			repo,
+		})
+		return
+	}
+
 	if (!merged) {
 		console.log('PR not merged')
 		return

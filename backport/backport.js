@@ -139,7 +139,30 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
-const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, }) => {
+const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+    let labelsString = labels.map(({ name }) => name);
+    if (!(labelsString.includes('bug') || labelsString.includes('product-approved'))) {
+        console.log('PR intended to be backported, but not labeled properly. Labels: ' +
+            labelsString +
+            '\n Author: ' +
+            sender.login);
+        await github.issues.createComment({
+            body: [
+                'Hello ' + '@' + sender.login + '!',
+                'Backport pull requests need to be either:',
+                '* Pull requests which address bugs,',
+                '* Urgent fixes which need product approval, in order to get merged.\n',
+                'Please, if the current pull request addresses a bug fix, label it with the `bug` label.',
+                'If it already has the product approval, please add the `product-approved` label.',
+                'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
+                'Thanks!',
+            ].join('\n'),
+            issue_number: pullRequestNumber,
+            owner,
+            repo,
+        });
+        return;
+    }
     if (!merged) {
         console.log('PR not merged');
         return;
