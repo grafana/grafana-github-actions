@@ -19,19 +19,19 @@ class EnterpriseCheck extends Action {
 		}
 
 		let branch = await getBranch(octokit, sourceBranch)
-		if (!branch) {
-			const targetBranch = getInput('target_branch') || 'main'
+		if (branch) {
+      return
+    }
+    const targetBranch = getInput('target_branch') || 'main'
+    branch = await getBranch(octokit, targetBranch)
+    if (!branch) {
+      branch = await getBranch(octokit, 'main')
+      if (!branch) {
+        throw new Error('error retrieving main branch')
+      }
+    }
 
-			branch = await getBranch(octokit, targetBranch)
-			if (!branch) {
-				branch = await getBranch(octokit, 'main')
-				if (!branch) {
-					throw new Error('error retrieving main branch')
-				}
-			}
-
-			await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha)
-		}
+    await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha.substring(0, 8))
 	}
 }
 
@@ -57,7 +57,7 @@ async function createOrUpdateRef(octokit: OctoKit, prNumber: string, branch: str
 		await octokit.octokit.git.createRef({
 			owner: 'grafana',
 			repo: 'grafana-enterprise',
-			ref: `refs/heads/pr-check-${prNumber}/${branch}`,
+			ref: `refs/heads/prc-${sha}-${prNumber}/${branch}`,
 			sha: sha,
 		})
 	} catch (err) {
@@ -65,7 +65,7 @@ async function createOrUpdateRef(octokit: OctoKit, prNumber: string, branch: str
 			await octokit.octokit.git.updateRef({
 				owner: 'grafana',
 				repo: 'grafana-enterprise',
-				ref: `heads/pr-check-${prNumber}/${branch}`,
+				ref: `heads/prc-${sha}-${prNumber}/${branch}`,
 				sha: sha,
 				force: true,
 			})
