@@ -239,7 +239,7 @@ const backport = async ({
 	let labelsString = labels.map(({ name }) => name)
 	if (
 		!(
-			labelsString.includes('bug') ||
+			labelsString.includes('type/bug') ||
 			labelsString.includes('product-approved') ||
 			labelsString.includes('type/docs')
 		)
@@ -257,7 +257,7 @@ const backport = async ({
 				'* Pull requests which address bugs,',
 				'* Urgent fixes which need product approval, in order to get merged,',
 				'* Docs changes.\n',
-				'Please, if the current pull request addresses a bug fix, label it with the `bug` label.',
+				'Please, if the current pull request addresses a bug fix, label it with the `type/bug` label.',
 				'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label',
 				'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
 				'Thanks!',
