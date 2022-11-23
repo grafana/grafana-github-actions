@@ -20,11 +20,12 @@ const getLabelNames = ({
 	label: { name: string }
 	labels: EventPayloads.WebhookPayloadPullRequest['pull_request']['labels']
 }): string[] => {
+	let labelsString = labels.map(({ name }) => name)
 	switch (action) {
 		case 'closed':
 			return labels.map(({ name }) => name)
 		case 'labeled':
-			return [label.name]
+			return [label.name, ...labelsString]
 		default:
 			return []
 	}

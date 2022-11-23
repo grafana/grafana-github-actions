@@ -13,11 +13,12 @@ const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const getLabelNames = ({ action, label, labels, }) => {
+    let labelsString = labels.map(({ name }) => name);
     switch (action) {
         case 'closed':
             return labels.map(({ name }) => name);
         case 'labeled':
-            return [label.name];
+            return [label.name, ...labelsString];
         default:
             return [];
     }
