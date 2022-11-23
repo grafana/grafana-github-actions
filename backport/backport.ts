@@ -20,11 +20,12 @@ const getLabelNames = ({
 	label: { name: string }
 	labels: EventPayloads.WebhookPayloadPullRequest['pull_request']['labels']
 }): string[] => {
+	let labelsString = labels.map(({ name }) => name)
 	switch (action) {
 		case 'closed':
 			return labels.map(({ name }) => name)
 		case 'labeled':
-			return [label.name]
+			return [label.name, ...labelsString]
 		default:
 			return []
 	}
@@ -209,6 +210,7 @@ interface BackportArgs {
 	titleTemplate: string
 	token: string
 	github: GitHub
+	sender: EventPayloads.PayloadSender
 }
 
 const backport = async ({
@@ -233,7 +235,41 @@ const backport = async ({
 	titleTemplate,
 	token,
 	github,
+	sender,
 }: BackportArgs) => {
+	let labelsString = labels.map(({ name }) => name)
+	if (
+		!(
+			labelsString.includes('type/bug') ||
+			labelsString.includes('product-approved') ||
+			labelsString.includes('type/docs')
+		)
+	) {
+		console.log(
+			'PR intended to be backported, but not labeled properly. Labels: ' +
+				labelsString +
+				'\n Author: ' +
+				sender.login,
+		)
+		await github.issues.createComment({
+			body: [
+				'Hello ' + '@' + sender.login + '!',
+				'Backport pull requests need to be either:',
+				'* Pull requests which address bugs,',
+				'* Urgent fixes which need product approval, in order to get merged,',
+				'* Docs changes.\n',
+				'Please, if the current pull request addresses a bug fix, label it with the `type/bug` label.',
+				'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label.',
+				'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
+				'Thanks!',
+			].join('\n'),
+			issue_number: pullRequestNumber,
+			owner,
+			repo,
+		})
+		return
+	}
+
 	if (!merged) {
 		console.log('PR not merged')
 		return
