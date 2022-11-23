@@ -156,7 +156,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                 '* Urgent fixes which need product approval, in order to get merged,',
                 '* Docs changes.\n',
                 'Please, if the current pull request addresses a bug fix, label it with the `type/bug` label.',
-                'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label',
+                'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label.',
                 'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
                 'Thanks!',
             ].join('\n'),
