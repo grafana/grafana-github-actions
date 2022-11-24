@@ -238,7 +238,12 @@ const backport = async ({
 	sender,
 }: BackportArgs) => {
 	let labelsString = labels.map(({ name }) => name)
+	let matches = false
+	for (const label in labelsString) {
+		matches = labelRegExp.test(label)
+	}
 	if (
+		matches &&
 		!(
 			labelsString.includes('type/bug') ||
 			labelsString.includes('product-approved') ||
