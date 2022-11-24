@@ -7,19 +7,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.backport = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
+const github_1 = require("@actions/github");
 const betterer_1 = require("@betterer/betterer");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const backportLabels = ['type/docs', 'type/bug', 'product-approved'];
+const missingLabels = 'missing-labels';
 const getLabelNames = ({ action, label, labels, }) => {
-    let labelsString = labels.map(({ name }) => name);
     switch (action) {
         case 'closed':
             return labels.map(({ name }) => name);
         case 'labeled':
-            return [label.name, ...labelsString];
+            return [label.name];
         default:
             return [];
     }
@@ -153,6 +154,11 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
     ].join('\n');
 };
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+    const payload = github_1.context.payload;
+    let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : '';
+    if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
+        return;
+    }
     let labelsString = labels.map(({ name }) => name);
     let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels);
     let matches = false;
@@ -162,7 +168,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             break;
         }
     }
-    if (matches && matchedLabels.length == 0) {
+    if (matches && matchedLabels.length == 0 && !labelsString.includes(missingLabels)) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
             labelsString +
             '\n Author: ' +
@@ -183,7 +189,21 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             owner,
             repo,
         });
+        await github.issues.addLabels({
+            issue_number: pullRequestNumber,
+            labels: [missingLabels],
+            owner,
+            repo,
+        });
         return;
+    }
+    else if (matches && matchedLabels.length != 0 && labelsString.includes(missingLabels)) {
+        await github.issues.removeLabel({
+            owner,
+            repo,
+            issue_number: pullRequestNumber,
+            name: missingLabels,
+        });
     }
     if (!merged) {
         console.log('PR not merged');
