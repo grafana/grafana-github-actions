@@ -15,12 +15,11 @@ const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const backportLabels = ['type/docs', 'type/bug', 'product-approved'];
 const missingLabels = 'missing-labels';
 const getLabelNames = ({ action, label, labels, }) => {
-    let labelsString = labels.map(({ name }) => name);
     switch (action) {
         case 'closed':
             return labels.map(({ name }) => name);
         case 'labeled':
-            return [label.name, ...labelsString];
+            return [label.name];
         default:
             return [];
     }
