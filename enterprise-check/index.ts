@@ -20,18 +20,18 @@ class EnterpriseCheck extends Action {
 
 		let branch = await getBranch(octokit, sourceBranch)
 		if (branch) {
-      return
-    }
-    const targetBranch = getInput('target_branch') || 'main'
-    branch = await getBranch(octokit, targetBranch)
-    if (!branch) {
-      branch = await getBranch(octokit, 'main')
-      if (!branch) {
-        throw new Error('error retrieving main branch')
-      }
-    }
+			return
+		}
+		const targetBranch = getInput('target_branch') || 'main'
+		branch = await getBranch(octokit, targetBranch)
+		if (!branch) {
+			branch = await getBranch(octokit, 'main')
+			if (!branch) {
+				throw new Error('error retrieving main branch')
+			}
+		}
 
-    await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha.substring(0, 8))
+		await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha.substring(0, 8))
 	}
 }
 

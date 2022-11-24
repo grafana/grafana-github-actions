@@ -18,17 +18,18 @@ class EnterpriseCheck extends Action_1.Action {
             throw new Error('Missing OSS PR number');
         }
         let branch = await getBranch(octokit, sourceBranch);
-        if (!branch) {
-            const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
-            branch = await getBranch(octokit, targetBranch);
-            if (!branch) {
-                branch = await getBranch(octokit, 'main');
-                if (!branch) {
-                    throw new Error('error retrieving main branch');
-                }
-            }
-            await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha);
+        if (branch) {
+            return;
         }
+        const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
+        branch = await getBranch(octokit, targetBranch);
+        if (!branch) {
+            branch = await getBranch(octokit, 'main');
+            if (!branch) {
+                throw new Error('error retrieving main branch');
+            }
+        }
+        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha.substring(0, 8));
     }
 }
 async function getBranch(octokit, branch) {
@@ -51,7 +52,7 @@ async function createOrUpdateRef(octokit, prNumber, branch, sha) {
         await octokit.octokit.git.createRef({
             owner: 'grafana',
             repo: 'grafana-enterprise',
-            ref: `refs/heads/pr-check-${prNumber}/${branch}`,
+            ref: `refs/heads/prc-${sha}-${prNumber}/${branch}`,
             sha: sha,
         });
     }
@@ -60,7 +61,7 @@ async function createOrUpdateRef(octokit, prNumber, branch, sha) {
             await octokit.octokit.git.updateRef({
                 owner: 'grafana',
                 repo: 'grafana-enterprise',
-                ref: `heads/pr-check-${prNumber}/${branch}`,
+                ref: `heads/prc-${sha}-${prNumber}/${branch}`,
                 sha: sha,
                 force: true,
             });
