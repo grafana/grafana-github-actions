@@ -191,7 +191,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
         });
         return;
     }
-    else if (matches && matchedLabels.length != 0) {
+    else if (matches && matchedLabels.length != 0 && labelsString.includes(missingLabels)) {
         await github.issues.removeLabel({
             owner,
             repo,

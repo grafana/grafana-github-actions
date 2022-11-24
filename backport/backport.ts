@@ -289,7 +289,7 @@ const backport = async ({
 			repo,
 		})
 		return
-	} else if (matches && matchedLabels.length != 0) {
+	} else if (matches && matchedLabels.length != 0 && labelsString.includes(missingLabels)) {
 		await github.issues.removeLabel({
 			owner,
 			repo,
