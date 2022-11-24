@@ -252,7 +252,7 @@ const backport = async ({
 }: BackportArgs) => {
 	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
 	let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : ''
-	if (!labelRegExp.test(payloadLabel) || !backportLabels.includes(payloadLabel)) {
+	if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
 		return
 	}
 	let labelsString = labels.map(({ name }) => name)
