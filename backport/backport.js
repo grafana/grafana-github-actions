@@ -13,6 +13,7 @@ const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const backportLabels = ['type/docs', 'type/bug', 'product-approved'];
+const missingLabels = 'missing-labels';
 const getLabelNames = ({ action, label, labels, }) => {
     let labelsString = labels.map(({ name }) => name);
     switch (action) {
@@ -162,7 +163,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             break;
         }
     }
-    if (matches && matchedLabels.length == 0) {
+    if (matches && matchedLabels.length == 0 && !labelsString.includes(missingLabels)) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
             labelsString +
             '\n Author: ' +
@@ -180,6 +181,12 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                 'Thanks!',
             ].join('\n'),
             issue_number: pullRequestNumber,
+            owner,
+            repo,
+        });
+        await github.issues.addLabels({
+            issue_number: pullRequestNumber,
+            labels: [missingLabels],
             owner,
             repo,
         });

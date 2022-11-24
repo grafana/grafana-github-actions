@@ -11,6 +11,7 @@ import { cloneRepo } from '../common/git'
 const BETTERER_RESULTS_PATH = '.betterer.results'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 const backportLabels = ['type/docs', 'type/bug', 'product-approved']
+const missingLabels = 'missing-labels'
 
 const getLabelNames = ({
 	action,
@@ -259,7 +260,7 @@ const backport = async ({
 			break
 		}
 	}
-	if (matches && matchedLabels.length == 0) {
+	if (matches && matchedLabels.length == 0 && !labelsString.includes(missingLabels)) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +
@@ -279,6 +280,12 @@ const backport = async ({
 				'Thanks!',
 			].join('\n'),
 			issue_number: pullRequestNumber,
+			owner,
+			repo,
+		})
+		await github.issues.addLabels({
+			issue_number: pullRequestNumber,
+			labels: [missingLabels],
 			owner,
 			repo,
 		})
