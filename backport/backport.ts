@@ -255,6 +255,9 @@ const backport = async ({
 	let matches = false
 	for (const label of labelsString) {
 		matches = labelRegExp.test(label)
+		if (matches) {
+			break
+		}
 	}
 	if (matches && matchedLabels.length == 0) {
 		console.log(
