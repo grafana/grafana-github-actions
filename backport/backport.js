@@ -12,6 +12,7 @@ const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
+const backportLabels = ['type/docs', 'type/bug', 'product-approved'];
 const getLabelNames = ({ action, label, labels, }) => {
     let labelsString = labels.map(({ name }) => name);
     switch (action) {
@@ -23,6 +24,17 @@ const getLabelNames = ({ action, label, labels, }) => {
             return [];
     }
 };
+function getMatchedBackportLabels(labelsPR, backportLabels) {
+    let matchedLabels = [];
+    for (const prLabel in labelsPR) {
+        for (const backportLabel in backportLabels) {
+            if (backportLabel === prLabel) {
+                matchedLabels.push(backportLabel);
+            }
+        }
+    }
+    return matchedLabels;
+}
 const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) => {
     const baseToHead = {};
     getLabelNames({ action, label, labels }).forEach((labelName) => {
@@ -142,14 +154,8 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
 };
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     let labelsString = labels.map(({ name }) => name);
-    let matches = false;
-    for (const label in labelsString) {
-        matches = labelRegExp.test(label);
-    }
-    if (matches &&
-        !(labelsString.includes('type/bug') ||
-            labelsString.includes('product-approved') ||
-            labelsString.includes('type/docs'))) {
+    let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels);
+    if (matchedLabels.length == 0) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
             labelsString +
             '\n Author: ' +
@@ -199,6 +205,8 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
         }).forEach(([name, value]) => {
             title = title.replace(new RegExp((0, lodash_escaperegexp_1.default)(`{{${name}}}`), 'g'), value);
         });
+        // Add the matched backport labels of the main PR
+        labelsToAdd.push(...matchedLabels);
         await (0, core_1.group)(`Backporting to ${base} on ${head}`, async () => {
             try {
                 await backportOnce({

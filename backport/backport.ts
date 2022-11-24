@@ -10,6 +10,7 @@ import { cloneRepo } from '../common/git'
 
 const BETTERER_RESULTS_PATH = '.betterer.results'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
+const backportLabels = ['type/docs', 'type/bug', 'product-approved']
 
 const getLabelNames = ({
 	action,
@@ -29,6 +30,18 @@ const getLabelNames = ({
 		default:
 			return []
 	}
+}
+
+function getMatchedBackportLabels(labelsPR: string[], backportLabels: string[]): string[] {
+	let matchedLabels = []
+	for (const prLabel in labelsPR) {
+		for (const backportLabel in backportLabels) {
+			if (backportLabel === prLabel) {
+				matchedLabels.push(backportLabel)
+			}
+		}
+	}
+	return matchedLabels
 }
 
 const getBackportBaseToHead = ({
@@ -238,18 +251,8 @@ const backport = async ({
 	sender,
 }: BackportArgs) => {
 	let labelsString = labels.map(({ name }) => name)
-	let matches = false
-	for (const label in labelsString) {
-		matches = labelRegExp.test(label)
-	}
-	if (
-		matches &&
-		!(
-			labelsString.includes('type/bug') ||
-			labelsString.includes('product-approved') ||
-			labelsString.includes('type/docs')
-		)
-	) {
+	let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels)
+	if (matchedLabels.length == 0) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +
@@ -308,6 +311,9 @@ const backport = async ({
 		}).forEach(([name, value]) => {
 			title = title.replace(new RegExp(escapeRegExp(`{{${name}}}`), 'g'), value)
 		})
+
+		// Add the matched backport labels of the main PR
+		labelsToAdd.push(...matchedLabels)
 
 		await group(`Backporting to ${base} on ${head}`, async () => {
 			try {
