@@ -252,7 +252,11 @@ const backport = async ({
 }: BackportArgs) => {
 	let labelsString = labels.map(({ name }) => name)
 	let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels)
-	if (matchedLabels.length == 0) {
+	let matches = false
+	for (const label of labelsString) {
+		matches = labelRegExp.test(label)
+	}
+	if (matches && matchedLabels.length == 0) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +

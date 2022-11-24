@@ -155,7 +155,11 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     let labelsString = labels.map(({ name }) => name);
     let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels);
-    if (matchedLabels.length == 0) {
+    let matches = false;
+    for (const label of labelsString) {
+        matches = labelRegExp.test(label);
+    }
+    if (matches && matchedLabels.length == 0) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
             labelsString +
             '\n Author: ' +
