@@ -158,6 +158,9 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
     let matches = false;
     for (const label of labelsString) {
         matches = labelRegExp.test(label);
+        if (matches) {
+            break;
+        }
     }
     if (matches && matchedLabels.length == 0) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
