@@ -34,8 +34,8 @@ const getLabelNames = ({
 
 function getMatchedBackportLabels(labelsPR: string[], backportLabels: string[]): string[] {
 	let matchedLabels = []
-	for (const prLabel in labelsPR) {
-		for (const backportLabel in backportLabels) {
+	for (const prLabel of labelsPR) {
+		for (let backportLabel of backportLabels) {
 			if (backportLabel === prLabel) {
 				matchedLabels.push(backportLabel)
 			}
