@@ -290,6 +290,13 @@ const backport = async ({
 			repo,
 		})
 		return
+	} else if (matches && matchedLabels.length != 0) {
+		await github.issues.removeLabel({
+			owner,
+			repo,
+			issue_number: pullRequestNumber,
+			name: missingLabels,
+		})
 	}
 
 	if (!merged) {

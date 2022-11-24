@@ -192,6 +192,14 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
         });
         return;
     }
+    else if (matches && matchedLabels.length != 0) {
+        await github.issues.removeLabel({
+            owner,
+            repo,
+            issue_number: pullRequestNumber,
+            name: missingLabels,
+        });
+    }
     if (!merged) {
         console.log('PR not merged');
         return;
