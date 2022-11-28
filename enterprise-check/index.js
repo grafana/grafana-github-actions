@@ -86,11 +86,9 @@ async function getBranch(octokit, branch) {
         return res.data;
     }
     catch (err) {
-        if (err instanceof Error) {
-            (0, core_1.setFailed)(err);
-        }
+        console.log('Could not get branch from upstream:', err);
+        throw err;
     }
-    return null;
 }
 async function createOrUpdateRef(octokit, prNumber, branch, sha, sourceSha) {
     const ref = `refs/heads/prc-${prNumber}-${sourceSha}/${branch}`;

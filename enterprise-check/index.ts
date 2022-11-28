@@ -90,12 +90,9 @@ async function getBranch(octokit: OctoKit, branch: string): Promise<Octokit.Repo
 
 		return res.data
 	} catch (err) {
-		if (err instanceof Error) {
-			setFailed(err)
-		}
+		console.log('Could not get branch from upstream:', err)
+		throw err
 	}
-
-	return null
 }
 
 async function createOrUpdateRef(
