@@ -2,7 +2,7 @@
 
 import { error as logError, group, info } from '@actions/core'
 import { exec, getExecOutput } from '@actions/exec'
-import { GitHub } from '@actions/github'
+import { context, GitHub } from '@actions/github'
 import { betterer } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
@@ -11,6 +11,7 @@ import { cloneRepo } from '../common/git'
 const BETTERER_RESULTS_PATH = '.betterer.results'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 const backportLabels = ['type/docs', 'type/bug', 'product-approved']
+const missingLabels = 'missing-labels'
 
 const getLabelNames = ({
 	action,
@@ -21,12 +22,11 @@ const getLabelNames = ({
 	label: { name: string }
 	labels: EventPayloads.WebhookPayloadPullRequest['pull_request']['labels']
 }): string[] => {
-	let labelsString = labels.map(({ name }) => name)
 	switch (action) {
 		case 'closed':
 			return labels.map(({ name }) => name)
 		case 'labeled':
-			return [label.name, ...labelsString]
+			return [label.name]
 		default:
 			return []
 	}
@@ -250,13 +250,23 @@ const backport = async ({
 	github,
 	sender,
 }: BackportArgs) => {
+	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
+	if (payload.action !== 'closed') {
+		let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : ''
+		if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
+			return
+		}
+	}
 	let labelsString = labels.map(({ name }) => name)
 	let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels)
 	let matches = false
 	for (const label of labelsString) {
 		matches = labelRegExp.test(label)
+		if (matches) {
+			break
+		}
 	}
-	if (matches && matchedLabels.length == 0) {
+	if (matches && matchedLabels.length == 0 && !labelsString.includes(missingLabels)) {
 		console.log(
 			'PR intended to be backported, but not labeled properly. Labels: ' +
 				labelsString +
@@ -279,7 +289,20 @@ const backport = async ({
 			owner,
 			repo,
 		})
+		await github.issues.addLabels({
+			issue_number: pullRequestNumber,
+			labels: [missingLabels],
+			owner,
+			repo,
+		})
 		return
+	} else if (matches && matchedLabels.length != 0 && labelsString.includes(missingLabels)) {
+		await github.issues.removeLabel({
+			owner,
+			repo,
+			issue_number: pullRequestNumber,
+			name: missingLabels,
+		})
 	}
 
 	if (!merged) {
