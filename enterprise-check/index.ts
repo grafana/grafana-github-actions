@@ -57,7 +57,7 @@ async function createOrUpdateRef(octokit: OctoKit, prNumber: string, branch: str
     await octokit.octokit.git.createRef({
       owner: 'grafana',
       repo: 'grafana-enterprise',
-      ref: `refs/heads/prc-${sha}-${prNumber}/${branch}`,
+      ref: `refs/heads/prc-${prNumber}-${sha}/${branch}`,
       sha: sha,
     })
   } catch (err) {
@@ -65,7 +65,7 @@ async function createOrUpdateRef(octokit: OctoKit, prNumber: string, branch: str
       await octokit.octokit.git.updateRef({
         owner: 'grafana',
         repo: 'grafana-enterprise',
-        ref: `heads/prc-${sha}-${prNumber}/${branch}`,
+        ref: `heads/prc-${prNumber}-${sha}/${branch}`,
         sha: sha,
         force: true,
       })
