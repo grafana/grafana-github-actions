@@ -1,13 +1,13 @@
 import { Action } from '../common/Action'
 import { Octokit } from '@octokit/rest'
 import { OctoKit } from '../api/octokit'
-import { getInput } from '@actions/core'
+import { getInput, setFailed, debug } from '@actions/core'
 import { RequestError } from '@octokit/request-error'
 
 class EnterpriseCheck extends Action {
 	id = 'EnterpriseCheck'
 
-	async onTriggered(octokit: OctoKit) {
+	async createRef(octokit: OctoKit) {
 		const sourceBranch = getInput('source_branch')
 		if (!sourceBranch) {
 			throw new Error('Missing source branch')
@@ -48,6 +48,16 @@ class EnterpriseCheck extends Action {
 		// Create the branch from the ref found in grafana-enterprise.
 		await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
 	}
+
+	async onTriggered(octokit: OctoKit) {
+		try {
+			await this.createRef(octokit)
+		} catch (err) {
+			if (err instanceof Error) {
+				setFailed(err)
+			}
+		}
+	}
 }
 
 async function getBranch(octokit: OctoKit, branch: string): Promise<Octokit.ReposGetBranchResponse | null> {
@@ -61,7 +71,9 @@ async function getBranch(octokit: OctoKit, branch: string): Promise<Octokit.Repo
 
 		return res.data
 	} catch (err) {
-		console.log('err: ', err)
+		if (err instanceof Error) {
+			setFailed(err)
+		}
 	}
 
 	return null
@@ -75,7 +87,7 @@ async function createOrUpdateRef(
 	sourceSha: string,
 ) {
 	const ref = `refs/heads/prc-${prNumber}-${sourceSha}/${branch}`
-	console.log(`Creating ref in grafana-enterprise: '${ref}'`)
+	debug(`Creating ref in grafana-enterprise: '${ref}'`)
 
 	try {
 		await octokit.octokit.git.createRef({

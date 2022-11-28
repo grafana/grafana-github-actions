@@ -8,7 +8,7 @@ class EnterpriseCheck extends Action_1.Action {
         super(...arguments);
         this.id = 'EnterpriseCheck';
     }
-    async onTriggered(octokit) {
+    async createRef(octokit) {
         const sourceBranch = (0, core_1.getInput)('source_branch');
         if (!sourceBranch) {
             throw new Error('Missing source branch');
@@ -43,6 +43,16 @@ class EnterpriseCheck extends Action_1.Action {
         // Create the branch from the ref found in grafana-enterprise.
         await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
     }
+    async onTriggered(octokit) {
+        try {
+            await this.createRef(octokit);
+        }
+        catch (err) {
+            if (err instanceof Error) {
+                (0, core_1.setFailed)(err);
+            }
+        }
+    }
 }
 async function getBranch(octokit, branch) {
     let res;
@@ -55,13 +65,15 @@ async function getBranch(octokit, branch) {
         return res.data;
     }
     catch (err) {
-        console.log('err: ', err);
+        if (err instanceof Error) {
+            (0, core_1.setFailed)(err);
+        }
     }
     return null;
 }
 async function createOrUpdateRef(octokit, prNumber, branch, sha, sourceSha) {
     const ref = `refs/heads/prc-${prNumber}-${sourceSha}/${branch}`;
-    console.log(`Creating ref in grafana-enterprise: '${ref}'`);
+    (0, core_1.debug)(`Creating ref in grafana-enterprise: '${ref}'`);
     try {
         await octokit.octokit.git.createRef({
             owner: 'grafana',
