@@ -27,22 +27,31 @@ class EnterpriseCheck extends Action {
 		}
 
 		debug('Getting branch ref from grafana enterprise...')
-		let branch = await getBranch(octokit, sourceBranch)
-		if (branch) {
-			// Create the branch from the ref found in grafana-enterprise.
-			await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
-			return
+		try {
+			let branch = await getBranch(octokit, sourceBranch)
+			if (branch) {
+				// Create the branch from the ref found in grafana-enterprise.
+				await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
+				return
+			}
+		} catch (err) {
+			console.log('error fetching branch with same name in Enterprise', err)
 		}
 
 		debug("Branch in grafana enterprise doesn't exist, getting branch from 'target_branch' or 'main'...")
 		// If the source branch was not found on Enterprise, then attempt to use the targetBranch (likely something like v9.2.x).
 		// If the targetBranch was not found, then use `main`. If `main` wasn't found, then we have a problem.
-		const targetBranch = getInput('target_branch') || 'main'
-		branch = await getBranch(octokit, targetBranch)
-		if (branch) {
-			// Create the branch from the ref found in grafana-enterprise.
-			await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
-			return
+
+		try {
+			const targetBranch = getInput('target_branch') || 'main'
+			const branch = await getBranch(octokit, targetBranch)
+			if (branch) {
+				// Create the branch from the ref found in grafana-enterprise.
+				await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
+				return
+			}
+		} catch (err) {
+			console.log('error fetching target_branch (or main):', err)
 		}
 
 		throw new Error('Failed to create upstream ref; no branch was found. Not even main.')
