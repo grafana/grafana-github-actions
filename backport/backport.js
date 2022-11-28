@@ -155,9 +155,11 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
 };
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     const payload = github_1.context.payload;
-    let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : '';
-    if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
-        return;
+    if (payload.action !== 'closed') {
+        let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : '';
+        if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
+            return;
+        }
     }
     let labelsString = labels.map(({ name }) => name);
     let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels);
