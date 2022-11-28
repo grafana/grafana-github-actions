@@ -17,19 +17,25 @@ class EnterpriseCheck extends Action_1.Action {
         if (!prNumber) {
             throw new Error('Missing OSS PR number');
         }
-        let branch = await getBranch(octokit, sourceBranch);
-        if (branch) {
-            return;
+        const sourceSha = (0, core_1.getInput)('source_sha');
+        if (!prNumber) {
+            throw new Error('Missing OSS PR number');
         }
-        const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
-        branch = await getBranch(octokit, targetBranch);
+        let branch = await getBranch(octokit, sourceBranch);
+        // If the source branch was not found on Enterprise, then attempt to use the targetBranch (likely something like v9.2.x).
+        // If the targetBranch was not found, then use `main`. If `main` wasn't found, then we have a problem.
         if (!branch) {
-            branch = await getBranch(octokit, 'main');
+            const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
+            branch = await getBranch(octokit, targetBranch);
             if (!branch) {
-                throw new Error('error retrieving main branch');
+                branch = await getBranch(octokit, 'main');
+                if (!branch) {
+                    throw new Error('error retrieving main branch');
+                }
             }
         }
-        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha);
+        // Create the branch from the ref found in grafana-enterprise.
+        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
     }
 }
 async function getBranch(octokit, branch) {
@@ -47,12 +53,12 @@ async function getBranch(octokit, branch) {
     }
     return null;
 }
-async function createOrUpdateRef(octokit, prNumber, branch, sha) {
+async function createOrUpdateRef(octokit, prNumber, branch, sha, sourceSha) {
     try {
         await octokit.octokit.git.createRef({
             owner: 'grafana',
             repo: 'grafana-enterprise',
-            ref: `refs/heads/prc-${prNumber}-${sha}/${branch}`,
+            ref: `refs/heads/prc-${prNumber}-${sourceSha}/${branch}`,
             sha: sha,
         });
     }
