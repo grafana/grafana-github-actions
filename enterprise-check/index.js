@@ -9,24 +9,29 @@ class EnterpriseCheck extends Action_1.Action {
         this.id = 'EnterpriseCheck';
     }
     async createRef(octokit) {
+        (0, core_1.debug)('Getting source branch from input...');
         const sourceBranch = (0, core_1.getInput)('source_branch');
         if (!sourceBranch) {
             throw new Error('Missing source branch');
         }
+        (0, core_1.debug)('Getting PR number from input...');
         const prNumber = (0, core_1.getInput)('pr_number');
         if (!prNumber) {
             throw new Error('Missing OSS PR number');
         }
+        (0, core_1.debug)('Getting source commit from input...');
         const sourceSha = (0, core_1.getInput)('source_sha');
         if (!sourceSha) {
             throw new Error('Missing OSS source SHA');
         }
+        (0, core_1.debug)('Getting branch ref from grafana enterprise...');
         let branch = await getBranch(octokit, sourceBranch);
         if (branch) {
             // Create the branch from the ref found in grafana-enterprise.
             await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
             return;
         }
+        (0, core_1.debug)("Branch in grafana enterprise doesn't exist, getting branch from 'target_branch' or 'main'...");
         // If the source branch was not found on Enterprise, then attempt to use the targetBranch (likely something like v9.2.x).
         // If the targetBranch was not found, then use `main`. If `main` wasn't found, then we have a problem.
         const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
@@ -36,12 +41,7 @@ class EnterpriseCheck extends Action_1.Action {
             await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
             return;
         }
-        branch = await getBranch(octokit, 'main');
-        if (!branch) {
-            throw new Error('error retrieving main branch');
-        }
-        // Create the branch from the ref found in grafana-enterprise.
-        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
+        throw new Error('Failed to create upstream ref; no branch was found. Not even main.');
     }
     async onTriggered(octokit) {
         try {
