@@ -29,7 +29,7 @@ class EnterpriseCheck extends Action_1.Action {
                 throw new Error('error retrieving main branch');
             }
         }
-        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha.substring(0, 8));
+        await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha);
     }
 }
 async function getBranch(octokit, branch) {
