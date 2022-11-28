@@ -251,6 +251,7 @@ const backport = async ({
 	sender,
 }: BackportArgs) => {
 	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
+	console.log('payloadAction: ' + payload.action)
 	if (payload.action !== 'closed') {
 		let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : ''
 		if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
