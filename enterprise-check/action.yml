@@ -11,6 +11,8 @@ inputs:
     description: Target branch of the OSS PR
   pr_number:
     description: OSS PR number
+  source_sha:
+    description: the HEAD of the OSS PR
 runs:
   using: 'node16'
   main: 'index.js'
