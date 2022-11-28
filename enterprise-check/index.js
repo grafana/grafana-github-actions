@@ -39,8 +39,8 @@ class EnterpriseCheck extends Action_1.Action {
         (0, core_1.debug)("Branch in grafana enterprise doesn't exist, getting branch from 'target_branch' or 'main'...");
         // If the source branch was not found on Enterprise, then attempt to use the targetBranch (likely something like v9.2.x).
         // If the targetBranch was not found, then use `main`. If `main` wasn't found, then we have a problem.
+        const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
         try {
-            const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
             const branch = await getBranch(octokit, targetBranch);
             if (branch) {
                 // Create the branch from the ref found in grafana-enterprise.
@@ -49,7 +49,18 @@ class EnterpriseCheck extends Action_1.Action {
             }
         }
         catch (err) {
-            console.log('error fetching target_branch (or main):', err);
+            console.log(`error fetching ${targetBranch}:`, err);
+        }
+        try {
+            const branch = await getBranch(octokit, 'main');
+            if (branch) {
+                // Create the branch from the ref found in grafana-enterprise.
+                await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
+                return;
+            }
+        }
+        catch (err) {
+            console.log('error fetching main:', err);
         }
         throw new Error('Failed to create upstream ref; no branch was found. Not even main.');
     }
