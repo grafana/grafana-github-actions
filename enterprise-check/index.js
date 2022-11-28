@@ -18,21 +18,27 @@ class EnterpriseCheck extends Action_1.Action {
             throw new Error('Missing OSS PR number');
         }
         const sourceSha = (0, core_1.getInput)('source_sha');
-        if (!prNumber) {
-            throw new Error('Missing OSS PR number');
+        if (!sourceSha) {
+            throw new Error('Missing OSS source SHA');
         }
         let branch = await getBranch(octokit, sourceBranch);
+        if (branch) {
+            // Create the branch from the ref found in grafana-enterprise.
+            await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
+            return;
+        }
         // If the source branch was not found on Enterprise, then attempt to use the targetBranch (likely something like v9.2.x).
         // If the targetBranch was not found, then use `main`. If `main` wasn't found, then we have a problem.
+        const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
+        branch = await getBranch(octokit, targetBranch);
+        if (branch) {
+            // Create the branch from the ref found in grafana-enterprise.
+            await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
+            return;
+        }
+        branch = await getBranch(octokit, 'main');
         if (!branch) {
-            const targetBranch = (0, core_1.getInput)('target_branch') || 'main';
-            branch = await getBranch(octokit, targetBranch);
-            if (!branch) {
-                branch = await getBranch(octokit, 'main');
-                if (!branch) {
-                    throw new Error('error retrieving main branch');
-                }
-            }
+            throw new Error('error retrieving main branch');
         }
         // Create the branch from the ref found in grafana-enterprise.
         await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha);
@@ -67,7 +73,7 @@ async function createOrUpdateRef(octokit, prNumber, branch, sha, sourceSha) {
             await octokit.octokit.git.updateRef({
                 owner: 'grafana',
                 repo: 'grafana-enterprise',
-                ref: `heads/prc-${prNumber}-${sha}/${branch}`,
+                ref: `heads/prc-${prNumber}-${sourceSha}/${branch}`,
                 sha: sha,
                 force: true,
             });
