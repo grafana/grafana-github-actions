@@ -69,4 +69,21 @@ test('hasMatchingReleaseTagWithRefNames', () => {
 			new RegExp('^release-(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$'),
 		),
 	).toBe('false')
+
+	expect(
+		hasMatchingReleaseTagWithRefNames(
+			['v9.2.1', 'v9.2.3', 'v9.2.4', 'v9.2.5', 'v9.2.6', 'v9.2.7'],
+			'v9.3.x',
+			new RegExp('^v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$'),
+			new RegExp('^v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.x$'),
+		),
+	).toBe('false')
+	expect(
+		hasMatchingReleaseTagWithRefNames(
+			['v9.2.1', 'v9.2.3', 'v9.2.4', 'v9.2.5', 'v9.2.6', 'v9.2.7', 'v9.3.0'],
+			'v9.3.x',
+			new RegExp('^v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$'),
+			new RegExp('^v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.x$'),
+		),
+	).toBe('true')
 })

@@ -7,6 +7,7 @@ test('mappings', () => {
 	expect(map('main')).toBe('next')
 	expect(map('master')).toBe('next')
 	expect(map('mimir-2.0.1')).toBe('v2.0')
+	expect(map('v9.3.x')).toBe('v9.3')
 
 	expect(() => map('foo')).toThrow()
 })
