@@ -47,7 +47,7 @@ class EnterpriseCheck extends Action {
 			const branch = await getBranch(octokit, targetBranch)
 			if (branch) {
 				// Create the branch from the ref found in grafana-enterprise.
-				await createOrUpdateRef(octokit, prNumber, targetBranch, branch.commit.sha, sourceSha)
+				await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
 				return
 			}
 		} catch (err) {
@@ -58,7 +58,7 @@ class EnterpriseCheck extends Action {
 			const branch = await getBranch(octokit, 'main')
 			if (branch) {
 				// Create the branch from the ref found in grafana-enterprise.
-				await createOrUpdateRef(octokit, prNumber, 'main', branch.commit.sha, sourceSha)
+				await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)
 				return
 			}
 		} catch (err) {
