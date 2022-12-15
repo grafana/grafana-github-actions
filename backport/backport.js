@@ -208,13 +208,11 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             name: missingLabels,
         });
     }
-    if (merged) {
-        console.log('This is a merge action');
-    }
-    else {
+    if (!merged) {
         console.log('PR not merged');
         return;
     }
+    console.log('This is a merge action');
     const backportBaseToHead = getBackportBaseToHead({
         action,
         // The payload has a label property when the action is "labeled".

@@ -306,12 +306,11 @@ const backport = async ({
 		})
 	}
 
-	if (merged) {
-		console.log('This is a merge action')
-	} else {
+	if (!merged) {
 		console.log('PR not merged')
 		return
 	}
+	console.log('This is a merge action')
 
 	const backportBaseToHead = getBackportBaseToHead({
 		action,
