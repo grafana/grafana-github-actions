@@ -306,7 +306,9 @@ const backport = async ({
 		})
 	}
 
-	if (!merged) {
+	if (merged) {
+		console.log('This is a merge action')
+	} else {
 		console.log('PR not merged')
 		return
 	}

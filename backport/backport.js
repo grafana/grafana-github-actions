@@ -208,7 +208,10 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             name: missingLabels,
         });
     }
-    if (!merged) {
+    if (merged) {
+        console.log('This is a merge action');
+    }
+    else {
         console.log('PR not merged');
         return;
     }
