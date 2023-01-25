@@ -80,14 +80,16 @@ export class ChangelogBuilder {
 
 		this.issueList = []
 
-		for await (const page of this.octokit.query({ q: `is:issue is:closed milestone:${this.version}` })) {
+		for await (const page of this.octokit.query({
+			q: `is:pull-request is:closed milestone:${this.version}`,
+		})) {
 			for (const issue of page) {
 				this.issueList.push(await issue.getIssue())
 			}
 		}
 
 		for await (const page of this.octokit.query({
-			q: `is:issue is:closed milestone:${this.version}`,
+			q: `is:pull-request is:closed milestone:${this.version}`,
 			repo: 'grafana-enterprise',
 		})) {
 			for (const issue of page) {
