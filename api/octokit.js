@@ -230,17 +230,9 @@ class OctoKit {
         try {
             const result = (await this._octokitGraphQL({
                 query: `query getProjectNodeId($org: String!, $projectId: Int!) {
-					organization(login: $org) {
-					  projectNext(number: $projectId) {
+					organization(login: $org) {	
+					  projectV2(number: $projectId) {
 						id
-						fields(first: 100) {
-						  edges {
-							node {
-							  id
-							  name
-							}
-						  }
-						}
 					  }
 					  project(number: $projectId) {
 						id
