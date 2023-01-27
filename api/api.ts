@@ -139,7 +139,7 @@ export interface Milestone {
 
 export enum projectType {
 	Project,
-	ProjectNext,
+	ProjectV2,
 }
 
 export interface ProjectAndColumnIds {

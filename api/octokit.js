@@ -253,10 +253,10 @@ class OctoKit {
                 org,
             }));
             console.debug('getProject result ' + JSON.stringify(result));
-            if (result.organization.projectNext && result.organization.projectNext.id) {
+            if (result.organization.projectV2 && result.organization.projectV2.id) {
                 return {
-                    projectType: api_1.projectType.ProjectNext,
-                    projectNodeId: result.organization.projectNext.id,
+                    projectType: api_1.projectType.ProjectV2,
+                    projectNodeId: result.organization.projectV2.id,
                 };
             }
             else if (result.organization.project && result.organization.project.id && columnName) {
@@ -308,14 +308,14 @@ class OctoKit {
             issueNodeId,
         });
     }
-    async addIssueToProjectNext(projectNodeId, issueNodeId) {
-        console.log('Running addIssueToProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+    async addIssueToProjectV2(projectNodeId, issueNodeId) {
+        console.log('Running addIssueToProjectV2 with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
         const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
-			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
-			  projectNextItem {
-				id
+			addProjectV2ItemById(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+				item {
+				  id
+				}
 			  }
-			}
 		}`;
         return await this._octokitGraphQL({
             query: mutation,
@@ -323,17 +323,16 @@ class OctoKit {
             issueNodeId,
         });
     }
-    async getItemIdFromIssueProjectNext(projectNodeId, issueNodeId) {
-        console.log('Running getItemIdFromIssueProjectNext with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
-        const mutation = `query getIssueProjectNextNodeId($issueNodeId: ID!) {
+    async getItemIdFromIssueProjectV2(projectNodeId, issueNodeId) {
+        console.log('Running getItemIdFromIssueProjectV2 with: projectNodeId: ', projectNodeId, ' issueNodeId: ', issueNodeId);
+        const mutation = `query getIssueProjectV2NodeId($issueNodeId: ID!) {
 			node(id: $issueNodeId) {
 			  id
 			  ... on Issue {
 				id
-				projectNextItems(first: 100) {
+				projectItems(first: 100) {
 				  nodes {
 					id
-					title
 					project {
 					  id
 					}
@@ -347,25 +346,25 @@ class OctoKit {
                 query: mutation,
                 issueNodeId,
             }));
-            // finding the right issueProjectNextNodeId
-            for (const issueProjectNextNode of results.node.projectNextItems.nodes) {
-                if (issueProjectNextNode.project &&
-                    issueProjectNextNode.project.id &&
-                    issueProjectNextNode.project.id === projectNodeId) {
-                    return issueProjectNextNode.id;
+            // finding the right issueProjectV2NodeId
+            for (const issueProjectV2Node of results.node.projectItems.nodes) {
+                if (issueProjectV2Node.project &&
+                    issueProjectV2Node.project.id &&
+                    issueProjectV2Node.project.id === projectNodeId) {
+                    return issueProjectV2Node.id;
                 }
             }
             throw new Error('Could not find the right project' + JSON.stringify(results));
         }
         catch (error) {
-            console.error('getItemIdFromIssueProjectNext failed: ' + error);
+            console.error('getItemIdFromIssueProjectV2 failed: ' + error);
         }
         return undefined;
     }
-    async removeIssueFromProjectNext(projectNodeId, issueNodeId) {
-        console.log('Running removeIssueFromProjectNext with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);
+    async removeIssueFromProjectV2(projectNodeId, issueNodeId) {
+        console.log('Running removeIssueFromProjectV2 with: projectNodeId: ', projectNodeId, 'issueNodeId: ', issueNodeId);
         const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
-			deleteProjectNextItem(
+			deleteProjectV2Item(
 			  input: {
 				projectId: $projectNodeId
 				itemId: $issueNodeId
@@ -388,8 +387,8 @@ class OctoKit {
                 console.log('Could not find project for project id: ' + projectId);
                 return;
             }
-            if (project.projectType === api_1.projectType.ProjectNext) {
-                await this.addIssueToProjectNext(project.projectNodeId, issue.nodeId);
+            if (project.projectType === api_1.projectType.ProjectV2) {
+                await this.addIssueToProjectV2(project.projectNodeId, issue.nodeId);
             }
             else if (project.projectType === api_1.projectType.Project && project.columnNodeId) {
                 await this.addIssueToProjectOld(project.columnNodeId, issue.nodeId);
@@ -410,12 +409,12 @@ class OctoKit {
                 console.log('Could not find project for project id: ' + projectId);
                 return;
             }
-            if (project.projectType === api_1.projectType.ProjectNext) {
-                const issueProjectNextItemNodeId = await this.getItemIdFromIssueProjectNext(project.projectNodeId, issue.nodeId);
-                if (!issueProjectNextItemNodeId) {
-                    throw new Error('Could not get issueProjectNextItemNodeId');
+            if (project.projectType === api_1.projectType.ProjectV2) {
+                const issueProjectV2ItemNodeId = await this.getItemIdFromIssueProjectV2(project.projectNodeId, issue.nodeId);
+                if (!issueProjectV2ItemNodeId) {
+                    throw new Error('Could not get issueProjectV2ItemNodeId');
                 }
-                await this.removeIssueFromProjectNext(project.projectNodeId, issueProjectNextItemNodeId);
+                await this.removeIssueFromProjectV2(project.projectNodeId, issueProjectV2ItemNodeId);
                 return;
             }
             else if (project.projectType === api_1.projectType.Project) {

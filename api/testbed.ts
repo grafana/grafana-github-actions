@@ -107,7 +107,7 @@ export class Testbed implements GitHub {
 	): Promise<ProjectAndColumnIds | undefined> {
 		return {
 			projectNodeId: this.config.projectNodeId ?? 'TESTPROJECTID',
-			projectType: projectType.ProjectNext,
+			projectType: projectType.ProjectV2,
 		}
 	}
 	/* eslint-enable @typescript-eslint/no-unused-vars */

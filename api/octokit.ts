@@ -296,10 +296,10 @@ export class OctoKit implements GitHub {
 			})) as GraphQlQueryResponseData
 			console.debug('getProject result ' + JSON.stringify(result))
 
-			if (result.organization.projectNext && result.organization.projectNext.id) {
+			if (result.organization.projectV2 && result.organization.projectV2.id) {
 				return {
-					projectType: projectType.ProjectNext,
-					projectNodeId: result.organization.projectNext.id,
+					projectType: projectType.ProjectV2,
+					projectNodeId: result.organization.projectV2.id,
 				}
 			} else if (result.organization.project && result.organization.project.id && columnName) {
 				// try to find the right column
@@ -363,20 +363,20 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-	protected async addIssueToProjectNext(projectNodeId: string, issueNodeId: string) {
+	protected async addIssueToProjectV2(projectNodeId: string, issueNodeId: string) {
 		console.log(
-			'Running addIssueToProjectNext with: projectNodeId: ',
+			'Running addIssueToProjectV2 with: projectNodeId: ',
 			projectNodeId,
 			' issueNodeId: ',
 			issueNodeId,
 		)
 
 		const mutation = `mutation addIssueToProject($projectNodeId: ID!, $issueNodeId: ID!){
-			addProjectNextItem(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
-			  projectNextItem {
-				id
+			addProjectV2ItemById(input: {projectId: $projectNodeId, contentId: $issueNodeId}) {
+				item {
+				  id
+				}
 			  }
-			}
 		}`
 		return await this._octokitGraphQL({
 			query: mutation,
@@ -385,26 +385,25 @@ export class OctoKit implements GitHub {
 		})
 	}
 
-	protected async getItemIdFromIssueProjectNext(
+	protected async getItemIdFromIssueProjectV2(
 		projectNodeId: string,
 		issueNodeId: string,
 	): Promise<string | undefined> {
 		console.log(
-			'Running getItemIdFromIssueProjectNext with: projectNodeId: ',
+			'Running getItemIdFromIssueProjectV2 with: projectNodeId: ',
 			projectNodeId,
 			' issueNodeId: ',
 			issueNodeId,
 		)
 
-		const mutation = `query getIssueProjectNextNodeId($issueNodeId: ID!) {
+		const mutation = `query getIssueProjectV2NodeId($issueNodeId: ID!) {
 			node(id: $issueNodeId) {
 			  id
 			  ... on Issue {
 				id
-				projectNextItems(first: 100) {
+				projectItems(first: 100) {
 				  nodes {
 					id
-					title
 					project {
 					  id
 					}
@@ -420,33 +419,33 @@ export class OctoKit implements GitHub {
 				issueNodeId,
 			})) as GraphQlQueryResponseData
 
-			// finding the right issueProjectNextNodeId
-			for (const issueProjectNextNode of results.node.projectNextItems.nodes) {
+			// finding the right issueProjectV2NodeId
+			for (const issueProjectV2Node of results.node.projectItems.nodes) {
 				if (
-					issueProjectNextNode.project &&
-					issueProjectNextNode.project.id &&
-					issueProjectNextNode.project.id === projectNodeId
+					issueProjectV2Node.project &&
+					issueProjectV2Node.project.id &&
+					issueProjectV2Node.project.id === projectNodeId
 				) {
-					return issueProjectNextNode.id
+					return issueProjectV2Node.id
 				}
 			}
 			throw new Error('Could not find the right project' + JSON.stringify(results))
 		} catch (error) {
-			console.error('getItemIdFromIssueProjectNext failed: ' + error)
+			console.error('getItemIdFromIssueProjectV2 failed: ' + error)
 		}
 		return undefined
 	}
 
-	protected async removeIssueFromProjectNext(projectNodeId: string, issueNodeId: string) {
+	protected async removeIssueFromProjectV2(projectNodeId: string, issueNodeId: string) {
 		console.log(
-			'Running removeIssueFromProjectNext with: projectNodeId: ',
+			'Running removeIssueFromProjectV2 with: projectNodeId: ',
 			projectNodeId,
 			'issueNodeId: ',
 			issueNodeId,
 		)
 
 		const mutation = `mutation removeIssueFromProject($projectNodeId: ID!, $issueNodeId: ID!){
-			deleteProjectNextItem(
+			deleteProjectV2Item(
 			  input: {
 				projectId: $projectNodeId
 				itemId: $issueNodeId
@@ -476,8 +475,8 @@ export class OctoKit implements GitHub {
 				console.log('Could not find project for project id: ' + projectId)
 				return
 			}
-			if (project.projectType === projectType.ProjectNext) {
-				await this.addIssueToProjectNext(project.projectNodeId, issue.nodeId)
+			if (project.projectType === projectType.ProjectV2) {
+				await this.addIssueToProjectV2(project.projectNodeId, issue.nodeId)
 			} else if (project.projectType === projectType.Project && project.columnNodeId) {
 				await this.addIssueToProjectOld(project.columnNodeId, issue.nodeId)
 			} else {
@@ -497,15 +496,15 @@ export class OctoKit implements GitHub {
 				console.log('Could not find project for project id: ' + projectId)
 				return
 			}
-			if (project.projectType === projectType.ProjectNext) {
-				const issueProjectNextItemNodeId = await this.getItemIdFromIssueProjectNext(
+			if (project.projectType === projectType.ProjectV2) {
+				const issueProjectV2ItemNodeId = await this.getItemIdFromIssueProjectV2(
 					project.projectNodeId,
 					issue.nodeId,
 				)
-				if (!issueProjectNextItemNodeId) {
-					throw new Error('Could not get issueProjectNextItemNodeId')
+				if (!issueProjectV2ItemNodeId) {
+					throw new Error('Could not get issueProjectV2ItemNodeId')
 				}
-				await this.removeIssueFromProjectNext(project.projectNodeId, issueProjectNextItemNodeId)
+				await this.removeIssueFromProjectV2(project.projectNodeId, issueProjectV2ItemNodeId)
 				return
 			} else if (project.projectType === projectType.Project) {
 				await this.removeIssueFromProjectOld(project.projectNodeId, issue.nodeId)
