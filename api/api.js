@@ -8,6 +8,6 @@ exports.projectType = void 0;
 var projectType;
 (function (projectType) {
     projectType[projectType["Project"] = 0] = "Project";
-    projectType[projectType["ProjectNext"] = 1] = "ProjectNext";
+    projectType[projectType["ProjectV2"] = 1] = "ProjectV2";
 })(projectType = exports.projectType || (exports.projectType = {}));
 //# sourceMappingURL=api.js.map

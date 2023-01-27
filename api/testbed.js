@@ -65,7 +65,7 @@ class Testbed {
     async getProject(_projectId, _org, _columnName) {
         return {
             projectNodeId: this.config.projectNodeId ?? 'TESTPROJECTID',
-            projectType: api_1.projectType.ProjectNext,
+            projectType: api_1.projectType.ProjectV2,
         };
     }
     /* eslint-enable @typescript-eslint/no-unused-vars */
