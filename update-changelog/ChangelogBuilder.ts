@@ -33,16 +33,14 @@ export class ChangelogBuilder {
 		let headerLine: string | null = null
 
 		for (const issue of await this.getIssuesForVersion()) {
-			if (issueHasLabel(issue, CHANGELOG_LABEL)) {
-				if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL, GRAFANA_UI_LABEL, GRAFANA_RUNTIME_LABEL)) {
-					pluginDeveloperIssues.push(issue)
-				} else {
-					grafanaIssues.push(issue)
-				}
-
-				breakingChanges.push(...this.getChangeLogNotice(issue, BREAKING_SECTION_START))
-				deprecationChanges.push(...this.getChangeLogNotice(issue, DEPRECATION_SECTION_START))
+			if (issueHasLabel(issue, GRAFANA_TOOLKIT_LABEL, GRAFANA_UI_LABEL, GRAFANA_RUNTIME_LABEL)) {
+				pluginDeveloperIssues.push(issue)
+			} else {
+				grafanaIssues.push(issue)
 			}
+
+			breakingChanges.push(...this.getChangeLogNotice(issue, BREAKING_SECTION_START))
+			deprecationChanges.push(...this.getChangeLogNotice(issue, DEPRECATION_SECTION_START))
 
 			if (!headerLine) {
 				headerLine = await this.getReleaseHeader(issue.milestoneId!, options.useDocsHeader)
@@ -81,7 +79,7 @@ export class ChangelogBuilder {
 		this.issueList = []
 
 		for await (const page of this.octokit.query({
-			q: `is:pull-request is:closed milestone:${this.version}`,
+			q: `label:"add to changelog" is:pull-request is:closed milestone:${this.version}`,
 		})) {
 			for (const issue of page) {
 				this.issueList.push(await issue.getIssue())
@@ -89,7 +87,7 @@ export class ChangelogBuilder {
 		}
 
 		for await (const page of this.octokit.query({
-			q: `is:pull-request is:closed milestone:${this.version}`,
+			q: `label:"add to changelog" is:pull-request is:closed milestone:${this.version}`,
 			repo: 'grafana-enterprise',
 		})) {
 			for (const issue of page) {
