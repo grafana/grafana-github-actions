@@ -25,16 +25,14 @@ class ChangelogBuilder {
         const deprecationChanges = [];
         let headerLine = null;
         for (const issue of await this.getIssuesForVersion()) {
-            if (issueHasLabel(issue, exports.CHANGELOG_LABEL)) {
-                if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL, exports.GRAFANA_UI_LABEL, exports.GRAFANA_RUNTIME_LABEL)) {
-                    pluginDeveloperIssues.push(issue);
-                }
-                else {
-                    grafanaIssues.push(issue);
-                }
-                breakingChanges.push(...this.getChangeLogNotice(issue, exports.BREAKING_SECTION_START));
-                deprecationChanges.push(...this.getChangeLogNotice(issue, exports.DEPRECATION_SECTION_START));
+            if (issueHasLabel(issue, exports.GRAFANA_TOOLKIT_LABEL, exports.GRAFANA_UI_LABEL, exports.GRAFANA_RUNTIME_LABEL)) {
+                pluginDeveloperIssues.push(issue);
             }
+            else {
+                grafanaIssues.push(issue);
+            }
+            breakingChanges.push(...this.getChangeLogNotice(issue, exports.BREAKING_SECTION_START));
+            deprecationChanges.push(...this.getChangeLogNotice(issue, exports.DEPRECATION_SECTION_START));
             if (!headerLine) {
                 headerLine = await this.getReleaseHeader(issue.milestoneId, options.useDocsHeader);
             }
@@ -63,14 +61,14 @@ class ChangelogBuilder {
         }
         this.issueList = [];
         for await (const page of this.octokit.query({
-            q: `is:pull-request is:closed milestone:${this.version}`,
+            q: `label:"add to changelog" is:pull-request is:closed milestone:${this.version}`,
         })) {
             for (const issue of page) {
                 this.issueList.push(await issue.getIssue());
             }
         }
         for await (const page of this.octokit.query({
-            q: `is:pull-request is:closed milestone:${this.version}`,
+            q: `label:"add to changelog" is:pull-request is:closed milestone:${this.version}`,
             repo: 'grafana-enterprise',
         })) {
             for (const issue of page) {
