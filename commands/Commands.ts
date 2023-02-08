@@ -14,7 +14,7 @@ export type Command = { name: string } & (
 	| { type: 'comment'; allowUsers: string[] }
 	| { type: 'label' }
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
-	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[] }
+	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[]; noLabels?: boolean }
 ) & {
 		action?: 'close' | 'addToProject' | 'removeFromProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
@@ -74,6 +74,15 @@ export class Commands {
 		}
 
 		if (command.type === 'author') {
+			const labelPropExists = command.noLabels
+			const issueHasLabel = issue.labels.length > 0
+			if (labelPropExists && issueHasLabel) {
+				return 'noLabels' in command ? false : true
+			}
+			if (labelPropExists && !issueHasLabel && command.comment) {
+				command.comment = '@' + issue.author.name + command.comment
+			}
+			
 			const org = command.memberOf?.org || command.notMemberOf?.org
 
 			if (command.ignoreList?.length && command.ignoreList.includes(issue.author.name)) {

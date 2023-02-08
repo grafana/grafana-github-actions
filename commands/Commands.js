@@ -53,6 +53,14 @@ class Commands {
             return (0, globmatcher_1.checkMatch)(changedFiles, matchCfg);
         }
         if (command.type === 'author') {
+            const labelPropExists = command.noLabels;
+            const issueHasLabel = issue.labels.length > 0;
+            if (labelPropExists && issueHasLabel) {
+                return 'noLabels' in command ? false : true;
+            }
+            if (labelPropExists && !issueHasLabel && command.comment) {
+                command.comment = '@' + issue.author.name + command.comment;
+            }
             const org = command.memberOf?.org || command.notMemberOf?.org;
             if (command.ignoreList?.length && command.ignoreList.includes(issue.author.name)) {
                 return false;
