@@ -82,7 +82,7 @@ export class Commands {
 			if (labelPropExists && !issueHasLabel && command.comment) {
 				command.comment = '@' + issue.author.name + command.comment
 			}
-			
+
 			const org = command.memberOf?.org || command.notMemberOf?.org
 
 			if (command.ignoreList?.length && command.ignoreList.includes(issue.author.name)) {
