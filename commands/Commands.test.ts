@@ -420,6 +420,73 @@ describe('Commands', () => {
 			expect((await testbed.getIssue()).labels).to.contain('new')
 		})
 
+		it('Labels and comments when author is member of org and adds no labels', async () => {
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+					userMemberOfOrganization: true,
+				},
+				{
+					labels: [],
+				},
+			)
+			const commands: Command[] = [
+				{
+					type: 'author',
+					name: 'Grafana author',
+					memberOf: { org: 'grafana' },
+					noLabels: true,
+					addLabel: 'internal',
+					comment: ' please add a label',
+				},
+			]
+
+			expect(((await testbed.getIssue()).labels.length = 0))
+
+			await new Commands(testbed, commands, {}).run()
+
+			expect(((await testbed.getIssue()).labels.length = 1))
+			expect((await testbed.getIssue()).labels).to.contain('internal')
+			const comments = []
+			for await (const page of testbed.getComments()) {
+				comments.push(...page)
+			}
+			expect(comments[0].body).to.equal('@JacksonKearl please add a label')
+		})
+
+		it('Does not add label or comment when author is NOT member of org and creates issue with no labels', async () => {
+			const testbed = new TestbedIssue(
+				{
+					writers: ['JacksonKearl'],
+					userMemberOfOrganization: false,
+				},
+				{
+					labels: [],
+				},
+			)
+			const commands: Command[] = [
+				{
+					type: 'author',
+					name: 'Grafana author',
+					memberOf: { org: 'grafana' },
+					noLabels: true,
+					addLabel: 'internal',
+					comment: ' please add a label',
+				},
+			]
+
+			expect(((await testbed.getIssue()).labels.length = 0))
+
+			await new Commands(testbed, commands, {}).run()
+
+			expect(((await testbed.getIssue()).labels.length = 0))
+			const comments = []
+			for await (const page of testbed.getComments()) {
+				comments.push(...page)
+			}
+			expect(comments.length).to.equal(0)
+		})
+
 		it('Labels not when author is member of organization', async () => {
 			const testbed = new TestbedIssue(
 				{
