@@ -57,7 +57,7 @@ export function hasMatchingReleaseTagWithRefNames(
 				tagMatches &&
 				tagMatches[1] == branchMatches[1] &&
 				tagMatches[2] == branchMatches[2] &&
-				tagMatches[3] == '0'
+				tagMatches[3].match(new RegExp('0|[1-9]d*'))
 			) {
 				console.log(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`)
 				return 'true'
