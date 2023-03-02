@@ -8,6 +8,8 @@ import { cloneRepo } from '../common/git'
 import { OctoKit } from '../api/octokit'
 import { FileUpdater } from './FileUpdater'
 import { ChangelogBuilder } from './ChangelogBuilder'
+import { getInput } from '../common/utils'
+import axios from 'axios'
 
 class UpdateChangelog extends Action {
 	id = 'UpdateChangelog'
@@ -118,6 +120,28 @@ class UpdateChangelog extends Action {
 				repo,
 				labels: ['backport ' + versionMajorBranch, 'no-changelog'],
 			})
+		}
+
+		// publish changelog to community.grafana.com
+		try {
+			const apiKey = getInput('grafanabotForumKey')
+			const forumData = {
+				title: `Changelog: Updates in Grafana ${version}`,
+				raw: `${changelog}`,
+				category: 9,
+			}
+			await axios({
+				url: 'https://community.grafana.com/posts.json',
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'Api-Key': `${apiKey}`,
+					'Api-Username': 'grafanabot',
+				},
+				data: JSON.stringify(forumData),
+			})
+		} catch (e) {
+			console.log(e)
 		}
 	}
 }

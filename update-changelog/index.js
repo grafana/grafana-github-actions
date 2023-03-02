@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { error as logError, getInput, setFailed } from '@actions/core'
 const github_1 = require("@actions/github");
@@ -9,6 +12,8 @@ const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const FileUpdater_1 = require("./FileUpdater");
 const ChangelogBuilder_1 = require("./ChangelogBuilder");
+const utils_1 = require("../common/utils");
+const axios_1 = __importDefault(require("axios"));
 class UpdateChangelog extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -92,6 +97,28 @@ class UpdateChangelog extends Action_1.Action {
                 repo,
                 labels: ['backport ' + versionMajorBranch, 'no-changelog'],
             });
+        }
+        // publish changelog to community.grafana.com
+        try {
+            const apiKey = (0, utils_1.getInput)('grafanabotForumKey');
+            const forumData = {
+                title: `Changelog: Updates in Grafana ${version}`,
+                raw: `${changelog}`,
+                category: 9,
+            };
+            await (0, axios_1.default)({
+                url: 'https://community.grafana.com/posts.json',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Api-Key': `${apiKey}`,
+                    'Api-Username': 'grafanabot',
+                },
+                data: JSON.stringify(forumData),
+            });
+        }
+        catch (e) {
+            console.log(e);
         }
     }
 }

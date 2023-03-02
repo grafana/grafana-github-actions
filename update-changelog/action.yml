@@ -7,6 +7,9 @@ inputs:
   metricsWriteAPIKey:
     description: Grafana Cloud metrics api key
     required: false
+  grafanabotForumKey:
+    description: API key so Grot can publish changelog to community.grafana.com
+    required: false
   version_call:
     description: Version number invoked from workflow
 runs:
