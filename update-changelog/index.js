@@ -99,14 +99,14 @@ class UpdateChangelog extends Action_1.Action {
             });
         }
         // publish changelog to community.grafana.com
-        const forumData = {
-            title: `Changelog: Updates in Grafana ${version}`,
-            raw: `${changelog}`,
-            category: 9,
-        };
-        const apiKey = (0, utils_1.getInput)('grafanabotForumKey');
-        if (apiKey) {
-            (0, axios_1.default)({
+        try {
+            const apiKey = (0, utils_1.getInput)('grafanabotForumKey');
+            const forumData = {
+                title: `Changelog: Updates in Grafana ${version}`,
+                raw: `${changelog}`,
+                category: 9,
+            };
+            await (0, axios_1.default)({
                 url: 'https://community.grafana.com/posts.json',
                 method: 'POST',
                 headers: {
@@ -115,9 +115,10 @@ class UpdateChangelog extends Action_1.Action {
                     'Api-Username': 'grafanabot',
                 },
                 data: JSON.stringify(forumData),
-            }).catch((e) => {
-                console.log(e);
             });
+        }
+        catch (e) {
+            console.log(e);
         }
     }
 }
