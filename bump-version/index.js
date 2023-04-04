@@ -7,6 +7,7 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
+const versions_1 = require("./versions");
 class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -26,7 +27,7 @@ class BumpVersion extends Action_1.Action {
         }
         // Action invoked by a workflow
         const version_call = this.getVersion();
-        const matches = version_call.match(/^(\d+.\d+).\d+(?:-(beta)\d+)?$/);
+        const matches = (0, versions_1.getVersionMatch)(version_call);
         if (!matches || matches.length < 2) {
             throw new Error('The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta{number} format. Example: 7.4.3 or 7.4.3-beta1');
         }
