@@ -7,6 +7,7 @@ import { exec } from '@actions/exec'
 import { cloneRepo } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
+import { getVersionMatch } from './versions'
 
 class BumpVersion extends Action {
 	id = 'BumpVersion'
@@ -29,7 +30,7 @@ class BumpVersion extends Action {
 
 		// Action invoked by a workflow
 		const version_call = this.getVersion()
-		const matches = version_call.match(/^(\d+.\d+).\d+(?:-(beta)\d+)?$/)
+		const matches = getVersionMatch(version_call)
 		if (!matches || matches.length < 2) {
 			throw new Error(
 				'The input version format is not correct, please respect major.minor.patch or major.minor.patch-beta{number} format. Example: 7.4.3 or 7.4.3-beta1',
