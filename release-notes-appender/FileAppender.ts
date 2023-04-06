@@ -1,10 +1,21 @@
 import fs from 'fs'
+import path from 'path'
 import { splitStringIntoLines } from '../common/utils'
+
+interface FileAppenderOptions {
+	cwd?: string
+}
 
 export class FileAppender {
 	private lines: string[] = []
+	private options: FileAppenderOptions = {}
 
-	loadFile(filePath: string) {
+	constructor(opts: FileAppenderOptions = {}) {
+		this.options = opts
+	}
+
+	loadFile(relPath: string) {
+		let filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
 		if (!fs.existsSync(filePath)) {
 			throw new Error(`File not found ${filePath}`)
 		}
@@ -17,7 +28,8 @@ export class FileAppender {
 		this.lines.push(content)
 	}
 
-	writeFile(filePath: string) {
+	writeFile(relPath: string) {
+		let filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
 		fs.writeFileSync(filePath, this.getContent(), { encoding: 'utf-8' })
 	}
 

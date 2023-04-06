@@ -42,7 +42,7 @@ const createReleaseNotesPR = async ({
 	await git('pull')
 	await git('switch', '--create', head)
 
-	const fileAppender = new FileAppender()
+	const fileAppender = new FileAppender({ cwd: repo })
 	fileAppender.loadFile(releaseNotesFile)
 	fileAppender.append('* [PR #' + prNumber + '](' + prUrl + ') - ' + prTitle)
 	fileAppender.writeFile(releaseNotesFile)
