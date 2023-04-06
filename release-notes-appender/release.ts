@@ -3,13 +3,11 @@ import { context, GitHub } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
 import { cloneRepo } from '../common/git'
 import { exec } from '@actions/exec'
-import escapeRegExp from 'lodash.escaperegexp'
 import { FileAppender } from './FileAppender'
 
-const labelRegExp = /release notes ([^ ]+)(?: ([^ ]+))?$/
+const labelMatcher = 'add-to-release-notes'
 
 const createReleaseNotesPR = async ({
-	base,
 	prNumber,
 	prUrl,
 	prTitle,
@@ -23,7 +21,6 @@ const createReleaseNotesPR = async ({
 	milestone,
 	mergedBy,
 }: {
-	base: string
 	prNumber: number
 	prUrl: string
 	prTitle: string
@@ -41,7 +38,8 @@ const createReleaseNotesPR = async ({
 		await exec('git', args, { cwd: repo })
 	}
 
-	await git('switch', base)
+	await git('checkout', 'main')
+	await git('pull')
 	await git('switch', '--create', head)
 
 	const fileAppender = new FileAppender()
@@ -51,12 +49,12 @@ const createReleaseNotesPR = async ({
 
 	await git('add', releaseNotesFile)
 
-	const body = 'Add PR #' + prNumber + ' to release notes for release ' + base
+	const body = 'Add PR #' + prNumber + ' to release notes for next release'
 	await git('commit', '-m', body)
 
 	await git('push', '--set-upstream', 'origin', head)
 	const createRsp = await github.pulls.create({
-		base,
+		base: 'main',
 		body,
 		head,
 		owner,
@@ -107,79 +105,43 @@ const createReleaseNotesPR = async ({
 	}
 }
 
-const getLabelNames = ({
-	action,
-	label,
-	labels,
-}: {
-	action: EventPayloads.WebhookPayloadPullRequest['action']
-	label: { name: string }
-	labels: EventPayloads.WebhookPayloadPullRequest['pull_request']['labels']
-}): string[] => {
-	switch (action) {
-		case 'closed':
-			return labels.map(({ name }) => name)
-		case 'labeled':
-			return [label.name]
-		default:
-			return []
-	}
-}
-
-const getBackportBaseToHead = ({
-	action,
-	label,
-	labels,
-	pullRequestNumber,
-}: {
-	action: EventPayloads.WebhookPayloadPullRequest['action']
-	label: { name: string }
-	labels: EventPayloads.WebhookPayloadPullRequest['pull_request']['labels']
-	pullRequestNumber: number
-}): { [base: string]: string } => {
-	const baseToHead: { [base: string]: string } = {}
-
-	getLabelNames({ action, label, labels }).forEach((labelName) => {
-		const matches = labelRegExp.exec(labelName)
-
-		if (matches !== null) {
-			const [, base, head = `add-${pullRequestNumber}-to-release-notes-${base}`] = matches
-			baseToHead[base] = head
-		}
-	})
-
-	return baseToHead
-}
-
 const getFailedPRCommentBody = ({
-	base,
+	prNumber,
+	prUrl,
+	prTitle,
+	releaseNotesFile,
 	errorMessage,
 	head,
 }: {
-	base: string
+	prNumber: number
+	prUrl: string
+	prTitle: string
+	releaseNotesFile: string
 	errorMessage: string
 	head: string
 }) => {
 	return [
-		`The backport to \`${base}\` failed:`,
+		`Faile to add PR #${prNumber} to the release notes`,
 		'```',
 		errorMessage,
 		'```',
-		'To create PR manually, run these commands in your terminal:',
+		'To create this PR manually, run these commands in your terminal:',
 		'```bash',
 		'# Fetch latest updates from GitHub',
 		'git fetch',
 		'# Create a new branch',
-		`git switch --create ${head} origin/${base}`,
+		`git switch --create ${head} origin/main`,
 		'# Add the relevant PR to the release notes',
-		'# TODO: include commands for adding PR to release notes',
+		`echo "* [PR #${prNumber}](${prUrl}) - ${prTitle}" >> ${releaseNotesFile}`,
+		`git add ${releaseNotesFile}`,
+		`git commit -m "Add PR #${prNumber} to release notes for next release`,
 		'# Push it to GitHub',
 		`git push --set-upstream origin ${head}`,
 		`git switch main`,
 		'# Remove the local branch',
 		`git branch -D ${head}`,
 		'```',
-		`Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
+		`Then, create a pull request where the \`base\` branch is \`origin/main\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
 	].join('\n')
 }
 
@@ -195,8 +157,6 @@ interface ReleaseArgs {
 const release = async ({
 	labelsToAdd,
 	payload: {
-		action,
-		label,
 		pull_request: {
 			labels,
 			merged,
@@ -221,85 +181,72 @@ const release = async ({
 	let labelsString = labels.map(({ name }) => name)
 	let matches = false
 	for (const label of labelsString) {
-		matches = labelRegExp.test(label)
+		matches = labelMatcher === label
 		if (matches) {
 			break
 		}
 	}
 
+	if (!matches) {
+		console.log("PR doesn't contain label " + labelMatcher + '. Not adding to release notes.')
+		return
+	}
+
 	if (!merged) {
 		console.log('PR not merged')
-		return
+		// 	return
 	}
 	console.log('This is a merge action')
 
-	//TODO: Note that base here is the release version, not any sort of branch
-	const backportBaseToHead = getBackportBaseToHead({
-		action,
-		// The payload has a label property when the action is "labeled".
-		label: label!,
-		labels,
-		pullRequestNumber,
-	})
-
-	if (Object.keys(backportBaseToHead).length === 0) {
-		return
-	}
-
 	await cloneRepo({ token, owner, repo })
 
-	for (const [base, head] of Object.entries(backportBaseToHead)) {
-		let title = titleTemplate
-		Object.entries({
-			base,
-			originalTitle,
-		}).forEach(([name, value]) => {
-			title = title.replace(new RegExp(escapeRegExp(`{{${name}}}`), 'g'), value)
-		})
+	let title = titleTemplate
+	let head = `add-${pullRequestNumber}-to-release-notes`
 
-		await group(`Creating PR for ${head} to ${base}`, async () => {
-			try {
-				await createReleaseNotesPR({
-					base,
+	await group(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
+		try {
+			await createReleaseNotesPR({
+				prNumber: pullRequestNumber,
+				prTitle: originalTitle,
+				prUrl: payload.pull_request.html_url,
+				releaseNotesFile,
+				github: github,
+				head,
+				labelsToAdd,
+				owner,
+				repo,
+				title,
+				milestone,
+				mergedBy: merged_by,
+			})
+		} catch (error) {
+			const errorMessage: string =
+				error instanceof Error ? error.message : 'Unknown error while backporting'
+			logError(errorMessage)
+
+			// Create comment
+			await github.issues.createComment({
+				body: getFailedPRCommentBody({
 					prNumber: pullRequestNumber,
-					prTitle: originalTitle,
 					prUrl: payload.pull_request.html_url,
+					prTitle: originalTitle,
 					releaseNotesFile,
-					github: github,
+					errorMessage,
 					head,
-					labelsToAdd,
-					owner,
-					repo,
-					title,
-					milestone,
-					mergedBy: merged_by,
-				})
-			} catch (error) {
-				const errorMessage: string =
-					error instanceof Error ? error.message : 'Unknown error while backporting'
-				logError(errorMessage)
-
-				// Create comment
-				await github.issues.createComment({
-					body: getFailedPRCommentBody({
-						base,
-						errorMessage,
-						head,
-					}),
-					issue_number: pullRequestNumber,
-					owner,
-					repo,
-				})
-				// Add release-notes-failed label to failures
-				await github.issues.addLabels({
-					issue_number: pullRequestNumber,
-					labels: ['release-notes-failed'],
-					owner,
-					repo,
-				})
-			}
-		})
-	}
+				}),
+				issue_number: pullRequestNumber,
+				owner,
+				repo,
+			})
+			// Add release-notes-failed label to failures
+			await github.issues.addLabels({
+				issue_number: pullRequestNumber,
+				labels: ['release-notes-failed'],
+				owner,
+				repo,
+			})
+		}
+	})
 }
 
 export { release }
