@@ -1,13 +1,17 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.release = void 0;
-const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
-const git_1 = require("../common/git");
+const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
+const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const FileAppender_1 = require("./FileAppender");
+const git_1 = require("../common/git");
 const labelMatcher = 'add-to-release-notes';
-const createReleaseNotesPR = async ({ prNumber, prUrl, prTitle, releaseNotesFile, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
+const createReleaseNotesPR = async ({ pullRequestNumber: prNumber, pullRequestUrl: prUrl, pullRequestTitle: prTitle, releaseNotesFile, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
     };
@@ -16,7 +20,7 @@ const createReleaseNotesPR = async ({ prNumber, prUrl, prTitle, releaseNotesFile
     await git('switch', '--create', head);
     const fileAppender = new FileAppender_1.FileAppender({ cwd: repo });
     fileAppender.loadFile(releaseNotesFile);
-    fileAppender.append('* [PR #' + prNumber + '](' + prUrl + ') - ' + prTitle);
+    fileAppender.append(`-  **${prTitle}**: :warning: ADD DESCRIPTION HERE :warning:. [PR #${prNumber}](${prUrl})]`);
     fileAppender.writeFile(releaseNotesFile);
     await git('add', releaseNotesFile);
     const body = 'Add PR #' + prNumber + ' to release notes for next release';
@@ -115,14 +119,20 @@ const release = async ({ labelsToAdd, payload: { pull_request: { labels, merged,
     }
     console.log('This is a merge action');
     await (0, git_1.cloneRepo)({ token, owner, repo });
-    let title = titleTemplate;
-    let head = `add-${pullRequestNumber}-to-release-notes`;
     await (0, core_1.group)(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
+        let head = `add-${pullRequestNumber}-to-release-notes`;
+        let title = titleTemplate;
+        Object.entries({
+            pullRequestNumber: pullRequestNumber.toString(),
+            originalTitle,
+        }).forEach(([name, value]) => {
+            title = title.replace(new RegExp((0, lodash_escaperegexp_1.default)(`{{${name}}}`), 'g'), value);
+        });
         try {
             await createReleaseNotesPR({
-                prNumber: pullRequestNumber,
-                prTitle: originalTitle,
-                prUrl: payload.pull_request.html_url,
+                pullRequestNumber,
+                pullRequestTitle: originalTitle,
+                pullRequestUrl: payload.pull_request.html_url,
                 releaseNotesFile,
                 github: github,
                 head,

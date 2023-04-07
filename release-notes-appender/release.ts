@@ -1,16 +1,18 @@
-import { error as logError, group } from '@actions/core'
-import { context, GitHub } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
-import { cloneRepo } from '../common/git'
+import { context, GitHub } from '@actions/github'
+import { error as logError, group } from '@actions/core'
 import { exec } from '@actions/exec'
+import escapeRegExp from 'lodash.escaperegexp'
+
 import { FileAppender } from './FileAppender'
+import { cloneRepo } from '../common/git'
 
 const labelMatcher = 'add-to-release-notes'
 
 const createReleaseNotesPR = async ({
-	prNumber,
-	prUrl,
-	prTitle,
+	pullRequestNumber: prNumber,
+	pullRequestUrl: prUrl,
+	pullRequestTitle: prTitle,
 	releaseNotesFile,
 	github,
 	head,
@@ -21,9 +23,9 @@ const createReleaseNotesPR = async ({
 	milestone,
 	mergedBy,
 }: {
-	prNumber: number
-	prUrl: string
-	prTitle: string
+	pullRequestNumber: number
+	pullRequestUrl: string
+	pullRequestTitle: string
 	releaseNotesFile: string
 	github: InstanceType<typeof GitHub>
 	head: string
@@ -44,7 +46,9 @@ const createReleaseNotesPR = async ({
 
 	const fileAppender = new FileAppender({ cwd: repo })
 	fileAppender.loadFile(releaseNotesFile)
-	fileAppender.append('* [PR #' + prNumber + '](' + prUrl + ') - ' + prTitle)
+	fileAppender.append(
+		`-  **${prTitle}**: :warning: ADD DESCRIPTION HERE :warning:. [PR #${prNumber}](${prUrl})]`,
+	)
 	fileAppender.writeFile(releaseNotesFile)
 
 	await git('add', releaseNotesFile)
@@ -200,15 +204,21 @@ const release = async ({
 
 	await cloneRepo({ token, owner, repo })
 
-	let title = titleTemplate
-	let head = `add-${pullRequestNumber}-to-release-notes`
-
 	await group(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
+		let head = `add-${pullRequestNumber}-to-release-notes`
+		let title = titleTemplate
+		Object.entries({
+			pullRequestNumber: pullRequestNumber.toString(),
+			originalTitle,
+		}).forEach(([name, value]) => {
+			title = title.replace(new RegExp(escapeRegExp(`{{${name}}}`), 'g'), value)
+		})
+
 		try {
 			await createReleaseNotesPR({
-				prNumber: pullRequestNumber,
-				prTitle: originalTitle,
-				prUrl: payload.pull_request.html_url,
+				pullRequestNumber,
+				pullRequestTitle: originalTitle,
+				pullRequestUrl: payload.pull_request.html_url,
 				releaseNotesFile,
 				github: github,
 				head,

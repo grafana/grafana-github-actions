@@ -7,7 +7,7 @@ inputs:
     default: ${{ github.token }}
   title:
     description: Title for the backport PR
-    default: "[Release Notes {{base}}] Add {{originalTitle}}"
+    default: "[Release Notes Appender] Add PR #{{pullRequestNumber}}: {{originalTitle}}"
   releaseNotesFile:
     description: Path to the files to append to
     required: true
