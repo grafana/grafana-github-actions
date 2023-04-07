@@ -98,7 +98,6 @@ const getFailedPRCommentBody = ({ prNumber, prUrl, prTitle, releaseNotesFile, er
     ].join('\n');
 };
 const release = async ({ labelsToAdd, payload: { pull_request: { labels, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, releaseNotesFile, token, github, }) => {
-    //TODO create interface type for arguments
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
     let labelsString = labels.map(({ name }) => name);
@@ -115,7 +114,7 @@ const release = async ({ labelsToAdd, payload: { pull_request: { labels, merged,
     }
     if (!merged) {
         console.log('PR not merged');
-        // 	return
+        return;
     }
     console.log('This is a merge action');
     await (0, git_1.cloneRepo)({ token, owner, repo });

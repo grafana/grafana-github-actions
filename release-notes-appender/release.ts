@@ -179,7 +179,6 @@ const release = async ({
 	token,
 	github,
 }: ReleaseArgs) => {
-	//TODO create interface type for arguments
 	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
 	console.log('payloadAction: ' + payload.action)
 	let labelsString = labels.map(({ name }) => name)
@@ -198,7 +197,7 @@ const release = async ({
 
 	if (!merged) {
 		console.log('PR not merged')
-		// 	return
+		return
 	}
 	console.log('This is a merge action')
 
