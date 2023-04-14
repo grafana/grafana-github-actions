@@ -47,7 +47,7 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
     });
     return baseToHead;
 };
-const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
+const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, mergedBy, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
     };
@@ -93,15 +93,6 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         title,
     });
     const pullRequestNumber = createRsp.data.number;
-    // Sync milestone
-    if (milestone && milestone.id) {
-        await github.issues.update({
-            repo,
-            owner,
-            issue_number: pullRequestNumber,
-            milestone: milestone.number,
-        });
-    }
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
         const reviewers = createRsp.data.requested_reviewers.map((user) => user.login);
@@ -153,7 +144,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
-const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, milestone, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
     if (payload.action !== 'closed') {
@@ -250,7 +241,6 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     owner,
                     repo,
                     title,
-                    milestone,
                     mergedBy: merged_by,
                 });
             }

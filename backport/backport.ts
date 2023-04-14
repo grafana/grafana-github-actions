@@ -79,7 +79,6 @@ const backportOnce = async ({
 	owner,
 	repo,
 	title,
-	milestone,
 	mergedBy,
 }: {
 	base: string
@@ -91,7 +90,6 @@ const backportOnce = async ({
 	owner: string
 	repo: string
 	title: string
-	milestone: EventPayloads.WebhookPayloadPullRequestPullRequestMilestone
 	mergedBy: any
 }) => {
 	const git = async (...args: string[]) => {
@@ -141,16 +139,6 @@ const backportOnce = async ({
 	})
 
 	const pullRequestNumber = createRsp.data.number
-
-	// Sync milestone
-	if (milestone && milestone.id) {
-		await github.issues.update({
-			repo,
-			owner,
-			issue_number: pullRequestNumber,
-			milestone: milestone.number,
-		})
-	}
 
 	// Remove default reviewers
 	if (createRsp.data.requested_reviewers) {
@@ -237,7 +225,6 @@ const backport = async ({
 			merged,
 			number: pullRequestNumber,
 			title: originalTitle,
-			milestone,
 			merged_by,
 		},
 		repository: {
@@ -356,7 +343,6 @@ const backport = async ({
 					owner,
 					repo,
 					title,
-					milestone,
 					mergedBy: merged_by,
 				})
 			} catch (error) {
