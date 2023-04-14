@@ -10,7 +10,7 @@ import { cloneRepo } from '../common/git'
 
 const BETTERER_RESULTS_PATH = '.betterer.results'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
-const backportLabels = ['type/docs', 'type/bug', 'product-approved']
+const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci']
 const missingLabels = 'missing-labels'
 
 const getLabelNames = ({
@@ -283,6 +283,7 @@ const backport = async ({
 				'* Docs changes.\n',
 				'Please, if the current pull request addresses a bug fix, label it with the `type/bug` label.',
 				'If it already has the product approval, please add the `product-approved` label. For docs changes, please add the `type/docs` label.',
+				'If the pull request modifies CI behaviour, please add the `type/ci` label.',
 				'If none of the above applies, please consider removing the backport label and target the next major/minor release.',
 				'Thanks!',
 			].join('\n'),
