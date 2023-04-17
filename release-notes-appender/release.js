@@ -74,7 +74,7 @@ const createReleaseNotesPR = async ({ pullRequestNumber: prNumber, pullRequestUr
 };
 const getFailedPRCommentBody = ({ prNumber, prUrl, prTitle, releaseNotesFile, errorMessage, head, }) => {
     return [
-        `Faile to add PR #${prNumber} to the release notes`,
+        `Failed to add PR #${prNumber} to the release notes`,
         '```',
         errorMessage,
         '```',
