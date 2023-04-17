@@ -125,7 +125,7 @@ const getFailedPRCommentBody = ({
 	head: string
 }) => {
 	return [
-		`Faile to add PR #${prNumber} to the release notes`,
+		`Failed to add PR #${prNumber} to the release notes`,
 		'```',
 		errorMessage,
 		'```',
