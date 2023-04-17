@@ -1,0 +1,22 @@
+---
+name: Release Notes Appender
+description: Automatically append a PR to the next release's release notes
+inputs:
+  token:
+    description: GitHub token with issue, comment, and label read/write permissions
+    default: ${{ github.token }}
+  title:
+    description: Title for the PR to be created
+    default: "[Release Notes Appender] Add PR #{{pullRequestNumber}}: {{originalTitle}}"
+  releaseNotesFile:
+    description: Path to the files to append to
+    required: true
+  labelsToAdd:
+    description: Comma separated list of labels to add to the release notes PR.
+    required: false
+  metricsWriteAPIKey:
+    description: Grafana Cloud metrics api key
+    required: false
+runs:
+  using: 'node16'
+  main: 'index.js'
