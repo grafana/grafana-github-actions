@@ -96,11 +96,16 @@ const backportOnce = async ({
 		await exec('git', args, { cwd: repo })
 	}
 
-	const isBettererConflict = async () => {
+	const gitDiffUnmergedPaths = async (): Promise<string[]> => {
 		const { stdout } = await getExecOutput('git', ['diff', '--name-only', '--diff-filter=U'], {
 			cwd: repo,
 		})
-		return stdout.trim() === BETTERER_RESULTS_PATH
+
+		return stdout.trim().split(/\r?\n/)
+	}
+
+	const isBettererConflict = async (gitUnmergedPaths: string[]) => {
+		return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH
 	}
 
 	const fixBettererConflict = async () => {
@@ -110,12 +115,34 @@ const backportOnce = async ({
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
 	}
 
+	// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
+	const isDocsConflict = async (gitUnmergedPaths: string[]) => {
+		if (gitUnmergedPaths.length === 0) {
+			return false
+		}
+
+		return gitUnmergedPaths.reduce(
+			(acc: boolean, line: string): boolean => acc && /^docs\/sources/.test(line),
+			true,
+		)
+	}
+
+	// fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
+	const fixDocsConflict = async (gitUnmergedPaths: string[]): Promise<void> => {
+		await git(...['checkout', '--ours', '--'].concat(gitUnmergedPaths))
+		await git(...['add', '--'].concat(gitUnmergedPaths))
+		// Setting -c core.editor=true will prevent the commit message editor from opening
+		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
+	}
+
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
 		await git('cherry-pick', '-x', commitToBackport)
 	} catch (error) {
-		if (await isBettererConflict()) {
+		const gitUnmergedPaths = await gitDiffUnmergedPaths()
+
+		if (await isBettererConflict(gitUnmergedPaths)) {
 			try {
 				await fixBettererConflict()
 			} catch (error) {
@@ -123,8 +150,17 @@ const backportOnce = async ({
 				throw error
 			}
 		} else {
-			await git('cherry-pick', '--abort')
-			throw error
+			if (await isDocsConflict(gitUnmergedPaths)) {
+				try {
+					await fixDocsConflict(gitUnmergedPaths)
+				} catch (error) {
+					await git('cherry-pick', '--abort')
+					throw error
+				}
+			} else {
+				await git('cherry-pick', '--abort')
+				throw error
+			}
 		}
 	}
 

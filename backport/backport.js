@@ -51,15 +51,32 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
     };
-    const isBettererConflict = async () => {
+    const gitDiffUnmergedPaths = async () => {
         const { stdout } = await (0, exec_1.getExecOutput)('git', ['diff', '--name-only', '--diff-filter=U'], {
             cwd: repo,
         });
-        return stdout.trim() === BETTERER_RESULTS_PATH;
+        return stdout.trim().split(/\r?\n/);
+    };
+    const isBettererConflict = async (gitUnmergedPaths) => {
+        return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH;
     };
     const fixBettererConflict = async () => {
         await (0, betterer_1.betterer)({ update: true, cwd: repo });
         await git('add', BETTERER_RESULTS_PATH);
+        // Setting -c core.editor=true will prevent the commit message editor from opening
+        await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
+    };
+    // isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
+    const isDocsConflict = async (gitUnmergedPaths) => {
+        if (gitUnmergedPaths.length === 0) {
+            return false;
+        }
+        return gitUnmergedPaths.reduce((acc, line) => acc && /^docs\/sources/.test(line), true);
+    };
+    // fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
+    const fixDocsConflict = async (gitUnmergedPaths) => {
+        await git(...['checkout', '--ours', '--'].concat(gitUnmergedPaths));
+        await git(...['add', '--'].concat(gitUnmergedPaths));
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
     };
@@ -69,7 +86,8 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         await git('cherry-pick', '-x', commitToBackport);
     }
     catch (error) {
-        if (await isBettererConflict()) {
+        const gitUnmergedPaths = await gitDiffUnmergedPaths();
+        if (await isBettererConflict(gitUnmergedPaths)) {
             try {
                 await fixBettererConflict();
             }
@@ -79,8 +97,19 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
             }
         }
         else {
-            await git('cherry-pick', '--abort');
-            throw error;
+            if (await isDocsConflict(gitUnmergedPaths)) {
+                try {
+                    await fixDocsConflict(gitUnmergedPaths);
+                }
+                catch (error) {
+                    await git('cherry-pick', '--abort');
+                    throw error;
+                }
+            }
+            else {
+                await git('cherry-pick', '--abort');
+                throw error;
+            }
         }
     }
     await git('push', '--set-upstream', 'origin', head);
