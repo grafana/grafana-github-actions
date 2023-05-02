@@ -9,6 +9,7 @@ import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
 
 const BETTERER_RESULTS_PATH = '.betterer.results'
+exports.BETTERER_RESULTS_PATH = BETTERER_RESULTS_PATH
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci']
 const missingLabels = 'missing-labels'
@@ -69,6 +70,21 @@ const getBackportBaseToHead = ({
 	return baseToHead
 }
 
+const isBettererConflict = async (gitUnmergedPaths: string[]) => {
+	return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH
+}
+exports.isBettererConflict = isBettererConflict
+
+// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
+const isDocsConflict = async (gitUnmergedPaths: string[]) => {
+	if (gitUnmergedPaths.length === 0) {
+		return false
+	}
+
+	return gitUnmergedPaths.every((line: string): boolean => /^docs\/sources/.test(line))
+}
+exports.isDocsConflict = isDocsConflict
+
 const backportOnce = async ({
 	base,
 	body,
@@ -96,11 +112,12 @@ const backportOnce = async ({
 		await exec('git', args, { cwd: repo })
 	}
 
-	const isBettererConflict = async () => {
+	const gitDiffUnmergedPaths = async (): Promise<string[]> => {
 		const { stdout } = await getExecOutput('git', ['diff', '--name-only', '--diff-filter=U'], {
 			cwd: repo,
 		})
-		return stdout.trim() === BETTERER_RESULTS_PATH
+
+		return stdout.trim().split(/\r?\n/)
 	}
 
 	const fixBettererConflict = async () => {
@@ -110,12 +127,22 @@ const backportOnce = async ({
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
 	}
 
+	// fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
+	const fixDocsConflict = async (gitUnmergedPaths: string[]): Promise<void> => {
+		await git(...['checkout', '--ours', '--'].concat(gitUnmergedPaths))
+		await git(...['add', '--'].concat(gitUnmergedPaths))
+		// Setting -c core.editor=true will prevent the commit message editor from opening
+		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
+	}
+
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
 		await git('cherry-pick', '-x', commitToBackport)
 	} catch (error) {
-		if (await isBettererConflict()) {
+		const gitUnmergedPaths = await gitDiffUnmergedPaths()
+
+		if (await isBettererConflict(gitUnmergedPaths)) {
 			try {
 				await fixBettererConflict()
 			} catch (error) {
@@ -123,8 +150,17 @@ const backportOnce = async ({
 				throw error
 			}
 		} else {
-			await git('cherry-pick', '--abort')
-			throw error
+			if (await isDocsConflict(gitUnmergedPaths)) {
+				try {
+					await fixDocsConflict(gitUnmergedPaths)
+				} catch (error) {
+					await git('cherry-pick', '--abort')
+					throw error
+				}
+			} else {
+				await git('cherry-pick', '--abort')
+				throw error
+			}
 		}
 	}
 
