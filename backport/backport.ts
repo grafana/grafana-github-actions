@@ -9,6 +9,7 @@ import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
 
 const BETTERER_RESULTS_PATH = '.betterer.results'
+exports.BETTERER_RESULTS_PATH = BETTERER_RESULTS_PATH
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci']
 const missingLabels = 'missing-labels'
@@ -69,6 +70,21 @@ const getBackportBaseToHead = ({
 	return baseToHead
 }
 
+const isBettererConflict = async (gitUnmergedPaths: string[]) => {
+	return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH
+}
+exports.isBettererConflict = isBettererConflict
+
+// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
+const isDocsConflict = async (gitUnmergedPaths: string[]) => {
+	if (gitUnmergedPaths.length === 0) {
+		return false
+	}
+
+	return gitUnmergedPaths.every((line: string): boolean => /^docs\/sources/.test(line))
+}
+exports.isDocsConflict = isDocsConflict
+
 const backportOnce = async ({
 	base,
 	body,
@@ -104,27 +120,11 @@ const backportOnce = async ({
 		return stdout.trim().split(/\r?\n/)
 	}
 
-	const isBettererConflict = async (gitUnmergedPaths: string[]) => {
-		return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH
-	}
-
 	const fixBettererConflict = async () => {
 		await betterer({ update: true, cwd: repo })
 		await git('add', BETTERER_RESULTS_PATH)
 		// Setting -c core.editor=true will prevent the commit message editor from opening
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
-	}
-
-	// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
-	const isDocsConflict = async (gitUnmergedPaths: string[]) => {
-		if (gitUnmergedPaths.length === 0) {
-			return false
-		}
-
-		return gitUnmergedPaths.reduce(
-			(acc: boolean, line: string): boolean => acc && /^docs\/sources/.test(line),
-			true,
-		)
 	}
 
 	// fixDocsConflict resolves a conflict that only affects docs by keeping our changes.

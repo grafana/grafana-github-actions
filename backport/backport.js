@@ -12,6 +12,7 @@ const betterer_1 = require("@betterer/betterer");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
 const BETTERER_RESULTS_PATH = '.betterer.results';
+exports.BETTERER_RESULTS_PATH = BETTERER_RESULTS_PATH;
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci'];
 const missingLabels = 'missing-labels';
@@ -47,6 +48,18 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
     });
     return baseToHead;
 };
+const isBettererConflict = async (gitUnmergedPaths) => {
+    return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH;
+};
+exports.isBettererConflict = isBettererConflict;
+// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
+const isDocsConflict = async (gitUnmergedPaths) => {
+    if (gitUnmergedPaths.length === 0) {
+        return false;
+    }
+    return gitUnmergedPaths.every((line) => /^docs\/sources/.test(line));
+};
+exports.isDocsConflict = isDocsConflict;
 const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, mergedBy, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
@@ -57,21 +70,11 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         });
         return stdout.trim().split(/\r?\n/);
     };
-    const isBettererConflict = async (gitUnmergedPaths) => {
-        return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH;
-    };
     const fixBettererConflict = async () => {
         await (0, betterer_1.betterer)({ update: true, cwd: repo });
         await git('add', BETTERER_RESULTS_PATH);
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
-    };
-    // isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
-    const isDocsConflict = async (gitUnmergedPaths) => {
-        if (gitUnmergedPaths.length === 0) {
-            return false;
-        }
-        return gitUnmergedPaths.reduce((acc, line) => acc && /^docs\/sources/.test(line), true);
     };
     // fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
     const fixDocsConflict = async (gitUnmergedPaths) => {
