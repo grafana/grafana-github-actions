@@ -129,7 +129,7 @@ const backportOnce = async ({
 
 	// fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
 	const fixDocsConflict = async (gitUnmergedPaths: string[]): Promise<void> => {
-		await git(...['checkout', '--ours', '--'].concat(gitUnmergedPaths))
+		await git(...['checkout', '--theirs', '--'].concat(gitUnmergedPaths))
 		await git(...['add', '--'].concat(gitUnmergedPaths))
 		// Setting -c core.editor=true will prevent the commit message editor from opening
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
