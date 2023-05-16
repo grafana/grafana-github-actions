@@ -419,6 +419,7 @@ describe('isTitleValid', () => {
 		{ str: 'Plugins Catalog: Fix styling of hyperlinks', valid: true },
 		{ str: 'Table: Fix filter crashes table', valid: true },
 		{ str: 'TimeSeries: Properly stack series with missing datapoints', valid: true },
+		{ str: 'E2E: Changes in e2e package', valid: true },
 		{ str: 'Tempo / Trace Viewer: Support Span Links in Trace Viewer', valid: true },
 		{ str: 'SSE: Add Mode to drop NaN/Inf/Null in Reduction operations', valid: true },
 		{
