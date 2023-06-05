@@ -75,16 +75,6 @@ const isBettererConflict = async (gitUnmergedPaths: string[]) => {
 }
 exports.isBettererConflict = isBettererConflict
 
-// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
-const isDocsConflict = async (gitUnmergedPaths: string[]) => {
-	if (gitUnmergedPaths.length === 0) {
-		return false
-	}
-
-	return gitUnmergedPaths.every((line: string): boolean => /^docs\/sources/.test(line))
-}
-exports.isDocsConflict = isDocsConflict
-
 const backportOnce = async ({
 	base,
 	body,
@@ -127,14 +117,6 @@ const backportOnce = async ({
 		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
 	}
 
-	// fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
-	const fixDocsConflict = async (gitUnmergedPaths: string[]): Promise<void> => {
-		await git(...['checkout', '--theirs', '--'].concat(gitUnmergedPaths))
-		await git(...['add', '--'].concat(gitUnmergedPaths))
-		// Setting -c core.editor=true will prevent the commit message editor from opening
-		await git('-c', 'core.editor=true', 'cherry-pick', '--continue')
-	}
-
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
@@ -150,17 +132,8 @@ const backportOnce = async ({
 				throw error
 			}
 		} else {
-			if (await isDocsConflict(gitUnmergedPaths)) {
-				try {
-					await fixDocsConflict(gitUnmergedPaths)
-				} catch (error) {
-					await git('cherry-pick', '--abort')
-					throw error
-				}
-			} else {
-				await git('cherry-pick', '--abort')
-				throw error
-			}
+			await git('cherry-pick', '--abort')
+			throw error
 		}
 	}
 

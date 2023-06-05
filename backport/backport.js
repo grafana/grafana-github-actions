@@ -52,14 +52,6 @@ const isBettererConflict = async (gitUnmergedPaths) => {
     return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH;
 };
 exports.isBettererConflict = isBettererConflict;
-// isDocsConflict returns true if only the conflicting files are in the docs/sources directory.
-const isDocsConflict = async (gitUnmergedPaths) => {
-    if (gitUnmergedPaths.length === 0) {
-        return false;
-    }
-    return gitUnmergedPaths.every((line) => /^docs\/sources/.test(line));
-};
-exports.isDocsConflict = isDocsConflict;
 const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, mergedBy, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
@@ -73,13 +65,6 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     const fixBettererConflict = async () => {
         await (0, betterer_1.betterer)({ update: true, cwd: repo });
         await git('add', BETTERER_RESULTS_PATH);
-        // Setting -c core.editor=true will prevent the commit message editor from opening
-        await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
-    };
-    // fixDocsConflict resolves a conflict that only affects docs by keeping our changes.
-    const fixDocsConflict = async (gitUnmergedPaths) => {
-        await git(...['checkout', '--theirs', '--'].concat(gitUnmergedPaths));
-        await git(...['add', '--'].concat(gitUnmergedPaths));
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
     };
@@ -100,19 +85,8 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
             }
         }
         else {
-            if (await isDocsConflict(gitUnmergedPaths)) {
-                try {
-                    await fixDocsConflict(gitUnmergedPaths);
-                }
-                catch (error) {
-                    await git('cherry-pick', '--abort');
-                    throw error;
-                }
-            }
-            else {
-                await git('cherry-pick', '--abort');
-                throw error;
-            }
+            await git('cherry-pick', '--abort');
+            throw error;
         }
     }
     await git('push', '--set-upstream', 'origin', head);
