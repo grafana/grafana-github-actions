@@ -141,6 +141,8 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `git switch --create ${head} origin/${base}`,
         '# Cherry-pick the merged commit of this pull request and resolve the conflicts',
         `git cherry-pick -x ${commitToBackport}`,
+        '# When the conflicts are resolved, stage and commit the changes',
+        `git add . && git commit --no-edit`,
         '# Push it to GitHub',
         `git push --set-upstream origin ${head}`,
         `git switch main`,
