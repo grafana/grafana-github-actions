@@ -20,6 +20,7 @@ class Backport extends Action_1.Action {
     async backport(issue) {
         try {
             await (0, backport_1.backport)({
+                issue,
                 labelsToAdd: (0, exports.getLabelsToAdd)((0, core_1.getInput)('labelsToAdd')),
                 payload: github_1.context.payload,
                 titleTemplate: (0, core_1.getInput)('title'),

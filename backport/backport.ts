@@ -7,9 +7,11 @@ import { betterer } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo } from '../common/git'
+import { OctoKitIssue } from '../api/octokit'
 
-const BETTERER_RESULTS_PATH = '.betterer.results'
-exports.BETTERER_RESULTS_PATH = BETTERER_RESULTS_PATH
+export const BETTERER_RESULTS_PATH = '.betterer.results'
+export const LABEL_ADD_TO_CHANGELOG = 'add to changelog'
+export const LABEL_NO_CHANGELOG = 'no-changelog'
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/
 const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci']
 const missingLabels = 'missing-labels'
@@ -70,10 +72,9 @@ const getBackportBaseToHead = ({
 	return baseToHead
 }
 
-const isBettererConflict = async (gitUnmergedPaths: string[]) => {
+export const isBettererConflict = async (gitUnmergedPaths: string[]) => {
 	return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH
 }
-exports.isBettererConflict = isBettererConflict
 
 const backportOnce = async ({
 	base,
@@ -149,6 +150,17 @@ const backportOnce = async ({
 
 	const pullRequestNumber = createRsp.data.number
 
+	// Set the labels first. If setting the reviewers fails for some reason, at
+	// least the labels will be there.
+	if (labelsToAdd.length > 0) {
+		await github.issues.addLabels({
+			issue_number: pullRequestNumber,
+			labels: labelsToAdd,
+			owner,
+			repo,
+		})
+	}
+
 	// Remove default reviewers
 	if (createRsp.data.requested_reviewers) {
 		const reviewers = createRsp.data.requested_reviewers.map((user) => user.login)
@@ -161,21 +173,13 @@ const backportOnce = async ({
 	}
 
 	if (mergedBy) {
+		console.log(`Requesting review from merger: ${mergedBy.login}`)
 		// Assign to merger
 		await github.pulls.createReviewRequest({
 			pull_number: pullRequestNumber,
 			repo,
 			owner,
 			reviewers: [mergedBy.login],
-		})
-	}
-
-	if (labelsToAdd.length > 0) {
-		await github.issues.addLabels({
-			issue_number: pullRequestNumber,
-			labels: labelsToAdd,
-			owner,
-			repo,
 		})
 	}
 }
@@ -217,6 +221,7 @@ const getFailedBackportCommentBody = ({
 }
 
 interface BackportArgs {
+	issue: OctoKitIssue
 	labelsToAdd: string[]
 	payload: EventPayloads.WebhookPayloadPullRequest
 	titleTemplate: string
@@ -226,6 +231,7 @@ interface BackportArgs {
 }
 
 const backport = async ({
+	issue,
 	labelsToAdd,
 	payload: {
 		action,
@@ -305,6 +311,8 @@ const backport = async ({
 		})
 	}
 
+	const ghIssue = await issue.getIssue()
+
 	if (!merged) {
 		console.log('PR not merged')
 		return
@@ -327,10 +335,13 @@ const backport = async ({
 	const commitToBackport = String(mergeCommitSha)
 	info(`Backporting ${commitToBackport} from #${pullRequestNumber}`)
 
+	const originalLabels = ghIssue.labels
+	const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values())
+
 	await cloneRepo({ token, owner, repo })
 
 	for (const [base, head] of Object.entries(backportBaseToHead)) {
-		const body = `Backport ${commitToBackport} from #${pullRequestNumber}`
+		const body = `Backport ${commitToBackport} from #${pullRequestNumber}\n\n---\n\n${ghIssue.body}`
 
 		let title = titleTemplate
 		Object.entries({
@@ -351,13 +362,14 @@ const backport = async ({
 					commitToBackport,
 					github: github,
 					head,
-					labelsToAdd,
+					labelsToAdd: prLabels,
 					owner,
 					repo,
 					title,
 					mergedBy: merged_by,
 				})
 			} catch (error) {
+				console.log(error)
 				const errorMessage: string =
 					error instanceof Error ? error.message : 'Unknown error while backporting'
 				logError(errorMessage)
@@ -384,6 +396,35 @@ const backport = async ({
 			}
 		})
 	}
+}
+
+/**
+ * getFinalLabels provides the final list of labels that should be set for the
+ * new pull-request.
+ *
+ * @param originalLabels labels provided by the original pull request
+ * @param labelsToAdd labels requested to be added by configuration
+ */
+export function getFinalLabels(originalLabels: string[], labelsToAdd: string[]): Set<string> {
+	const result = new Set<string>(originalLabels)
+	// Remove all the labels that started with `backport .*`
+	for (const label of originalLabels) {
+		if (labelRegExp.test(label)) {
+			result.delete(label)
+		}
+	}
+	for (const label of labelsToAdd) {
+		result.add(label)
+		switch (label) {
+			case LABEL_ADD_TO_CHANGELOG:
+				result.delete(LABEL_NO_CHANGELOG)
+				break
+			case LABEL_NO_CHANGELOG:
+				result.delete(LABEL_ADD_TO_CHANGELOG)
+				break
+		}
+	}
+	return result
 }
 
 export { backport }
