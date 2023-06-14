@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.backport = void 0;
+exports.backport = exports.getFailedBackportCommentBody = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
@@ -127,7 +127,9 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         });
     }
 };
-const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, head, }) => {
+const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, head, title, }) => {
+    const backportMilestone = base.startsWith('v') ? base.substring(1) : base;
+    const escapedTitle = title.replaceAll('"', '\\"');
     return [
         `The backport to \`${base}\` failed:`,
         '```',
@@ -142,16 +144,19 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         '# Cherry-pick the merged commit of this pull request and resolve the conflicts',
         `git cherry-pick -x ${commitToBackport}`,
         '# When the conflicts are resolved, stage and commit the changes',
-        `git add . && git commit --no-edit`,
-        '# Push it to GitHub',
+        `git add . && git cherry-pick --continue`,
+        '# Push it to GitHub with the GitHub CLI',
+        `gh pr create --title "${escapedTitle}" --label backport --base ${base} --milestone ${backportMilestone}`,
+        "# If you don't have the GitHub CLI installed:",
         `git push --set-upstream origin ${head}`,
-        `git switch main`,
         '# Remove the local backport branch',
+        `git switch main`,
         `git branch -D ${head}`,
         '```',
         `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
+exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
 const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
@@ -258,11 +263,12 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                 (0, core_1.error)(errorMessage);
                 // Create comment
                 await github.issues.createComment({
-                    body: getFailedBackportCommentBody({
+                    body: (0, exports.getFailedBackportCommentBody)({
                         base,
                         commitToBackport,
                         errorMessage,
                         head,
+                        title,
                     }),
                     issue_number: pullRequestNumber,
                     owner,
