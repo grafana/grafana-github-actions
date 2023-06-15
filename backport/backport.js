@@ -145,7 +145,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `git cherry-pick -x ${commitToBackport}`,
         '# When the conflicts are resolved, stage and commit the changes',
         `git add . && git cherry-pick --continue`,
-        '# Push it to GitHub with the GitHub CLI (will also open a PR)',
+        '# Push it to GitHub with the GitHub CLI (which will also open a PR dialog for you)',
         `gh pr create --title "${escapedTitle}" --body "Backport ${commitToBackport} from #${originalNumber}" --label backport --base ${base} --milestone ${backportMilestone} --web`,
         "# If you don't have the GitHub CLI installed:",
         `git push --set-upstream origin ${head}`,
@@ -153,7 +153,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `git switch main`,
         `git branch -D ${head}`,
         '```',
-        `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
+        `Unless you've used the GitHub CLI above, now create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
     ].join('\n');
 };
 exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
