@@ -186,12 +186,14 @@ export const getFailedBackportCommentBody = ({
 	errorMessage,
 	head,
 	title,
+	originalNumber,
 }: {
 	base: string
 	commitToBackport: string
 	errorMessage: string
 	head: string
 	title: string
+	originalNumber: number
 }) => {
 	const backportMilestone = base.startsWith('v') ? base.substring(1) : base
 	const escapedTitle = title.replaceAll('"', '\\"')
@@ -210,8 +212,8 @@ export const getFailedBackportCommentBody = ({
 		`git cherry-pick -x ${commitToBackport}`,
 		'# When the conflicts are resolved, stage and commit the changes',
 		`git add . && git cherry-pick --continue`,
-		'# Push it to GitHub with the GitHub CLI',
-		`gh pr create --title "${escapedTitle}" --label backport --base ${base} --milestone ${backportMilestone}`,
+		'# Push it to GitHub with the GitHub CLI (will also open a PR)',
+		`gh pr create --title "${escapedTitle}" --body "Backport ${commitToBackport} from #${originalNumber}" --label backport --base ${base} --milestone ${backportMilestone} --web`,
 		"# If you don't have the GitHub CLI installed:",
 		`git push --set-upstream origin ${head}`,
 		'# Remove the local backport branch',
@@ -376,6 +378,7 @@ const backport = async ({
 						errorMessage,
 						head,
 						title,
+						originalNumber: pullRequestNumber,
 					}),
 					issue_number: pullRequestNumber,
 					owner,

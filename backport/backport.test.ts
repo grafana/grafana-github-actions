@@ -17,8 +17,9 @@ test('getFailedBackportCommentBody/gh-line', () => {
 		errorMessage: 'some error',
 		head: 'backport-123-to-v10.0.x',
 		title: '[v10.0.x] hello world',
+		originalNumber: 123,
 	})
 	expect(output).toContain(
-		'gh pr create --title "[v10.0.x] hello world" --label backport --base v10.0.x --milestone 10.0.x',
+		'gh pr create --title "[v10.0.x] hello world" --body "Backport 123456 from #123" --label backport --base v10.0.x --milestone 10.0.x --web',
 	)
 })
