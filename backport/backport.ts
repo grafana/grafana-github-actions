@@ -180,17 +180,23 @@ const backportOnce = async ({
 	}
 }
 
-const getFailedBackportCommentBody = ({
+export const getFailedBackportCommentBody = ({
 	base,
 	commitToBackport,
 	errorMessage,
 	head,
+	title,
+	originalNumber,
 }: {
 	base: string
 	commitToBackport: string
 	errorMessage: string
 	head: string
+	title: string
+	originalNumber: number
 }) => {
+	const backportMilestone = base.startsWith('v') ? base.substring(1) : base
+	const escapedTitle = title.replaceAll('"', '\\"')
 	return [
 		`The backport to \`${base}\` failed:`,
 		'```',
@@ -205,14 +211,16 @@ const getFailedBackportCommentBody = ({
 		'# Cherry-pick the merged commit of this pull request and resolve the conflicts',
 		`git cherry-pick -x ${commitToBackport}`,
 		'# When the conflicts are resolved, stage and commit the changes',
-		`git add . && git commit --no-edit`,
-		'# Push it to GitHub',
+		`git add . && git cherry-pick --continue`,
+		'# If you have the GitHub CLI installed: Push the branch to GitHub and a PR:',
+		`gh pr create --title "${escapedTitle}" --body "Backport ${commitToBackport} from #${originalNumber}" --label backport --base ${base} --milestone ${backportMilestone} --web`,
+		"# If you don't have the GitHub CLI installed: Push the branch to GitHub and manually create a PR:",
 		`git push --set-upstream origin ${head}`,
-		`git switch main`,
 		'# Remove the local backport branch',
+		`git switch main`,
 		`git branch -D ${head}`,
 		'```',
-		`Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
+		`Unless you've used the GitHub CLI above, now create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
 	].join('\n')
 }
 
@@ -369,6 +377,8 @@ const backport = async ({
 						commitToBackport,
 						errorMessage,
 						head,
+						title,
+						originalNumber: pullRequestNumber,
 					}),
 					issue_number: pullRequestNumber,
 					owner,
