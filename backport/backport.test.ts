@@ -1,4 +1,9 @@
-import { BETTERER_RESULTS_PATH, isBettererConflict, getFailedBackportCommentBody } from './backport'
+import {
+	BETTERER_RESULTS_PATH,
+	getFinalLabels,
+	isBettererConflict,
+	getFailedBackportCommentBody,
+} from './backport'
 
 const onlyDocsChanges = ['docs/sources/_index.md', 'docs/sources/other.md']
 const onlyBettererChanges = [BETTERER_RESULTS_PATH]
@@ -8,6 +13,39 @@ test('isBettererConflict/onlyDocsChanges', () => {
 })
 test('isBettererConflict/onlyBettererChanges', () => {
 	return expect(isBettererConflict(onlyBettererChanges)).resolves.toStrictEqual(true)
+})
+
+test('getFinalLabels/simple', () => {
+	return expect(getFinalLabels(['hello', 'world'], [])).toEqual(new Set(['hello', 'world']))
+})
+
+// All those `backport .*` should be removed from the labels ported over.
+test('getFinalLabels/remove-backports', () => {
+	return expect(getFinalLabels(['backport v10.0.x', 'world'], [])).toEqual(new Set(['world']))
+})
+
+// If a backport label for a specific target is explicitly requested by the
+// configuration, it should still be included.
+test('getFinalLabels/remove-backports-original-only', () => {
+	return expect(getFinalLabels(['backport v10.0.x', 'world'], ['backport v10.0.x'])).toEqual(
+		new Set(['backport v10.0.x', 'world']),
+	)
+})
+
+// If the original PR has the `add to changelog` label set but we explicitly
+// configured `no-changelog`, then the latter should override the first:
+test('getFinalLabels/enforce-no-changelog', () => {
+	return expect(getFinalLabels(['add to changelog', 'world'], ['no-changelog'])).toEqual(
+		new Set(['no-changelog', 'world']),
+	)
+})
+
+// If the original PR has the `no-changelog` label set but we explicitly
+// configured `add to changelog`, then the latter should override the first:
+test('getFinalLabels/enforce-add-to-changelog', () => {
+	return expect(getFinalLabels(['no-changelog', 'world'], ['add to changelog'])).toEqual(
+		new Set(['add to changelog', 'world']),
+	)
 })
 
 test('getFailedBackportCommentBody/gh-line', () => {

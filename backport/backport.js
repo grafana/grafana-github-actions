@@ -4,15 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.backport = exports.getFailedBackportCommentBody = void 0;
+exports.backport = exports.getFinalLabels = exports.getFailedBackportCommentBody = exports.isBettererConflict = exports.LABEL_NO_CHANGELOG = exports.LABEL_ADD_TO_CHANGELOG = exports.BETTERER_RESULTS_PATH = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
 const betterer_1 = require("@betterer/betterer");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
 const git_1 = require("../common/git");
-const BETTERER_RESULTS_PATH = '.betterer.results';
-exports.BETTERER_RESULTS_PATH = BETTERER_RESULTS_PATH;
+exports.BETTERER_RESULTS_PATH = '.betterer.results';
+exports.LABEL_ADD_TO_CHANGELOG = 'add to changelog';
+exports.LABEL_NO_CHANGELOG = 'no-changelog';
 const labelRegExp = /backport ([^ ]+)(?: ([^ ]+))?$/;
 const backportLabels = ['type/docs', 'type/bug', 'product-approved', 'type/ci'];
 const missingLabels = 'missing-labels';
@@ -49,7 +50,7 @@ const getBackportBaseToHead = ({ action, label, labels, pullRequestNumber, }) =>
     return baseToHead;
 };
 const isBettererConflict = async (gitUnmergedPaths) => {
-    return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === BETTERER_RESULTS_PATH;
+    return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === exports.BETTERER_RESULTS_PATH;
 };
 exports.isBettererConflict = isBettererConflict;
 const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, mergedBy, }) => {
@@ -64,7 +65,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     };
     const fixBettererConflict = async () => {
         await (0, betterer_1.betterer)({ update: true, cwd: repo });
-        await git('add', BETTERER_RESULTS_PATH);
+        await git('add', exports.BETTERER_RESULTS_PATH);
         // Setting -c core.editor=true will prevent the commit message editor from opening
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
     };
@@ -75,7 +76,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     }
     catch (error) {
         const gitUnmergedPaths = await gitDiffUnmergedPaths();
-        if (await isBettererConflict(gitUnmergedPaths)) {
+        if (await (0, exports.isBettererConflict)(gitUnmergedPaths)) {
             try {
                 await fixBettererConflict();
             }
@@ -99,6 +100,16 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         title,
     });
     const pullRequestNumber = createRsp.data.number;
+    // Set the labels first. If setting the reviewers fails for some reason, at
+    // least the labels will be there.
+    if (labelsToAdd.length > 0) {
+        await github.issues.addLabels({
+            issue_number: pullRequestNumber,
+            labels: labelsToAdd,
+            owner,
+            repo,
+        });
+    }
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
         const reviewers = createRsp.data.requested_reviewers.map((user) => user.login);
@@ -110,20 +121,19 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         });
     }
     if (mergedBy) {
+        // If the PR was merged by the same user that owns the token, then we
+        // cannot assign a reviewer.
+        const tokenUser = await github.users.getAuthenticated();
+        if (tokenUser && mergedBy.login === tokenUser.data.login) {
+            console.log('User who merged the original PR is also the token owner. Skipping reviewer assignment.');
+            return;
+        }
         // Assign to merger
         await github.pulls.createReviewRequest({
             pull_number: pullRequestNumber,
             repo,
             owner,
             reviewers: [mergedBy.login],
-        });
-    }
-    if (labelsToAdd.length > 0) {
-        await github.issues.addLabels({
-            issue_number: pullRequestNumber,
-            labels: labelsToAdd,
-            owner,
-            repo,
         });
     }
 };
@@ -157,7 +167,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
     ].join('\n');
 };
 exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
-const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
     if (payload.action !== 'closed') {
@@ -213,6 +223,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
             name: missingLabels,
         });
     }
+    const ghIssue = await issue.getIssue();
     if (!merged) {
         console.log('PR not merged');
         return;
@@ -231,9 +242,11 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
     // The merge commit SHA is actually not null.
     const commitToBackport = String(mergeCommitSha);
     (0, core_1.info)(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
+    const originalLabels = ghIssue.labels;
+    const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values());
     await (0, git_1.cloneRepo)({ token, owner, repo });
     for (const [base, head] of Object.entries(backportBaseToHead)) {
-        const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
+        const body = `Backport ${commitToBackport} from #${pullRequestNumber}\n\n---\n\n${ghIssue.body}`;
         let title = titleTemplate;
         Object.entries({
             base,
@@ -251,7 +264,7 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
                     commitToBackport,
                     github: github,
                     head,
-                    labelsToAdd,
+                    labelsToAdd: prLabels,
                     owner,
                     repo,
                     title,
@@ -287,4 +300,33 @@ const backport = async ({ labelsToAdd, payload: { action, label, pull_request: {
     }
 };
 exports.backport = backport;
+/**
+ * getFinalLabels provides the final list of labels that should be set for the
+ * new pull-request.
+ *
+ * @param originalLabels labels provided by the original pull request
+ * @param labelsToAdd labels requested to be added by configuration
+ */
+function getFinalLabels(originalLabels, labelsToAdd) {
+    const result = new Set(originalLabels);
+    // Remove all the labels that started with `backport .*`
+    for (const label of originalLabels) {
+        if (labelRegExp.test(label)) {
+            result.delete(label);
+        }
+    }
+    for (const label of labelsToAdd) {
+        result.add(label);
+        switch (label) {
+            case exports.LABEL_ADD_TO_CHANGELOG:
+                result.delete(exports.LABEL_NO_CHANGELOG);
+                break;
+            case exports.LABEL_NO_CHANGELOG:
+                result.delete(exports.LABEL_ADD_TO_CHANGELOG);
+                break;
+        }
+    }
+    return result;
+}
+exports.getFinalLabels = getFinalLabels;
 //# sourceMappingURL=backport.js.map
