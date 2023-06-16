@@ -85,7 +85,7 @@ class ChangelogCheck extends Check_1.Check {
     }
 }
 exports.ChangelogCheck = ChangelogCheck;
-const titleRegExp = /^[\s]*[A-Z]{1}[a-zA-Z0-9\s/]+:[\s]{1}[A-Z]{1}.*$/;
+const titleRegExp = /^[\s]*(\[v\d+\.\d+\.x\][\s])?[A-Z]{1}[a-zA-Z0-9\s/]+:[\s]{1}[A-Z]{1}.*$/;
 function isTitleValid(title) {
     title = title.trim();
     const matches = titleRegExp.exec(title);

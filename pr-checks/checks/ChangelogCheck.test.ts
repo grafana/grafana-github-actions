@@ -426,6 +426,14 @@ describe('isTitleValid', () => {
 			str: 'Postgres/MySQL/MSSQL: Cancel in-flight SQL query if user cancels query in grafana',
 			valid: true,
 		},
+		// The title can also contain a version prefix since this will be
+		// filtered out by the changelog generator:
+		{ str: '[v10.0.x] Table: Fix filter crashes table', valid: true },
+		{ str: '[v9.1.x] Table: Fix filter crashes table', valid: true },
+		{ str: '[v10.0] Table: Fix filter crashes table', valid: false },
+		{ str: '[v10.0.x]: Table: Fix filter crashes table', valid: false },
+		{ str: '[10.0.x] Table: Fix filter crashes table', valid: false },
+		{ str: '[] Table: Fix filter crashes table', valid: false },
 	])(`string='$str', expected: $valid`, async ({ str, valid }) => {
 		const isValid = isTitleValid(str)
 		expect(isValid).to.be.equal(valid)
