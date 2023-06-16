@@ -56,9 +56,13 @@ class BumpVersion extends Action {
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
+		// Install dependencies so that we can run lerna et al. with the local
+		// version:
+		await exec('yarn', ['install'])
 		// Update version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
-		await exec('npx', [
+		await exec('yarn', [
+			'run',
 			'lerna',
 			'version',
 			version,
@@ -83,7 +87,8 @@ class BumpVersion extends Action {
 		await git('push', '--set-upstream', 'origin', prBranch)
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
-		npx lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
+		yarn install\n
+		yarn run lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
