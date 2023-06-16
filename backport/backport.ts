@@ -357,7 +357,9 @@ const backport = async ({
 	await cloneRepo({ token, owner, repo })
 
 	for (const [base, head] of Object.entries(backportBaseToHead)) {
-		const body = `Backport ${commitToBackport} from #${pullRequestNumber}\n\n---\n\n${ghIssue.body}`
+		const issueHasBody = !!ghIssue.body
+		const bodySuffix = issueHasBody ? `\n\n---\n\n${ghIssue.body}` : ''
+		const body = `Backport ${commitToBackport} from #${pullRequestNumber}${bodySuffix}`
 
 		let title = titleTemplate
 		Object.entries({
