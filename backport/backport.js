@@ -110,6 +110,23 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
             repo,
         });
     }
+    // Set the milestone to the target branch if possible:
+    if (/^v\d+\.\d+\.x$/.test(base)) {
+        const milestoneName = base.substring(1);
+        const allMilestones = await github.issues.listMilestonesForRepo({ owner, repo, state: 'open' });
+        const milestone = allMilestones.data.find((milestone) => milestone.title === milestoneName);
+        if (milestone) {
+            await github.issues.update({
+                repo,
+                owner,
+                issue_number: pullRequestNumber,
+                milestone: milestone.number,
+            });
+        }
+        else {
+            console.log('No matching milestone found. Manual assignment necessary.');
+        }
+    }
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
         const reviewers = createRsp.data.requested_reviewers.map((user) => user.login);
