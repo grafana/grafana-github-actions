@@ -445,7 +445,7 @@ export function getFinalLabels(originalLabels: string[], labelsToAdd: string[]):
 	const result = new Set<string>(originalLabels)
 	// Remove all the labels that started with `backport .*`
 	for (const label of originalLabels) {
-		if (labelRegExp.test(label)) {
+		if (label === 'backport-failed' || labelRegExp.test(label)) {
 			result.delete(label)
 		}
 	}
