@@ -24,6 +24,11 @@ test('getFinalLabels/remove-backports', () => {
 	return expect(getFinalLabels(['backport v10.0.x', 'world'], [])).toEqual(new Set(['world']))
 })
 
+// The backport-failed label should not be ported over.
+test('getFinalLabels/remove-backport-failed', () => {
+	return expect(getFinalLabels(['backport-failed', 'world'], [])).toEqual(new Set(['world']))
+})
+
 // If a backport label for a specific target is explicitly requested by the
 // configuration, it should still be included.
 test('getFinalLabels/remove-backports-original-only', () => {
