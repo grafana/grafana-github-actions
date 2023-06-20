@@ -17,6 +17,7 @@ class BumpVersion extends Action_1.Action {
         const { owner, repo } = github_1.context.repo;
         const token = this.getToken();
         await (0, git_1.cloneRepo)({ token, owner, repo });
+        await (0, git_1.setConfig)('grafana-delivery-bot');
         process.chdir(repo);
         if (!this.isCalledFromWorkflow()) {
             // Manually invoked the action

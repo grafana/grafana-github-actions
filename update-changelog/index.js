@@ -26,6 +26,7 @@ class UpdateChangelog extends Action_1.Action {
         const versionSplitted = version.split('.');
         const versionMajorBranch = 'v' + versionSplitted[0] + '.' + versionSplitted[1] + '.' + 'x';
         await (0, git_1.cloneRepo)({ token, owner, repo });
+        await (0, git_1.setConfig)('grafana-delivery-bot');
         process.chdir(repo);
         const fileUpdater = new FileUpdater_1.FileUpdater();
         const builder = new ChangelogBuilder_1.ChangelogBuilder(octokit, version);

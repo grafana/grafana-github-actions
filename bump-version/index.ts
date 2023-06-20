@@ -4,7 +4,7 @@ import { context } from '@actions/github'
 // import { OctoKitIssue } from '../api/octokit'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
-import { cloneRepo } from '../common/git'
+import { cloneRepo, setConfig } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { getVersionMatch } from './versions'
@@ -17,6 +17,7 @@ class BumpVersion extends Action {
 		const token = this.getToken()
 
 		await cloneRepo({ token, owner, repo })
+		await setConfig('grafana-delivery-bot')
 
 		process.chdir(repo)
 

@@ -5,7 +5,7 @@ import { exec } from '@actions/exec'
 import escapeRegExp from 'lodash.escaperegexp'
 
 import { FileAppender } from './FileAppender'
-import { cloneRepo } from '../common/git'
+import { cloneRepo, setConfig } from '../common/git'
 
 const labelMatcher = 'add-to-release-notes'
 
@@ -202,6 +202,7 @@ const release = async ({
 	console.log('This is a merge action')
 
 	await cloneRepo({ token, owner, repo })
+	await setConfig('grafanabot')
 
 	await group(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
 		let head = `add-${pullRequestNumber}-to-release-notes`
