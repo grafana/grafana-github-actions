@@ -118,6 +118,7 @@ const release = async ({ labelsToAdd, payload: { pull_request: { labels, merged,
     }
     console.log('This is a merge action');
     await (0, git_1.cloneRepo)({ token, owner, repo });
+    await (0, git_1.setConfig)('grafanabot');
     await (0, core_1.group)(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
         let head = `add-${pullRequestNumber}-to-release-notes`;
         let title = titleTemplate;

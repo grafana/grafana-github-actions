@@ -6,7 +6,7 @@ import { context, GitHub } from '@actions/github'
 import { betterer } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
-import { cloneRepo } from '../common/git'
+import { cloneRepo, setConfig } from '../common/git'
 import { OctoKitIssue } from '../api/octokit'
 
 export const BETTERER_RESULTS_PATH = '.betterer.results'
@@ -372,6 +372,7 @@ const backport = async ({
 	const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values())
 
 	await cloneRepo({ token, owner, repo })
+	await setConfig('grafana-delivery-bot')
 
 	for (const [base, head] of Object.entries(backportBaseToHead)) {
 		const issueHasBody = !!ghIssue.body

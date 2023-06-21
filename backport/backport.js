@@ -262,6 +262,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
     const originalLabels = ghIssue.labels;
     const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values());
     await (0, git_1.cloneRepo)({ token, owner, repo });
+    await (0, git_1.setConfig)('grafana-delivery-bot');
     for (const [base, head] of Object.entries(backportBaseToHead)) {
         const issueHasBody = !!ghIssue.body;
         const bodySuffix = issueHasBody ? `\n\n---\n\n${ghIssue.body}` : '';
