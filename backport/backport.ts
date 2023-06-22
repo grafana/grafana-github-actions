@@ -190,15 +190,6 @@ const backportOnce = async ({
 	}
 
 	if (mergedBy) {
-		// If the PR was merged by the same user that owns the token, then we
-		// cannot assign a reviewer.
-		const tokenUser = await github.users.getAuthenticated()
-		if (tokenUser && mergedBy.login === tokenUser.data.login) {
-			console.log(
-				'User who merged the original PR is also the token owner. Skipping reviewer assignment.',
-			)
-			return
-		}
 		// Assign to merger
 		await github.pulls.createReviewRequest({
 			pull_number: pullRequestNumber,
