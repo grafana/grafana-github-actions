@@ -100,17 +100,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         title,
     });
     const pullRequestNumber = createRsp.data.number;
-    // Set the labels first. If setting the reviewers fails for some reason, at
-    // least the labels will be there.
-    if (labelsToAdd.length > 0) {
-        await github.issues.addLabels({
-            issue_number: pullRequestNumber,
-            labels: labelsToAdd,
-            owner,
-            repo,
-        });
-    }
-    // Set the milestone to the target branch if possible:
+    // Set the milestone first in order to avoid failing milestone checks (where possible):
     if (/^v\d+\.\d+\.x$/.test(base)) {
         const milestoneName = base.substring(1);
         const allMilestones = await github.issues.listMilestonesForRepo({ owner, repo, state: 'open' });
@@ -126,6 +116,14 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         else {
             console.log('No matching milestone found. Manual assignment necessary.');
         }
+    }
+    if (labelsToAdd.length > 0) {
+        await github.issues.addLabels({
+            issue_number: pullRequestNumber,
+            labels: labelsToAdd,
+            owner,
+            repo,
+        });
     }
     // Remove default reviewers
     if (createRsp.data.requested_reviewers) {
