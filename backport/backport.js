@@ -145,10 +145,12 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         });
     }
 };
-const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, head, title, originalNumber, }) => {
+const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, head, title, originalNumber, labels, hasBody, }) => {
     const backportMilestone = base.startsWith('v') ? base.substring(1) : base;
     const escapedTitle = title.replaceAll('"', '\\"');
-    return [
+    const baseBody = `Backport ${commitToBackport} from #${originalNumber}`;
+    const joinedLabels = labels.map((l) => `--label "${l}"`).join(' ');
+    let lines = [
         `The backport to \`${base}\` failed:`,
         '```',
         errorMessage,
@@ -164,7 +166,19 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         '# When the conflicts are resolved, stage and commit the changes',
         `git add . && git cherry-pick --continue`,
         '# If you have the GitHub CLI installed: Push the branch to GitHub and a PR:',
-        `gh pr create --title "${escapedTitle}" --body "Backport ${commitToBackport} from #${originalNumber}" --label backport --base ${base} --milestone ${backportMilestone} --web`,
+    ];
+    if (hasBody) {
+        lines = lines.concat([
+            `gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}' > .pr-body.txt`,
+            `gh pr create --title "${escapedTitle}" --body-file .pr-body.txt ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
+        ]);
+    }
+    else {
+        lines = lines.concat([
+            `gh pr create --title "${escapedTitle}" --body "${baseBody}" ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
+        ]);
+    }
+    lines = lines.concat([
         "# If you don't have the GitHub CLI installed: Push the branch to GitHub and manually create a PR:",
         `git push --set-upstream origin ${head}`,
         '# Remove the local backport branch',
@@ -172,7 +186,8 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
         `git branch -D ${head}`,
         '```',
         `Unless you've used the GitHub CLI above, now create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
-    ].join('\n');
+    ]);
+    return lines.join('\n');
 };
 exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
 const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
@@ -294,6 +309,8 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
                         head,
                         title,
                         originalNumber: pullRequestNumber,
+                        labels: prLabels,
+                        hasBody: issueHasBody,
                     }),
                     issue_number: pullRequestNumber,
                     owner,

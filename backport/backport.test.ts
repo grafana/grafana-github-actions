@@ -53,7 +53,7 @@ test('getFinalLabels/enforce-add-to-changelog', () => {
 	)
 })
 
-test('getFailedBackportCommentBody/gh-line', () => {
+test('getFailedBackportCommentBody/gh-line-no-body', () => {
 	const output = getFailedBackportCommentBody({
 		base: 'v10.0.x',
 		commitToBackport: '123456',
@@ -61,8 +61,26 @@ test('getFailedBackportCommentBody/gh-line', () => {
 		head: 'backport-123-to-v10.0.x',
 		title: '[v10.0.x] hello world',
 		originalNumber: 123,
+		labels: ['backport'],
+		hasBody: false,
 	})
 	expect(output).toContain(
-		'gh pr create --title "[v10.0.x] hello world" --body "Backport 123456 from #123" --label backport --base v10.0.x --milestone 10.0.x --web',
+		'gh pr create --title "[v10.0.x] hello world" --body "Backport 123456 from #123" --label "backport" --base v10.0.x --milestone 10.0.x --web',
+	)
+})
+
+test('getFailedBackportCommentBody/gh-line-with-body', () => {
+	const output = getFailedBackportCommentBody({
+		base: 'v10.0.x',
+		commitToBackport: '123456',
+		errorMessage: 'some error',
+		head: 'backport-123-to-v10.0.x',
+		title: '[v10.0.x] hello world',
+		originalNumber: 123,
+		labels: ['backport', 'no-changelog'],
+		hasBody: true,
+	})
+	expect(output).toContain(
+		'gh pr create --title "[v10.0.x] hello world" --body-file .pr-body.txt --label "backport" --label "no-changelog" --base v10.0.x --milestone 10.0.x --web',
 	)
 })
