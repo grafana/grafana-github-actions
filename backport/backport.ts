@@ -236,12 +236,16 @@ export const getFailedBackportCommentBody = ({
 		`git cherry-pick -x ${commitToBackport}`,
 		'# When the conflicts are resolved, stage and commit the changes',
 		`git add . && git cherry-pick --continue`,
-		'# If you have the GitHub CLI installed: Push the branch to GitHub and a PR:',
+		'```',
+		'If you have the [GitHub CLI](https://cli.github.com/) installed:',
+		'```bash',
 	]
 
 	if (hasBody) {
 		lines = lines.concat([
+			'# Create the PR body template',
 			`gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}' > .pr-body.txt`,
+			`# Push the branch to GitHub and a PR`,
 			`gh pr create --title "${escapedTitle}" --body-file .pr-body.txt ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
 		])
 	} else {
@@ -251,6 +255,9 @@ export const getFailedBackportCommentBody = ({
 	}
 
 	lines = lines.concat([
+		'```',
+		`Or, if you don't have the GitHub CLI installed ([we recommend you install it!](https://github.com/cli/cli#installation)):`,
+		'```bash',
 		"# If you don't have the GitHub CLI installed: Push the branch to GitHub and manually create a PR:",
 		`git push --set-upstream origin ${head}`,
 		'# Remove the local backport branch',
