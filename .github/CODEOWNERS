@@ -1,0 +1,21 @@
+# As fallback we set grafana-delivery as owner for everything that has no
+# explicit owner in order to make mandatory reviews possible:
+* @grafana/grafana-delivery
+
+# Actions explicitly owned by docs-grafana:
+/docs-target/ @grafana/docs-grafana
+/has-matching-release-tag/ @grafana/docs-grafana
+
+# Actions explicitly owned by grafana-delivery:
+/backport/ @grafana/grafana-delivery
+/bump-version/ @grafana/grafana-delivery
+/close-milestone/ @grafana/grafana-delivery
+/enterprise-check/ @grafana/grafana-delivery
+/github-release/ @grafana/grafana-delivery
+/remove-milestone/ @grafana/grafana-delivery
+/update-changelog/ @grafana/grafana-delivery
+
+# Actions created by specified people:
+/repository-dispatch/ @AgnesToulet
+/release-notes-appender/ @trevorwhitney
+
