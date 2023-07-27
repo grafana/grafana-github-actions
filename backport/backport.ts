@@ -244,9 +244,9 @@ export const getFailedBackportCommentBody = ({
 	if (hasBody) {
 		lines = lines.concat([
 			'# Create the PR body template',
-			`gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}' > .pr-body.txt`,
+			`PR_BODY=$(gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}')`,
 			`# Push the branch to GitHub and a PR`,
-			`gh pr create --title "${escapedTitle}" --body-file .pr-body.txt ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
+			`echo "$\{PR_BODY\}" | gh pr create --title "${escapedTitle}" --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
 		])
 	} else {
 		lines = lines.concat([
