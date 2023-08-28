@@ -8,6 +8,7 @@ import { cloneRepo, setConfig } from '../common/git'
 // import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { getVersionMatch } from './versions'
+import { getInput } from '../common/utils'
 
 class BumpVersion extends Action {
 	id = 'BumpVersion'
@@ -83,6 +84,12 @@ class BumpVersion extends Action {
 		} catch (e) {
 			console.error('yarn failed', e)
 		}
+
+		const precommitMakeTarget = getInput('precommit_make_target')
+		if (precommitMakeTarget) {
+			await exec('make', [precommitMakeTarget])
+		}
+
 		await git('commit', '-am', `"Release: Updated versions in package to ${version}"`)
 		// push
 		await git('push', '--set-upstream', 'origin', prBranch)

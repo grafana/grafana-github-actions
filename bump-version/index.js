@@ -8,6 +8,7 @@ const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
 const versions_1 = require("./versions");
+const utils_1 = require("../common/utils");
 class BumpVersion extends Action_1.Action {
     constructor() {
         super(...arguments);
@@ -74,6 +75,10 @@ class BumpVersion extends Action_1.Action {
         }
         catch (e) {
             console.error('yarn failed', e);
+        }
+        const precommitMakeTarget = (0, utils_1.getInput)('precommit_make_target');
+        if (precommitMakeTarget) {
+            await (0, exec_1.exec)('make', [precommitMakeTarget]);
         }
         await git('commit', '-am', `"Release: Updated versions in package to ${version}"`);
         // push
