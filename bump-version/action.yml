@@ -9,6 +9,9 @@ inputs:
     required: false
   version_call:
     description: Version number invoked from workflow
+  precommit_make_target:
+    required: false
+    description: Make target to execute before the changes are committed for the PR
 runs:
   using: 'node16'
   main: 'index.js'
