@@ -243,13 +243,18 @@ export const getFailedBackportCommentBody = ({
 
 	if (hasBody) {
 		lines = lines.concat([
+			'# Push the branch to GitHub:',
+			`git push --set-upstream origin ${head}`,
 			'# Create the PR body template',
 			`PR_BODY=$(gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}')`,
-			`# Push the branch to GitHub and a PR`,
+			`# Create the PR on GitHub`,
 			`echo "$\{PR_BODY\}" | gh pr create --title "${escapedTitle}" --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
 		])
 	} else {
 		lines = lines.concat([
+			'# Push the branch to GitHub:',
+			`git push --set-upstream origin ${head}`,
+			`# Create the PR on GitHub`,
 			`gh pr create --title "${escapedTitle}" --body "${baseBody}" ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
 		])
 	}
@@ -258,13 +263,15 @@ export const getFailedBackportCommentBody = ({
 		'```',
 		`Or, if you don't have the GitHub CLI installed ([we recommend you install it!](https://github.com/cli/cli#installation)):`,
 		'```bash',
-		"# If you don't have the GitHub CLI installed: Push the branch to GitHub and manually create a PR:",
+		'# Push the branch to GitHub:',
 		`git push --set-upstream origin ${head}`,
+		'',
+		`# Create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
+		'',
 		'# Remove the local backport branch',
 		`git switch main`,
 		`git branch -D ${head}`,
 		'```',
-		`Unless you've used the GitHub CLI above, now create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
 	])
 
 	return lines.join('\n')
