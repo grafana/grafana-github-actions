@@ -84,6 +84,5 @@ test('getFailedBackportCommentBody/gh-line-with-body', () => {
 	expect(output).toContain(
 		'gh pr create --title "[v10.0.x] hello world" --body-file - --label "backport" --label "no-changelog" --base v10.0.x --milestone 10.0.x --web',
 	)
-	console.log(output)
 	expect(output).toContain('git push --set-upstream origin backport-123-to-v10.0.x')
 })
