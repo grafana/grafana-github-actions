@@ -1517,12 +1517,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash.escaperegexp@npm:^4.1.6":
-  version: 4.1.6
-  resolution: "@types/lodash.escaperegexp@npm:4.1.6"
+"@types/lodash.escaperegexp@npm:^4.1.7":
+  version: 4.1.7
+  resolution: "@types/lodash.escaperegexp@npm:4.1.7"
   dependencies:
     "@types/lodash": "*"
-  checksum: 64715fdc204419a9807bc5c6a5a76557b35c55ac033988fe0568ddc29bca4f3afe269ea5ac9517f27a904938eb356b7f221e816db662c405408797cb2980310d
+  checksum: 1ae3beda9d1896f274c3343a5feffb88c3698ce24588a81c6f03ec5791ba6e21079fd2c1e1557d11290c295b27df4ca69a9f888f2dd08d3bb08300aa992508fd
   languageName: node
   linkType: hard
 
@@ -6141,7 +6141,7 @@ __metadata:
     "@octokit/webhooks": ^7.12.2
     "@types/chai": ^4.2.10
     "@types/jest": ^27.4.0
-    "@types/lodash.escaperegexp": ^4.1.6
+    "@types/lodash.escaperegexp": ^4.1.7
     "@types/micromatch": ^4.0.1
     "@types/node": ^14.14.7
     "@types/semver": ^7.3.4
