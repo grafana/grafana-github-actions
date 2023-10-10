@@ -1,10 +1,10 @@
-name: yarn build
+name: Test
 
 on: pull_request
 
 jobs:
-  yarn-build:
-    name: yarn build
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build yarn
-        run: yarn build
+        run: yarn run build
 
       - name: Git checkout
         run: |
@@ -38,3 +38,6 @@ jobs:
             echo "ERROR: Please run *yarn build* and commit your changes.";
             git diff --exit-code
           fi
+
+      - name: Run tests
+        run: yarn run test
