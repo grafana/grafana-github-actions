@@ -265,6 +265,12 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
     const ghIssue = await issue.getIssue();
     if (!merged) {
         console.log('PR not merged');
+        await github.issues.createComment({
+            body: 'This PR must be merged before a backport PR will be created.',
+            issue_number: pullRequestNumber,
+            owner,
+            repo,
+        });
         return;
     }
     console.log('This is a merge action');
