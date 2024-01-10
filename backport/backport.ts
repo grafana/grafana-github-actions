@@ -374,6 +374,11 @@ const backport = async ({
 
 	if (!merged) {
 		console.log('PR not merged')
+		for await (const cmt of issue.getComments()) {
+			if (cmt.at.toString().indexOf('This PR must be merged before a backport PR will be created.') >= 0) {
+				return
+			}
+		}
 		await github.issues.createComment({
 			body: 'This PR must be merged before a backport PR will be created.',
 			issue_number: pullRequestNumber,
