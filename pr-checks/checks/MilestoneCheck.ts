@@ -20,7 +20,7 @@ export class MilestoneCheck extends Check {
 	subscribe(s: CheckSubscriber) {
 		s.on(
 			['pull_request', 'pull_request_target'],
-			['opened', 'reopened', 'ready_for_review', 'synchronize', 'labeled', 'unlabeled'],
+			['opened', 'reopened', 'ready_for_review', 'synchronize'],
 			async (ctx) => {
 				const pr = context.payload.pull_request as EventPayloads.WebhookPayloadPullRequestPullRequest
 

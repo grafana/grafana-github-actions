@@ -7,7 +7,7 @@ import { CheckState } from '../types'
 import { MilestoneCheck } from './MilestoneCheck'
 
 const prEvents = ['pull_request', 'pull_request_target']
-const prActions = ['opened', 'reopened', 'ready_for_review', 'synchronize', 'labeled', 'unlabeled']
+const prActions = ['opened', 'reopened', 'ready_for_review', 'synchronize']
 
 const prTestCases = prEvents
 	.flatMap((event) => {
