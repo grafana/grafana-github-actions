@@ -43,7 +43,7 @@
 		"@types/jest": "^27.4.0",
 		"@types/node": "^20.9.2",
 		"@types/yargs": "^15.0.4",
-		"@typescript-eslint/eslint-plugin": "^5.27.0",
+		"@typescript-eslint/eslint-plugin": "^6.19.0",
 		"@typescript-eslint/parser": "^6.19.0",
 		"chai": "^4.2.0",
 		"eslint": "^8.4.1",
