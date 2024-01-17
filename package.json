@@ -30,13 +30,13 @@
 		"@octokit/webhooks": "^7.12.2",
 		"@types/lodash.escaperegexp": "^4.1.9",
 		"@types/micromatch": "^4.0.1",
-		"@types/semver": "^7.3.4",
+		"@types/semver": "^7.5.6",
 		"axios": "^0.19.2",
 		"dotenv": "^8.2.0",
 		"lodash": "^4.17.20",
 		"lodash.escaperegexp": "^4.1.2",
 		"micromatch": "^4.0.2",
-		"semver": "^7.3.5"
+		"semver": "^7.5.4"
 	},
 	"devDependencies": {
 		"@types/chai": "^4.2.10",
