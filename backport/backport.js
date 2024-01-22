@@ -224,6 +224,10 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
             break;
         }
     }
+    // don't execute the rest of the backport if there's no backport label present
+    if (!matches) {
+        return;
+    }
     if (matches && matchedLabels.length == 0 && !labelsString.includes(missingLabels)) {
         console.log('PR intended to be backported, but not labeled properly. Labels: ' +
             labelsString +
