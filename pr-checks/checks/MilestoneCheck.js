@@ -12,6 +12,11 @@ class MilestoneCheck extends Check_1.Check {
     subscribe(s) {
         s.on(['pull_request', 'pull_request_target'], ['opened', 'reopened', 'ready_for_review', 'synchronize'], async (ctx) => {
             const pr = github_1.context.payload.pull_request;
+            // Milestones are relevant only for PRs against `main`.
+            // If base branch is not `main`, we can skip the check
+            if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'refs/heads/main') {
+                return;
+            }
             if (pr && pr.milestone) {
                 return this.success(ctx, pr.head.sha);
             }
