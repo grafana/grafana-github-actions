@@ -24,13 +24,17 @@ export class MilestoneCheck extends Check {
 			async (ctx) => {
 				const pr = context.payload.pull_request as EventPayloads.WebhookPayloadPullRequestPullRequest
 
-				// Milestones are relevant only for PRs against `main`.
-				// If base branch is not `main`, we can skip the check
-				if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'main') {
+				if (!pr) {
+					return this.failure(ctx, '')
+				}
+
+				// We ignore PRs whose base branch is not `main`, since milestones are relevant only for `main`.
+				// We add some sanity checks on the payload for extra precaution.
+				if (pr.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'main') {
 					return
 				}
 
-				if (pr && pr.milestone) {
+				if (pr.milestone) {
 					return this.success(ctx, pr.head.sha)
 				}
 
