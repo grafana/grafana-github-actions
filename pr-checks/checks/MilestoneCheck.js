@@ -14,7 +14,7 @@ class MilestoneCheck extends Check_1.Check {
             const pr = github_1.context.payload.pull_request;
             // Milestones are relevant only for PRs against `main`.
             // If base branch is not `main`, we can skip the check
-            if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'refs/heads/main') {
+            if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'main') {
                 return;
             }
             if (pr && pr.milestone) {

@@ -26,7 +26,7 @@ export class MilestoneCheck extends Check {
 
 				// Milestones are relevant only for PRs against `main`.
 				// If base branch is not `main`, we can skip the check
-				if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'refs/heads/main') {
+				if (!!pr?.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'main') {
 					return
 				}
 
