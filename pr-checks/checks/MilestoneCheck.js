@@ -15,10 +15,12 @@ class MilestoneCheck extends Check_1.Check {
             if (!pr) {
                 return this.failure(ctx, '');
             }
-            // We ignore PRs whose base branch is not `main`, since milestones are relevant only for `main`.
-            // We add some sanity checks on the payload for extra precaution.
-            if (pr.base?.ref && typeof pr.base.ref === 'string' && pr.base.ref !== 'main') {
-                return;
+            // This check is relevant only for PRs opened against some specific branches.
+            // We can skip it if the base branch is not one of those.
+            // If for any reason the base branch is not specified in the webhook event payload, we still run the check
+            const versionBranchRegex = /v\d*\.\d*\.\d*.*/;
+            if (pr.base?.ref && pr.base.ref !== 'main' && !versionBranchRegex.test(pr.base.ref)) {
+                return this.success(ctx, pr.head.sha);
             }
             if (pr.milestone) {
                 return this.success(ctx, pr.head.sha);
