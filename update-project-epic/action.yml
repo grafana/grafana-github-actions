@@ -1,0 +1,108 @@
+name: Update epic trending field
+
+inputs:
+  project_owner:
+    description: GitHub Project Owner
+    default: 'grafana'
+  project_number:
+    description: GitHub Project Number
+    required: true
+  on_track: 
+    description: On track ID
+    required: true
+  at_risk: 
+    description: At Risk ID
+    required: true
+  blocked: 
+    description: Blocked ID
+    required: true
+
+on:
+  issue_comment:
+    types:
+      - created
+  workflow_call:
+
+jobs:
+  extract-trend:
+    name: Extract trend
+    runs-on: ubuntu-latest
+    outputs:
+      trend: ${{ steps.extract-trend.outputs.group1 }}
+      trend_id: ${{ steps.convert-trend.outputs.trend_id }}
+    steps:
+      - id: extract-trend
+        uses: kaisugi/action-regex-match@v1.0.1
+        with:
+          regex: '<!-- data key="trending" start -->([\s\S]*?)<!-- data end -->'
+          text: ${{ github.event.comment.body }}
+      - name: Output trend
+        run: |
+          echo "${{ steps.extract-trend.outputs.group1 }}"
+      - id: convert-trend
+        uses: actions/github-script@v6
+        if: ${{ steps.extract-trend.outputs.group1 != '' }}
+        with:
+          result-encoding: string
+          script: |
+            const trend = `${{ steps.extract-trend.outputs.group1 }}`.trim();
+            let trend_id = "";
+
+            switch (trend) {
+              case "🟢 on track":
+                trend_id = "${{ inputs.on_track }}";
+                break;
+              case "🟡 at risk":
+                trend_id = "${{ inputs.at_risk }}";
+                break;
+              case "🔴 blocked":
+                trend_id = "${{ inputs.blocked }}";
+                break;
+            }
+
+            core.setOutput("trend_id", trend_id);
+
+            return;
+  update-trending:
+    name: Update epic trending field
+    runs-on: ubuntu-latest
+    needs: extract-trend
+    if: ${{ needs.extract-trend.outputs.trend_id != '' }}
+    steps:
+      - id: get-project-id
+        uses: monry/actions-get-project-id@v2
+        with:
+          # Personal Access Token that with `org:read` are granted.
+          github-token: ${{ github.token }}
+
+          # Owner name of project
+          project-owner: ${{ inputs.project_owner }}
+
+          # Number of project
+          # 
+          # The project number is the number shown in the URL or list
+          # https://github.com/users/monry/projects/123
+          #                                         ^^^
+          project-number: ${{ inputs.project_number }}
+      - name: Output project id
+        run: |
+          echo project number: ${{ inputs.project_number }}
+          echo project id: ${{ steps.get-project-id.outputs.project-id }}
+      - id: get-item-id
+        uses: monry/actions-get-project-item-id@v2
+        with:
+          # Personal Access Token that with `repo` and `org:read` are granted.
+          github-token: ${{ github.token }}
+          project-id: ${{ steps.get-project-id.outputs.project-id }}
+          issue-id: ${{ github.event.issue.node_id }}
+      - name: Output item id
+        run: |
+          echo ${{ steps.get-item-id.outputs.project-item-id }}
+      - uses: titoportas/update-project-fields@v0.1.0
+        with:
+          project-url: https://github.com/orgs/grafana/projects/${{ inputs.project_number }}
+          github-token: ${{ github.token }}
+          item-id: ${{ steps.get-item-id.outputs.project-item-id }}
+          field-keys: Trending
+          field-values: ${{ needs.extract-trend.outputs.trend_id }}
+  
