@@ -1,0 +1,121 @@
+name: Update epic trending field
+
+on:
+  workflow_call:
+    inputs:
+      project_owner:
+        description: GitHub Project Owner
+        type: string
+        default: 'grafana'
+      project_number:
+        description: GitHub Project Number
+        type: number
+        required: true
+      field_name:
+        description: GitHub Project Field Name
+        type: string
+        default: 'Trending'
+      github_token:
+        description: GitHub Token
+        type: string
+        required: true
+
+jobs:
+  extract-trend:
+    name: Extract trend
+    runs-on: ubuntu-latest
+    outputs:
+      trend: ${{ steps.extract-trend.outputs.group1 }}
+      trend_id: ${{ steps.convert-trend.outputs.trend_id }}
+      error: ${{ steps.convert-trend.outputs.error }}
+      result: ${{ steps.convert-trend.outputs.result }}
+    steps:
+      - id: extract-trend
+        uses: kaisugi/action-regex-match@v1.0.1
+        with:
+          regex: '<!-- data key="trending" start -->([\s\S]*?)<!-- data end -->'
+          text: ${{ github.event.comment.body }}
+      - id: convert-trend
+        uses: actions/github-script@v7
+        if: ${{ steps.extract-trend.outputs.group1 != '' }}
+        with:
+          github-token: ${{ inputs.github_token }}
+          script: |
+            const variables = {
+              trend: `${{ steps.extract-trend.outputs.group1 }}`.trim(),
+              org: '${{ inputs.project_owner }}',
+              field_name: '${{ inputs.field_name }}',
+              project_number: ${{ inputs.project_number }}
+            };
+
+            const query = `
+              query($org: String!, $field_name: String!, $project_number:Int!, $trend: String!) {
+                organization(login: $org) {
+                  projectV2(number: $project_number) {
+                    field(name: $field_name) {
+                      ... on ProjectV2SingleSelectField {
+                        options(names: [$trend]) {
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            var result = {};
+
+            try {
+              result = await github.graphql(query, variables);
+            } catch (error) {
+              core.setOutput("error", error.message)
+              if (error.data) {
+                result = error.data;
+                core.setOutput("error", JSON.stringify(result))
+              }
+            }
+
+            core.setOutput("result", JSON.stringify(result));
+
+            const trend_id = result.organization.projectV2.field.options[0].id;
+
+            core.setOutput("trend_id", trend_id);
+
+            return;
+  update-trending:
+    name: Update epic trending field
+    runs-on: ubuntu-latest
+    needs: extract-trend
+    if: ${{ needs.extract-trend.outputs.trend_id != '' }}
+    steps:
+      - id: get-project-id
+        uses: monry/actions-get-project-id@v2
+        with:
+          # Personal Access Token that with `org:read` are granted.
+          github-token: ${{ inputs.github_token }}
+
+          # Owner name of project
+          project-owner: ${{ inputs.project_owner }}
+
+          # Number of project
+          # 
+          # The project number is the number shown in the URL or list
+          # https://github.com/users/monry/projects/123
+          #                                         ^^^
+          project-number: ${{ inputs.project_number }}
+      - id: get-item-id
+        uses: monry/actions-get-project-item-id@v2
+        with:
+          # Personal Access Token that with `repo` and `org:read` are granted.
+          github-token: ${{ inputs.github_token }}
+          project-id: ${{ steps.get-project-id.outputs.project-id }}
+          issue-id: ${{ github.event.issue.node_id }}
+      - uses: titoportas/update-project-fields@v0.1.0
+        with:
+          project-url: https://github.com/orgs/grafana/projects/${{ inputs.project_number }}
+          github-token: ${{ inputs.github_token }}
+          item-id: ${{ steps.get-item-id.outputs.project-item-id }}
+          field-keys: Trending
+          field-values: ${{ needs.extract-trend.outputs.trend_id }}
+  
