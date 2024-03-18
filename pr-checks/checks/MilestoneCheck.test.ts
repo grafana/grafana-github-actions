@@ -18,7 +18,7 @@ const prTestCases = prEvents
 	})
 	.flatMap((tc) => [
 		{
-			testCaseName: 'without milestone set',
+			testCaseName: 'without milestone set, when base branch is not specified in PR payload',
 			eventName: tc.eventName,
 			action: tc.action,
 			checkState: CheckState.Failure,
@@ -26,12 +26,44 @@ const prTestCases = prEvents
 			pull_request_payload: {},
 		},
 		{
-			testCaseName: 'with milestone set',
+			testCaseName: 'without milestone set, with `main` as base branch',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Failure,
+			description: 'Failed',
+			pull_request_payload: { milestone: undefined, base: { ref: 'main' } },
+		},
+		{
+			testCaseName: 'without milestone set, with version branch as base branch',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Failure,
+			description: 'Failed',
+			pull_request_payload: { milestone: undefined, base: { ref: 'v10.2.3' } },
+		},
+		{
+			testCaseName: 'with milestone set, when base branch is not specified in PR payload',
 			eventName: tc.eventName,
 			action: tc.action,
 			checkState: CheckState.Success,
 			description: 'Milestone set',
 			pull_request_payload: { milestone: {} },
+		},
+		{
+			testCaseName: 'with milestone set, with `main` as base branch',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Success,
+			description: 'Milestone set',
+			pull_request_payload: { milestone: {}, base: { ref: 'main' } },
+		},
+		{
+			testCaseName: 'with milestone set, with version branch as base branch',
+			eventName: tc.eventName,
+			action: tc.action,
+			checkState: CheckState.Success,
+			description: 'Milestone set',
+			pull_request_payload: { milestone: {}, base: { ref: 'v10.2.3' } },
 		},
 	])
 

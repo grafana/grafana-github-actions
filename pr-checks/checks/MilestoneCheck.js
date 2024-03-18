@@ -12,7 +12,17 @@ class MilestoneCheck extends Check_1.Check {
     subscribe(s) {
         s.on(['pull_request', 'pull_request_target'], ['opened', 'reopened', 'ready_for_review', 'synchronize'], async (ctx) => {
             const pr = github_1.context.payload.pull_request;
-            if (pr && pr.milestone) {
+            if (!pr) {
+                return this.failure(ctx, '');
+            }
+            // This check is relevant only for PRs opened against some specific branches.
+            // We can skip it if the base branch is not one of those.
+            // If for any reason the base branch is not specified in the webhook event payload, we still run the check
+            const versionBranchRegex = /v\d*\.\d*\.\d*.*/;
+            if (pr.base?.ref && pr.base.ref !== 'main' && !versionBranchRegex.test(pr.base.ref)) {
+                return this.success(ctx, pr.head.sha);
+            }
+            if (pr.milestone) {
                 return this.success(ctx, pr.head.sha);
             }
             return this.failure(ctx, pr.head.sha);
