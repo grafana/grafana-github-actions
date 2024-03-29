@@ -58,21 +58,21 @@ class BumpVersion extends Action {
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
-		// Install dependencies so that we can run lerna et al. with the local
-		// version:
+		// Install dependencies so that we can run versioning commands
 		await exec('yarn', ['install'])
-		// Update version
+		// Update root package.json version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
+		// Update all npm packages package.json version that use fixed versioning strategy (aligned with grafana version)
 		await exec('yarn', [
-			'run',
-			'lerna',
+			'nx',
+			'release',
 			'version',
 			version,
-			'--no-push',
-			'--no-git-tag-version',
-			'--force-publish',
-			'--exact',
-			'--yes',
+			'--no-git-commit',
+			'--no-git-tag',
+			'--no-stage-changes',
+			'--group',
+			'fixed',
 		])
 		try {
 			//regenerate yarn.lock file
@@ -96,7 +96,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn run lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
+		yarn nx release version ${version} --no-git-commit --no-git-tag --no-stage-changes --group fixed\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
