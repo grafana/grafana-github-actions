@@ -62,7 +62,7 @@ class BumpVersion extends Action {
 		await exec('yarn', ['install'])
 		// Update root package.json version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
-		// Update all npm packages package.json version that use fixed versioning strategy (aligned with grafana version)
+		// Update the npm packages and plugins package.json versions to align with grafana version.
 		await exec('yarn', [
 			'nx',
 			'release',
@@ -71,9 +71,10 @@ class BumpVersion extends Action {
 			'--no-git-commit',
 			'--no-git-tag',
 			'--no-stage-changes',
-			'--group',
-			'fixed',
+			'--groups',
+			'grafanaPackages,plugins',
 		])
+
 		try {
 			//regenerate yarn.lock file
 			//await exec('npm', ['install', '-g', 'corepack'])
@@ -96,7 +97,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn nx release version ${version} --no-git-commit --no-git-tag --no-stage-changes --group fixed\n
+		yarn nx release version ${version} --no-git-commit --no-git-tag --no-stage-changes --groups grafanaPackages,plugins\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
