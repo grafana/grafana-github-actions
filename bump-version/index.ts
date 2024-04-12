@@ -68,11 +68,8 @@ class BumpVersion extends Action {
 			'release',
 			'version',
 			version,
-			'--no-git-commit',
-			'--no-git-tag',
-			'--no-stage-changes',
 			'--groups',
-			'grafanaPackages,plugins',
+			'grafanaPackages,privatePackages,plugins',
 		])
 
 		try {
@@ -97,7 +94,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn nx release version ${version} --no-git-commit --no-git-tag --no-stage-changes --groups grafanaPackages,plugins\n
+		yarn nx release version ${version} --groups grafanaPackages,privatePackages,plugins\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
