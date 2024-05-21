@@ -250,14 +250,14 @@ export const getFailedBackportCommentBody = ({
 			'# Create the PR body template',
 			`PR_BODY=$(gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}')`,
 			`# Create the PR on GitHub`,
-			`echo "$\{PR_BODY\}" | gh pr create --title "${escapedTitle}" --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
+			`echo "$\{PR_BODY\}" | gh pr create --title '${escapedTitle}' --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
 		])
 	} else {
 		lines = lines.concat([
 			'# Push the branch to GitHub:',
 			`git push --set-upstream origin ${head}`,
 			`# Create the PR on GitHub`,
-			`gh pr create --title "${escapedTitle}" --body "${baseBody}" ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
+			`gh pr create --title '${escapedTitle}' --body '${baseBody}' ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
 		])
 	}
 
@@ -379,7 +379,9 @@ const backport = async ({
 	if (!merged) {
 		console.log('PR not merged')
 		for await (const cmt of issue.getComments()) {
-			if (cmt.at.toString().indexOf('This PR must be merged before a backport PR will be created.') >= 0) {
+			if (
+				cmt.at.toString().indexOf('This PR must be merged before a backport PR will be created.') >= 0
+			) {
 				return
 			}
 		}
