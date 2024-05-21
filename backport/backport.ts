@@ -220,7 +220,7 @@ export const getFailedBackportCommentBody = ({
 	const backportMilestone = base.startsWith('v') ? base.substring(1) : base
 	const escapedTitle = title.replaceAll('"', '\\"')
 	const baseBody = `Backport ${commitToBackport} from #${originalNumber}`
-	const joinedLabels = labels.map((l) => `--label "${l}"`).join(' ')
+	const joinedLabels = labels.map((l) => `--label '${l}'`).join(' ')
 	let lines = [
 		`The backport to \`${base}\` failed:`,
 		'```',
