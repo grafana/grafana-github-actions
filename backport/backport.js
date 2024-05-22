@@ -149,7 +149,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
     const backportMilestone = base.startsWith('v') ? base.substring(1) : base;
     const escapedTitle = title.replaceAll('"', '\\"');
     const baseBody = `Backport ${commitToBackport} from #${originalNumber}`;
-    const joinedLabels = labels.map((l) => `--label "${l}"`).join(' ');
+    const joinedLabels = labels.map((l) => `--label '${l}'`).join(' ');
     let lines = [
         `The backport to \`${base}\` failed:`,
         '```',
@@ -178,7 +178,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
             '# Create the PR body template',
             `PR_BODY=$(gh pr view ${originalNumber} --json body --template 'Backport ${commitToBackport} from #${originalNumber}{{ "\\n\\n---\\n\\n" }}{{ index . "body" }}')`,
             `# Create the PR on GitHub`,
-            `echo "$\{PR_BODY\}" | gh pr create --title "${escapedTitle}" --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
+            `echo "$\{PR_BODY\}" | gh pr create --title '${escapedTitle}' --body-file - ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`, //eslint-disable-line
         ]);
     }
     else {
@@ -186,7 +186,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
             '# Push the branch to GitHub:',
             `git push --set-upstream origin ${head}`,
             `# Create the PR on GitHub`,
-            `gh pr create --title "${escapedTitle}" --body "${baseBody}" ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
+            `gh pr create --title '${escapedTitle}' --body '${baseBody}' ${joinedLabels} --base ${base} --milestone ${backportMilestone} --web`,
         ]);
     }
     lines = lines.concat([
