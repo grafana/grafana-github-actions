@@ -5,7 +5,7 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo, setConfig } from '../common/git'
-// import fs from 'fs'
+import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { getVersionMatch } from './versions'
 import { getInput } from '../common/utils'
@@ -55,6 +55,21 @@ class BumpVersion extends Action {
 	async onTriggeredBase(octokit: OctoKit, base: string, version: string) {
 		const { owner, repo } = context.repo
 		const prBranch = `bump-version-${version}`
+		const hasLerna = fs.existsSync('lerna.json')
+		// Lerna was replaced with Nx release in 11.1.0. For backwards compatibility we support both
+		const versionCmd = hasLerna
+			? [
+					'run',
+					'lerna',
+					'version',
+					version,
+					'--no-push',
+					'--no-git-tag-version',
+					'--force-publish',
+					'--exact',
+					'--yes',
+			  ]
+			: ['nx', 'release', 'version', version, '--groups', 'grafanaPackages,privatePackages,plugins']
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
@@ -63,14 +78,7 @@ class BumpVersion extends Action {
 		// Update root package.json version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
 		// Update the npm packages and plugins package.json versions to align with grafana version.
-		await exec('yarn', [
-			'nx',
-			'release',
-			'version',
-			version,
-			'--groups',
-			'grafanaPackages,privatePackages,plugins',
-		])
+		await exec('yarn', versionCmd)
 
 		try {
 			//regenerate yarn.lock file
@@ -94,7 +102,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn nx release version ${version} --groups grafanaPackages,privatePackages,plugins\n
+		yarn ${versionCmd.join(' ')}\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
