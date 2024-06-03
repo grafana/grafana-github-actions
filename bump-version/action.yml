@@ -13,5 +13,5 @@ inputs:
     required: false
     description: Make target to execute before the changes are committed for the PR
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'index.js'
