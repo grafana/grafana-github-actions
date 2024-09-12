@@ -15,13 +15,6 @@ let numRequests = 0;
 const getNumRequests = () => numRequests;
 exports.getNumRequests = getNumRequests;
 class OctoKit {
-    get octokit() {
-        numRequests++;
-        return this._octokit;
-    }
-    get octokitGraphQL() {
-        return this._octokitGraphQL;
-    }
     constructor(token, params, options = { readonly: false }) {
         this.token = token;
         this.params = params;
@@ -38,6 +31,13 @@ class OctoKit {
             },
         });
         console.debug('Constructor OctoKit end');
+    }
+    get octokit() {
+        numRequests++;
+        return this._octokit;
+    }
+    get octokitGraphQL() {
+        return this._octokitGraphQL;
     }
     // TODO: just iterate over the issues in a page here instead of making caller do it
     async *query(query) {
