@@ -168,7 +168,9 @@ class Commands {
             console.log('Found changedfiles commands, listing pull request filenames...');
             changedFiles = await this.github.listPullRequestFilenames();
         }
-        console.debug('Would perform commands:', this.config);
+        console.debug('----- Current Commands configuration -----');
+        console.debug(this.config);
+        console.debug('----- End of Commands configuration -----');
         return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)));
     }
 }

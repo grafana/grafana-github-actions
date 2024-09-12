@@ -14,13 +14,19 @@ export type Command = { name: string } & (
 	| { type: 'comment'; allowUsers: string[] }
 	| { type: 'label' }
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
-	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[]; noLabels?: boolean }
+	| {
+			type: 'author'
+			memberOf?: { org: string }
+			notMemberOf?: { org: string }
+			ignoreList?: string[]
+			noLabels?: boolean
+	  }
 ) & {
 		action?: 'close' | 'addToProject' | 'removeFromProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
-	Partial<{ requireLabel: string; disallowLabel: string }>
-	& Partial<{ addToProject: { url: string, org?: string, column?: string } }>
-	& Partial<{ removeFromProject: { url: string, org?: string } }>
+	Partial<{ requireLabel: string; disallowLabel: string }> &
+	Partial<{ addToProject: { url: string; org?: string; column?: string } }> &
+	Partial<{ removeFromProject: { url: string; org?: string } }>
 /* eslint-enable */
 
 export class Commands {
@@ -233,7 +239,9 @@ export class Commands {
 			console.log('Found changedfiles commands, listing pull request filenames...')
 			changedFiles = await this.github.listPullRequestFilenames()
 		}
-		console.debug('Would perform commands:', this.config)
+		console.debug('----- Current Commands configuration -----')
+		console.debug(this.config)
+		console.debug('----- End of Commands configuration -----')
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))
 	}
 }
