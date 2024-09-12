@@ -16,10 +16,9 @@ class Backport extends Action {
 		return this.backport(issue)
 	}
 
-	async backport(issue: OctoKitIssue) {
+	async backport(issue : OctoKitIssue) {
 		try {
 			await backport({
-				issue,
 				labelsToAdd: getLabelsToAdd(getInput('labelsToAdd')),
 				payload: context.payload as EventPayloads.WebhookPayloadPullRequest,
 				titleTemplate: getInput('title'),

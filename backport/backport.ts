@@ -7,7 +7,6 @@ import { betterer } from '@betterer/betterer'
 import { EventPayloads } from '@octokit/webhooks'
 import escapeRegExp from 'lodash.escaperegexp'
 import { cloneRepo, setConfig } from '../common/git'
-import { OctoKitIssue } from '../api/octokit'
 
 export const BETTERER_RESULTS_PATH = '.betterer.results'
 export const LABEL_ADD_TO_CHANGELOG = 'add to changelog'
@@ -280,7 +279,6 @@ export const getFailedBackportCommentBody = ({
 }
 
 interface BackportArgs {
-	issue: OctoKitIssue
 	labelsToAdd: string[]
 	payload: EventPayloads.WebhookPayloadPullRequest
 	titleTemplate: string
@@ -290,7 +288,6 @@ interface BackportArgs {
 }
 
 const backport = async ({
-	issue,
 	labelsToAdd,
 	payload: {
 		action,
@@ -374,13 +371,20 @@ const backport = async ({
 		})
 	}
 
-	const ghIssue = await issue.getIssue()
+	const ghIssue = (await github.issues.get({owner, repo, issue_number: pullRequestNumber})).data;
 
 	if (!merged) {
 		console.log('PR not merged')
-		for await (const cmt of issue.getComments()) {
+			for await (const comment of github.paginate.iterator({
+				owner,
+				repo,
+				issue_number: pullRequestNumber,
+				per_page: 100,
+				page: 1,
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			})) {
 			if (
-				cmt.at.toString().indexOf('This PR must be merged before a backport PR will be created.') >= 0
+				comment.data.includes('This PR must be merged before a backport PR will be created.')
 			) {
 				return
 			}
@@ -411,7 +415,7 @@ const backport = async ({
 	const commitToBackport = String(mergeCommitSha)
 	info(`Backporting ${commitToBackport} from #${pullRequestNumber}`)
 
-	const originalLabels = ghIssue.labels
+	const originalLabels = ghIssue.labels.map((label) => label.name);
 	const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values())
 
 	await cloneRepo({ token, owner, repo })

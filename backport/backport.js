@@ -206,7 +206,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
     return lines.join('\n');
 };
 exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
-const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+const backport = async ({ labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
     if (payload.action !== 'closed') {
@@ -266,11 +266,18 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
             name: missingLabels,
         });
     }
-    const ghIssue = await issue.getIssue();
+    const ghIssue = (await github.issues.get({ owner, repo, issue_number: pullRequestNumber })).data;
     if (!merged) {
         console.log('PR not merged');
-        for await (const cmt of issue.getComments()) {
-            if (cmt.at.toString().indexOf('This PR must be merged before a backport PR will be created.') >= 0) {
+        for await (const comment of github.paginate.iterator({
+            owner,
+            repo,
+            issue_number: pullRequestNumber,
+            per_page: 100,
+            page: 1,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        })) {
+            if (comment.data.includes('This PR must be merged before a backport PR will be created.')) {
                 return;
             }
         }
@@ -296,7 +303,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
     // The merge commit SHA is actually not null.
     const commitToBackport = String(mergeCommitSha);
     (0, core_1.info)(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
-    const originalLabels = ghIssue.labels;
+    const originalLabels = ghIssue.labels.map((label) => label.name);
     const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values());
     await (0, git_1.cloneRepo)({ token, owner, repo });
     await (0, git_1.setConfig)('grafana-delivery-bot');
