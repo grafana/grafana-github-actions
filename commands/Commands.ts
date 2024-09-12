@@ -106,14 +106,13 @@ export class Commands {
 			return true
 		}
 
-		console.debug(`Current issue labels: ${issue.labels.join(' ')}`)
-		// If the command is a label and the issue has the label, execute the command
-		if (command.type === 'label' && issue.labels.includes(command.name)) {
-			console.debug(
-				`Command ${command.type} matched the issue ${issue.number} and has the label ${
-					command.name
-				}. All labels: ${issue.labels.join(' ')}`,
-			)
+		// If the command is a label, the issue has the label and the action is addToProject, execute the command
+		// This is to allow the pipeline to add multiple projects at once based on all the issue labels
+		if (
+			command.type === 'label' &&
+			command.action === 'addToProject' &&
+			issue.labels.includes(command.name)
+		) {
 			return true
 		}
 
