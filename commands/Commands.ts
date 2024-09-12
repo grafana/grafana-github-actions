@@ -102,8 +102,8 @@ export class Commands {
 			}
 		}
 
-		if ('label' in this.action) {
-			return command.type === 'label' && this.action.label === command.name
+		if ('label' in this.action && command.type === 'label' && this.action.label === command.name) {
+			return true
 		}
 
 		console.debug(`Current issue labels: ${issue.labels.join(' ')}`)
