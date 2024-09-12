@@ -73,6 +73,11 @@ class Commands {
         if ('label' in this.action) {
             return command.type === 'label' && this.action.label === command.name;
         }
+        // If the command is a label and the issue has the label, execute the command
+        if (command.type === 'label' && issue.labels.includes(command.name)) {
+            console.debug(`Command ${command.type} matched the issue ${issue.number} and has the label ${command.name}. All labels: ${issue.labels.join(' ')}`);
+            return true;
+        }
         return false;
     }
     async perform(command, issue, changedFiles) {
