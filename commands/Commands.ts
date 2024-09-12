@@ -121,7 +121,7 @@ export class Commands {
 	}
 
 	private async perform(command: Command, issue: Issue, changedFiles: string[]) {
-		console.debug('Would perform command:', command, ' on issue:', issue)
+		console.debug('Would try to perform command:', command, ' on issue:', issue)
 		if (!(await this.matches(command, issue, changedFiles))) {
 			console.debug('Command ', JSON.stringify(command), ' did not match any criteria')
 			return
