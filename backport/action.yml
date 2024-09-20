@@ -5,7 +5,7 @@ inputs:
     description: |
       GitHub token with read and write permissions for issues, comments, and labels.
 
-      Additionally, the token needs read permissions for organization members. 
+      Additionally, the token needs read permissions for organization members if `removeDefaultReviewers` is set to `true`.
     default: ${{ github.token }}
   title:
     description: Title for the backport PR
@@ -13,6 +13,10 @@ inputs:
   labelsToAdd:
     description: Comma separated list of labels to add to the backport PR.
     required: false
+  removeDefaultReviewers:
+    default: true
+    description: Whether to remove default reviewers from the backport PRs.
+    type: boolean
   metricsWriteAPIKey:
     description: Grfanaa Cloud metrics api key
     required: false
