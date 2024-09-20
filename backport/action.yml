@@ -2,7 +2,10 @@ name: Backport
 description: Automatically creates a cherry pick PR
 inputs:
   token:
-    description: GitHub token with issue, comment, and label read/write permissions
+    description: |
+      GitHub token with read and write permissions for issues, comments, and labels.
+
+      Additionally, the token needs read permissions for organization members. 
     default: ${{ github.token }}
   title:
     description: Title for the backport PR
