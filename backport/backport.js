@@ -4,8 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.backport = exports.getFailedBackportCommentBody = exports.isBettererConflict = exports.LABEL_NO_CHANGELOG = exports.LABEL_ADD_TO_CHANGELOG = exports.BETTERER_RESULTS_PATH = void 0;
-exports.getFinalLabels = getFinalLabels;
+exports.backport = exports.getFinalLabels = exports.getFailedBackportCommentBody = exports.isBettererConflict = exports.LABEL_NO_CHANGELOG = exports.LABEL_ADD_TO_CHANGELOG = exports.BETTERER_RESULTS_PATH = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
@@ -389,4 +388,5 @@ function getFinalLabels(originalLabels, labelsToAdd) {
     }
     return result;
 }
+exports.getFinalLabels = getFinalLabels;
 //# sourceMappingURL=backport.js.map
