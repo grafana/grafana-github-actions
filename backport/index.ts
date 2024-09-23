@@ -1,4 +1,4 @@
-import { error as logError, getInput, setFailed } from '@actions/core'
+import { error as logError, getBooleanInput, getInput, setFailed } from '@actions/core'
 import { context } from '@actions/github'
 import { EventPayloads } from '@octokit/webhooks'
 import { OctoKitIssue } from '../api/octokit'
@@ -23,6 +23,7 @@ class Backport extends Action {
 				labelsToAdd: getLabelsToAdd(getInput('labelsToAdd')),
 				payload: context.payload as EventPayloads.WebhookPayloadPullRequest,
 				titleTemplate: getInput('title'),
+				removeDefaultReviewers: getBooleanInput('removeDefaultReviewers'),
 				github: issue.octokit,
 				token: this.getToken(),
 				sender: context.payload.sender as EventPayloads.PayloadSender,
