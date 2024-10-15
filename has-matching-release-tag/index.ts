@@ -7,18 +7,21 @@ function prefixLines(prefix: string, lines: Array<string>): Array<string> {
 }
 
 try {
-	let refName = getRequiredInput('ref_name')
-	console.log('Input ref_name: ' + refName)
+	const refName = getRequiredInput('ref_name')
+	const withPath = getInput('release_branch_with_patch_regexp')
 
-	let withPath = getInput('release_branch_with_patch_regexp')
-	let bool = hasMatchingReleaseTag(
+	core.info('Input ref_name: ' + refName)
+
+	const hasMatchingBool = hasMatchingReleaseTag(
 		refName,
 		new RegExp(getRequiredInput('release_tag_regexp')),
 		new RegExp(getRequiredInput('release_branch_regexp')),
 		withPath ? new RegExp(withPath) : undefined,
 	)
-	console.log('Output bool: ' + bool)
-	setOutput('bool', bool)
+
+	core.info('Output bool: ' + hasMatchingBool)
+
+	setOutput('bool', hasMatchingBool)
 } catch (error: any) {
 	// Failed to spawn child process from execFileSync call.
 	if (error.code) {

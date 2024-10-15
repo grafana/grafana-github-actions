@@ -7,12 +7,12 @@ function prefixLines(prefix, lines) {
     return lines.map((l) => `${prefix}${l}`);
 }
 try {
-    let refName = (0, utils_1.getRequiredInput)('ref_name');
-    console.log('Input ref_name: ' + refName);
-    let withPath = (0, utils_1.getInput)('release_branch_with_patch_regexp');
-    let bool = (0, hasMatchingReleaseTag_1.hasMatchingReleaseTag)(refName, new RegExp((0, utils_1.getRequiredInput)('release_tag_regexp')), new RegExp((0, utils_1.getRequiredInput)('release_branch_regexp')), withPath ? new RegExp(withPath) : undefined);
-    console.log('Output bool: ' + bool);
-    (0, core_1.setOutput)('bool', bool);
+    const refName = (0, utils_1.getRequiredInput)('ref_name');
+    const withPath = (0, utils_1.getInput)('release_branch_with_patch_regexp');
+    core.info('Input ref_name: ' + refName);
+    const hasMatchingBool = (0, hasMatchingReleaseTag_1.hasMatchingReleaseTag)(refName, new RegExp((0, utils_1.getRequiredInput)('release_tag_regexp')), new RegExp((0, utils_1.getRequiredInput)('release_branch_regexp')), withPath ? new RegExp(withPath) : undefined);
+    core.info('Output bool: ' + hasMatchingBool);
+    (0, core_1.setOutput)('bool', hasMatchingBool);
 }
 catch (error) {
     // Failed to spawn child process from execFileSync call.
