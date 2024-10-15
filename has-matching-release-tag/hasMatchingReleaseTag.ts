@@ -1,4 +1,4 @@
-import '@actions/core'
+import * as core from '@actions/core'
 import { execFileSync } from 'child_process'
 import { splitStringIntoLines } from '../common/utils'
 
