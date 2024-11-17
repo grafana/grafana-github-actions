@@ -23,7 +23,7 @@
 	"dependencies": {
 		"@actions/core": "^1.6.0",
 		"@actions/exec": "^1.1.0",
-		"@actions/github": "^2.1.1",
+		"@actions/github": "^6.0.0",
 		"@betterer/betterer": "^5.3.7",
 		"@octokit/graphql": "^4.8.0",
 		"@octokit/request-error": "^2.1.0",
