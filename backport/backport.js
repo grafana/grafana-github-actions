@@ -53,7 +53,7 @@ const isBettererConflict = async (gitUnmergedPaths) => {
     return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === exports.BETTERER_RESULTS_PATH;
 };
 exports.isBettererConflict = isBettererConflict;
-const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, owner, repo, title, mergedBy, }) => {
+const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, removeDefaultReviewers, owner, repo, title, mergedBy, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
     };
@@ -126,7 +126,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         });
     }
     // Remove default reviewers
-    if (createRsp.data.requested_reviewers) {
+    if (removeDefaultReviewers && createRsp.data.requested_reviewers) {
         const reviewers = createRsp.data.requested_reviewers.map((user) => user.login);
         await github.pulls.deleteReviewRequest({
             pull_number: pullRequestNumber,
@@ -206,7 +206,7 @@ const getFailedBackportCommentBody = ({ base, commitToBackport, errorMessage, he
     return lines.join('\n');
 };
 exports.getFailedBackportCommentBody = getFailedBackportCommentBody;
-const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, token, github, sender, }) => {
+const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_request: { labels, merge_commit_sha: mergeCommitSha, merged, number: pullRequestNumber, title: originalTitle, merged_by, }, repository: { name: repo, owner: { login: owner }, }, }, titleTemplate, removeDefaultReviewers, token, github, sender, }) => {
     const payload = github_1.context.payload;
     console.log('payloadAction: ' + payload.action);
     if (payload.action !== 'closed') {
@@ -322,6 +322,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
                     github: github,
                     head,
                     labelsToAdd: prLabels,
+                    removeDefaultReviewers,
                     owner,
                     repo,
                     title,

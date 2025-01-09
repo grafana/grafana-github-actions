@@ -24,6 +24,7 @@ class Backport extends Action_1.Action {
                 labelsToAdd: (0, exports.getLabelsToAdd)((0, core_1.getInput)('labelsToAdd')),
                 payload: github_1.context.payload,
                 titleTemplate: (0, core_1.getInput)('title'),
+                removeDefaultReviewers: (0, core_1.getBooleanInput)('removeDefaultReviewers'),
                 github: issue.octokit,
                 token: this.getToken(),
                 sender: github_1.context.payload.sender,

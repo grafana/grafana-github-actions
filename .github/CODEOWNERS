@@ -2,9 +2,9 @@
 # explicit owner in order to make mandatory reviews possible:
 * @grafana/grafana-release-guild
 
-# Actions explicitly owned by docs-grafana:
-/docs-target/ @grafana/docs-grafana
-/has-matching-release-tag/ @grafana/docs-grafana
+# Actions explicitly owned by docs-tooling
+/docs-target/ @grafana/docs-tooling
+/has-matching-release-tag/ @grafana/docs-tooling
 
 # Actions explicitly owned by grafana-delivery:
 /backport/ @grafana/grafana-release-guild

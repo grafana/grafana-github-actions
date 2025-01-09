@@ -7,5 +7,5 @@ inputs:
   version_call:
     description: Version number invoked from workflow    
 runs:
-    using: 'node16'
+    using: 'node20'
     main: 'index.js'

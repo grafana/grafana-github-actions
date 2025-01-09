@@ -1,3 +1,4 @@
+import * as core from '@actions/core'
 import { execFileSync } from 'child_process'
 import { splitStringIntoLines } from '../common/utils'
 
@@ -8,9 +9,15 @@ export function hasMatchingReleaseTag(
 	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
 	let refNames = splitStringIntoLines(execFileSync('git', ['tag'], { encoding: 'utf8' })).filter((e) => e)
+
 	if (refNames.length == 0) {
-		throw 'No tags found. Is there an `actions/checkout` step with `fetch-depth: 0` before this action? https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches'
+		core.warning(
+			'No tags found. Is there an `actions/checkout` step with `fetch-depth: 0` before this action? https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches',
+		)
 	}
+
+	core.debug(`Found the following references:\n${refNames.join('\n')}`)
+
 	return hasMatchingReleaseTagWithRefNames(
 		refNames,
 		refName,
@@ -43,11 +50,16 @@ export function hasMatchingReleaseTagWithRefNames(
 	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
 	if (refName.match(releaseTagRegexp)) {
-		console.log(`Reference name is a release tag`)
+		core.notice(`Reference name is a release tag`)
+
 		return 'true'
 	}
 
 	let releaseTags = filterRefNames(refNames, releaseTagRegexp)
+
+	core.debug(
+		`The following release tags match the release tag regular expression ${releaseTagRegexp}:\n${releaseTags.join('\n')}`,
+	)
 
 	let branchMatches = refName.match(releaseBranchRegexp)
 	if (branchMatches) {
@@ -59,7 +71,8 @@ export function hasMatchingReleaseTagWithRefNames(
 				tagMatches[2] == branchMatches[2] &&
 				tagMatches[3].match(new RegExp('0|[1-9]d*'))
 			) {
-				console.log(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`)
+				core.notice(`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`)
+
 				return 'true'
 			}
 		}
@@ -76,15 +89,17 @@ export function hasMatchingReleaseTagWithRefNames(
 					tagMatches[2] == branchMatches[2] &&
 					tagMatches[3] == branchMatches[3]
 				) {
-					console.log(
+					core.notice(
 						`Found corresponding release tag for branch '${refName}': '${releaseTags[i]}'`,
 					)
+
 					return 'true'
 				}
 			}
 		}
 	}
 
-	console.log(`Did not find a corresponding release tag for reference '${refName}'`)
+	core.notice(`Did not find a corresponding release tag for reference '${refName}'`)
+
 	return 'false'
 }

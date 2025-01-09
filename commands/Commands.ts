@@ -14,13 +14,19 @@ export type Command = { name: string } & (
 	| { type: 'comment'; allowUsers: string[] }
 	| { type: 'label' }
 	| { type: 'changedfiles'; matches: string | string[] | { any: string[] } | { all: string[] } }
-	| { type: 'author'; memberOf?: { org: string }; notMemberOf?: { org: string }; ignoreList?: string[]; noLabels?: boolean }
+	| {
+			type: 'author'
+			memberOf?: { org: string }
+			notMemberOf?: { org: string }
+			ignoreList?: string[]
+			noLabels?: boolean
+	  }
 ) & {
 		action?: 'close' | 'addToProject' | 'removeFromProject'
 	} & Partial<{ comment: string; addLabel: string; removeLabel: string }> &
-	Partial<{ requireLabel: string; disallowLabel: string }>
-	& Partial<{ addToProject: { url: string, org?: string, column?: string } }>
-	& Partial<{ removeFromProject: { url: string, org?: string } }>
+	Partial<{ requireLabel: string; disallowLabel: string }> &
+	Partial<{ addToProject: { url: string; org?: string; column?: string } }> &
+	Partial<{ removeFromProject: { url: string; org?: string } }>
 /* eslint-enable */
 
 export class Commands {
@@ -96,15 +102,25 @@ export class Commands {
 			}
 		}
 
-		if ('label' in this.action) {
-			return command.type === 'label' && this.action.label === command.name
+		if ('label' in this.action && command.type === 'label' && this.action.label === command.name) {
+			return true
+		}
+
+		// If the command is a label, the issue has the label and the action is addToProject, execute the command
+		// This is to allow the pipeline to add multiple projects at once based on all the issue labels
+		if (
+			command.type === 'label' &&
+			command.action === 'addToProject' &&
+			issue.labels.includes(command.name)
+		) {
+			return true
 		}
 
 		return false
 	}
 
 	private async perform(command: Command, issue: Issue, changedFiles: string[]) {
-		console.debug('Would perform command:', command, ' on issue:', issue)
+		console.debug('Would try to perform command:', command, ' on issue:', issue)
 		if (!(await this.matches(command, issue, changedFiles))) {
 			console.debug('Command ', JSON.stringify(command), ' did not match any criteria')
 			return
@@ -233,7 +249,9 @@ export class Commands {
 			console.log('Found changedfiles commands, listing pull request filenames...')
 			changedFiles = await this.github.listPullRequestFilenames()
 		}
-		console.debug('Would perform commands:', this.config)
+		console.debug('----- Current Commands configuration -----')
+		console.debug(this.config)
+		console.debug('----- End of Commands configuration -----')
 		return Promise.all(this.config.map((command) => this.perform(command, issue, changedFiles)))
 	}
 }

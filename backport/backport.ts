@@ -83,6 +83,7 @@ const backportOnce = async ({
 	github,
 	head,
 	labelsToAdd,
+	removeDefaultReviewers,
 	owner,
 	repo,
 	title,
@@ -94,6 +95,7 @@ const backportOnce = async ({
 	github: InstanceType<typeof GitHub>
 	head: string
 	labelsToAdd: string[]
+	removeDefaultReviewers: boolean
 	owner: string
 	repo: string
 	title: string
@@ -154,7 +156,9 @@ const backportOnce = async ({
 	if (/^v\d+\.\d+\.x$/.test(base)) {
 		const milestoneName = base.substring(1)
 		const allMilestones = await github.issues.listMilestonesForRepo({ owner, repo, state: 'open' })
-		const milestone = allMilestones.data.find((milestone) => milestone.title === milestoneName)
+		const milestone = allMilestones.data.find(
+			(milestone: { title: string }) => milestone.title === milestoneName,
+		)
 		if (milestone) {
 			await github.issues.update({
 				repo,
@@ -177,8 +181,8 @@ const backportOnce = async ({
 	}
 
 	// Remove default reviewers
-	if (createRsp.data.requested_reviewers) {
-		const reviewers = createRsp.data.requested_reviewers.map((user) => user.login)
+	if (removeDefaultReviewers && createRsp.data.requested_reviewers) {
+		const reviewers = createRsp.data.requested_reviewers.map((user: { login: string }) => user.login)
 		await github.pulls.deleteReviewRequest({
 			pull_number: pullRequestNumber,
 			repo,
@@ -284,6 +288,7 @@ interface BackportArgs {
 	labelsToAdd: string[]
 	payload: EventPayloads.WebhookPayloadPullRequest
 	titleTemplate: string
+	removeDefaultReviewers: boolean
 	token: string
 	github: GitHub
 	sender: EventPayloads.PayloadSender
@@ -309,6 +314,7 @@ const backport = async ({
 		},
 	},
 	titleTemplate,
+	removeDefaultReviewers,
 	token,
 	github,
 	sender,
@@ -442,6 +448,7 @@ const backport = async ({
 					github: github,
 					head,
 					labelsToAdd: prLabels,
+					removeDefaultReviewers,
 					owner,
 					repo,
 					title,
