@@ -56,7 +56,7 @@ class BumpVersion extends Action {
 		const { owner, repo } = context.repo
 		const prBranch = `bump-version-${version}`
 		const hasLerna = fs.existsSync('lerna.json')
-		// Lerna was replaced with Nx release in 11.1.0. For backwards compatibility we support both
+		// Lerna was replaced with Nx release after 11.5.0. For backwards compatibility we support both
 		const versionCmd = hasLerna
 			? [
 					'run',
