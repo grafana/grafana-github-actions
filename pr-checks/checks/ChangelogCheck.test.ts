@@ -432,7 +432,7 @@ describe('isTitleValid', () => {
 		{ str: '[v9.1.x] Table: Fix filter crashes table', valid: true },
 		{ str: '[release-11.0.1] Table: Fix filter crashes table', valid: true },
 		{ str: '[v10.0] Table: Fix filter crashes table', valid: true },
-		{ str: '[v10.0.x]: Table: Fix filter crashes table', valid: true },
+		{ str: '[v10.0.x]: Table: Fix filter crashes table', valid: false },
 		{ str: '[10.0.x] Table: Fix filter crashes table', valid: true },
 		{ str: '[] Table: Fix filter crashes table', valid: false },
 	])(`string='$str', expected: $valid`, async ({ str, valid }) => {
