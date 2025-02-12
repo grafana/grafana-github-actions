@@ -430,9 +430,10 @@ describe('isTitleValid', () => {
 		// filtered out by the changelog generator:
 		{ str: '[v10.0.x] Table: Fix filter crashes table', valid: true },
 		{ str: '[v9.1.x] Table: Fix filter crashes table', valid: true },
-		{ str: '[v10.0] Table: Fix filter crashes table', valid: false },
-		{ str: '[v10.0.x]: Table: Fix filter crashes table', valid: false },
-		{ str: '[10.0.x] Table: Fix filter crashes table', valid: false },
+		{ str: '[release-11.0.1] Table: Fix filter crashes table', valid: true },
+		{ str: '[v10.0] Table: Fix filter crashes table', valid: true },
+		{ str: '[v10.0.x]: Table: Fix filter crashes table', valid: true },
+		{ str: '[10.0.x] Table: Fix filter crashes table', valid: true },
 		{ str: '[] Table: Fix filter crashes table', valid: false },
 	])(`string='$str', expected: $valid`, async ({ str, valid }) => {
 		const isValid = isTitleValid(str)

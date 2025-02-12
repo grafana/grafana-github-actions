@@ -131,7 +131,7 @@ export class ChangelogCheck extends Check {
 	}
 }
 
-const titleRegExp = /^[\s]*(\[v\d+\.\d+\.x\][\s])?[A-Z]{1}[a-zA-Z0-9\s/]+:[\s]{1}[A-Z]{1}.*$/
+const titleRegExp = /^[\s]*(\[.+][\s])?[A-Z]{1}[a-zA-Z0-9\s/]+:[\s]{1}[A-Z]{1}.*$/
 
 export function isTitleValid(title: string) {
 	title = title.trim()
