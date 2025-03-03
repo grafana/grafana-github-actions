@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // import { error as logError, getInput, setFailed } from '@actions/core'
 const github_1 = require("@actions/github");
@@ -7,6 +10,7 @@ const github_1 = require("@actions/github");
 const Action_1 = require("../common/Action");
 const exec_1 = require("@actions/exec");
 const git_1 = require("../common/git");
+const fs_1 = __importDefault(require("fs"));
 const versions_1 = require("./versions");
 const utils_1 = require("../common/utils");
 class BumpVersion extends Action_1.Action {
@@ -46,25 +50,30 @@ class BumpVersion extends Action_1.Action {
     async onTriggeredBase(octokit, base, version) {
         const { owner, repo } = github_1.context.repo;
         const prBranch = `bump-version-${version}`;
+        const hasLerna = fs_1.default.existsSync('lerna.json');
+        // Lerna was replaced with Nx release after 11.5.0. For backwards compatibility we support both
+        const versionCmd = hasLerna
+            ? [
+                'run',
+                'lerna',
+                'version',
+                version,
+                '--no-push',
+                '--no-git-tag-version',
+                '--force-publish',
+                '--exact',
+                '--yes',
+            ]
+            : ['nx', 'release', 'version', version, '--groups', 'grafanaPackages,privatePackages,plugins'];
         // create branch
         await git('switch', base);
         await git('switch', '--create', prBranch);
-        // Install dependencies so that we can run lerna et al. with the local
-        // version:
+        // Install dependencies so that we can run versioning commands
         await (0, exec_1.exec)('yarn', ['install']);
-        // Update version
+        // Update root package.json version
         await (0, exec_1.exec)('npm', ['version', version, '--no-git-tag-version']);
-        await (0, exec_1.exec)('yarn', [
-            'run',
-            'lerna',
-            'version',
-            version,
-            '--no-push',
-            '--no-git-tag-version',
-            '--force-publish',
-            '--exact',
-            '--yes',
-        ]);
+        // Update the npm packages and plugins package.json versions to align with grafana version.
+        await (0, exec_1.exec)('yarn', versionCmd);
         try {
             //regenerate yarn.lock file
             //await exec('npm', ['install', '-g', 'corepack'])
@@ -86,7 +95,7 @@ class BumpVersion extends Action_1.Action {
         const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn run lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
+		yarn ${versionCmd.join(' ')}\n
 		yarn install --mode update-lockfile
 		`;
         await octokit.octokit.pulls.create({

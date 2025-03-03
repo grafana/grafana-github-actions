@@ -5,7 +5,7 @@ import { context } from '@actions/github'
 import { Action } from '../common/Action'
 import { exec } from '@actions/exec'
 import { cloneRepo, setConfig } from '../common/git'
-// import fs from 'fs'
+import fs from 'fs'
 import { OctoKit } from '../api/octokit'
 import { getVersionMatch } from './versions'
 import { getInput } from '../common/utils'
@@ -55,25 +55,31 @@ class BumpVersion extends Action {
 	async onTriggeredBase(octokit: OctoKit, base: string, version: string) {
 		const { owner, repo } = context.repo
 		const prBranch = `bump-version-${version}`
+		const hasLerna = fs.existsSync('lerna.json')
+		// Lerna was replaced with Nx release after 11.5.0. For backwards compatibility we support both
+		const versionCmd = hasLerna
+			? [
+					'run',
+					'lerna',
+					'version',
+					version,
+					'--no-push',
+					'--no-git-tag-version',
+					'--force-publish',
+					'--exact',
+					'--yes',
+			  ]
+			: ['nx', 'release', 'version', version, '--groups', 'grafanaPackages,privatePackages,plugins']
 		// create branch
 		await git('switch', base)
 		await git('switch', '--create', prBranch)
-		// Install dependencies so that we can run lerna et al. with the local
-		// version:
+		// Install dependencies so that we can run versioning commands
 		await exec('yarn', ['install'])
-		// Update version
+		// Update root package.json version
 		await exec('npm', ['version', version, '--no-git-tag-version'])
-		await exec('yarn', [
-			'run',
-			'lerna',
-			'version',
-			version,
-			'--no-push',
-			'--no-git-tag-version',
-			'--force-publish',
-			'--exact',
-			'--yes',
-		])
+		// Update the npm packages and plugins package.json versions to align with grafana version.
+		await exec('yarn', versionCmd)
+
 		try {
 			//regenerate yarn.lock file
 			//await exec('npm', ['install', '-g', 'corepack'])
@@ -96,7 +102,7 @@ class BumpVersion extends Action {
 		const body = `Executed:\n
 		npm version ${version} --no-git-tag-version\n
 		yarn install\n
-		yarn run lerna version ${version} --no-push --no-git-tag-version --force-publish --exact --yes\n
+		yarn ${versionCmd.join(' ')}\n
 		yarn install --mode update-lockfile
 		`
 		await octokit.octokit.pulls.create({
