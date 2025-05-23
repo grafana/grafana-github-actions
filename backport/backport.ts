@@ -101,7 +101,7 @@ const backportOnce = async ({
 	await git('switch', base)
 	await git('switch', '--create', head)
 	try {
-		await git('cherry-pick', '-x', commitToBackport)
+		await git('cherry-pick', '-m', '1', '-x', commitToBackport)
 	} catch (error) {
 		if (await isBettererConflict()) {
 			try {
@@ -192,7 +192,7 @@ const getFailedBackportCommentBody = ({
 		'# Create a new branch',
 		`git switch --create ${head} origin/${base}`,
 		'# Cherry-pick the merged commit of this pull request and resolve the conflicts',
-		`git cherry-pick -x ${commitToBackport}`,
+		`git cherry-pick -m 1 -x ${commitToBackport}`,
 		'# Push it to GitHub',
 		`git push --set-upstream origin ${head}`,
 		`git switch main`,
