@@ -15,10 +15,10 @@ on:
         description: "Comma-separated list of paths to en-US locale files"
         required: true
         type: string
-    outputs:
-      pull_request_url:
-        description: "The URL of the created pull request"
-        value: ${{ jobs.download-sources-from-crowdin.outputs.pull_request_url }}
+      github_board_id:
+        description: "The ID of the GitHub project board to add the pull request to"
+        required: false
+        type: string
 
 jobs:
   download-sources-from-crowdin:
@@ -169,3 +169,39 @@ jobs:
           gh pr merge --auto --squash ${{ steps.crowdin-download.outputs.pull_request_url }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
+
+      - name: Get project board ID
+        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
+        id: get-project-id
+        if: steps.crowdin-download.outputs.pull_request_url && inputs.github_board_id
+        with:
+          org: grafana
+          project_number: ${{ inputs.github_board_id }}
+          query: |
+            query getProjectId($org: String!, $project_number: Int!){
+              organization(login: $org) {
+                projectV2(number: $project_number) {
+                  title
+                  id
+                }
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      - name: Add to project board
+        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
+        if: steps.crowdin-download.outputs.pull_request_url && inputs.github_board_id
+        with:
+          projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
+          prid: ${{ env.PULL_REQUEST_ID }}
+          query: |
+            mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
+              addProjectV2ItemById(input: {projectId: $projectid, contentId: $prid}) {
+                item {
+                  id
+                }
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
