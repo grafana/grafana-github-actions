@@ -109,6 +109,7 @@ jobs:
         if: steps.crowdin-download.outputs.pull_request_url
         shell: bash
         env:
+          GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
           PULL_REQUEST_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
           EN_PATHS: ${{ inputs.en_paths }}
         # Only approve if:
@@ -170,8 +171,6 @@ jobs:
           echo "Approving and enabling automerge"
           gh pr review $PULL_REQUEST_URL --approve
           gh pr merge --auto --squash $PULL_REQUEST_URL
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
 
       - name: Get project board ID
         uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
