@@ -31,21 +31,27 @@ jobs:
       result: ${{ steps.convert-trend.outputs.result }}
     steps:
       - id: extract-trend
-        uses: kaisugi/action-regex-match@v1.0.1
+        uses: kaisugi/action-regex-match@45cc5bacf016a4c0d2c3c9d0f8b7c2f1b79687b8
         with:
           regex: '<!-- data key="trending" start -->([\s\S]*?)<!-- data end -->'
           text: ${{ github.event.comment.body }}
       - id: convert-trend
         uses: actions/github-script@v7
         if: ${{ steps.extract-trend.outputs.group1 != '' }}
+        env:
+          TREND_GROUP: ${{ steps.extract-trend.outputs.group1 }}
+          ORG: ${{ inputs.project_owner }}
+          FIELD_NAME: ${{ inputs.field_name }}
+          PROJECT_NUMBER: ${{ inputs.project_number }}
         with:
           github-token: ${{ inputs.github_token }}
           script: |
+            const { TREND_GROUP, ORG, FIELD_NAME, PROJECT_NUMBER } = process.env;
             const variables = {
-              trend: `${{ steps.extract-trend.outputs.group1 }}`.trim(),
-              org: '${{ inputs.project_owner }}',
-              field_name: '${{ inputs.field_name }}',
-              project_number: ${{ inputs.project_number }}
+              trend: TREND_GROUP.trim(),
+              org: ORG,
+              field_name: FIELD_NAME,
+              project_number: PROJECT_NUMBER
             };
 
             const query = `
@@ -90,7 +96,7 @@ jobs:
     if: ${{ needs.extract-trend.outputs.trend_id != '' }}
     steps:
       - id: get-project-id
-        uses: monry/actions-get-project-id@v2
+        uses: monry/actions-get-project-id@63f3618987b1a5142bb18dba6449b7294fe52cf9
         with:
           # Personal Access Token that with `org:read` are granted.
           github-token: ${{ inputs.github_token }}
@@ -105,13 +111,13 @@ jobs:
           #                                         ^^^
           project-number: ${{ inputs.project_number }}
       - id: get-item-id
-        uses: monry/actions-get-project-item-id@v2
+        uses: monry/actions-get-project-item-id@f43df35cd6ab6da4e2cf3b2806342767d440d157
         with:
           # Personal Access Token that with `repo` and `org:read` are granted.
           github-token: ${{ inputs.github_token }}
           project-id: ${{ steps.get-project-id.outputs.project-id }}
           issue-id: ${{ github.event.issue.node_id }}
-      - uses: titoportas/update-project-fields@v0.1.0
+      - uses: titoportas/update-project-fields@421a54430b3cdc9eefd8f14f9ce0142ab7678751
         with:
           project-url: https://github.com/orgs/grafana/projects/${{ inputs.project_number }}
           github-token: ${{ inputs.github_token }}
