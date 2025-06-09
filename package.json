@@ -25,6 +25,7 @@
 		"@actions/exec": "^1.1.0",
 		"@actions/github": "^2.1.1",
 		"@betterer/betterer": "^5.3.7",
+		"@crowdin/crowdin-api-client": "^1.42.0",
 		"@octokit/graphql": "^4.8.0",
 		"@octokit/request-error": "^2.1.0",
 		"@octokit/webhooks": "^7.12.2",
