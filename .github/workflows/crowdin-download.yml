@@ -110,14 +110,18 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
-          PULL_REQUEST_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+          QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
           EN_PATHS: ${{ inputs.en_paths }}
         # Only approve if:
         # - the PR does not modify files other than json files under the public/locales/ directory
         # - the PR does not modify the en-US locale
         # TODO make these paths inputs to the workflow when we move this to a shared repo
         run: |
-          IFS=$'\n' read -ra CHANGED_ARRAY <<< "$(gh pr diff --name-only $PULL_REQUEST_URL)"
+          # Crowdin action outputs a quoted string, so we need to unquote it when using it
+          # as an environment variable
+          PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
+          
+          IFS=$'\n' read -ra CHANGED_ARRAY <<< "$(gh pr diff --name-only $PR_URL)"
           IFS=',' read -ra EN_US_ARRAY <<< "$EN_PATHS"
 
           is_en_us_file() {
@@ -169,8 +173,8 @@ jobs:
           done
 
           echo "Approving and enabling automerge"
-          gh pr review $PULL_REQUEST_URL --approve
-          gh pr merge --auto --squash $PULL_REQUEST_URL
+          gh pr review "$PR_URL" --approve
+          gh pr merge --auto --squash "$PR_URL"
 
       - name: Get project board ID
         uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
