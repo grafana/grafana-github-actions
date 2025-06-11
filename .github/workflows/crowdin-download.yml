@@ -117,7 +117,10 @@ jobs:
         # - the PR does not modify the en-US locale
         # TODO make these paths inputs to the workflow when we move this to a shared repo
         run: |
+          # Crowdin action outputs a quoted string, so we need to unquote it when using it
+          # as an environment variable
           PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
+          
           IFS=$'\n' read -ra CHANGED_ARRAY <<< "$(gh pr diff --name-only $PR_URL)"
           IFS=',' read -ra EN_US_ARRAY <<< "$EN_PATHS"
 
