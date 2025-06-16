@@ -27,9 +27,10 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
         with:
           # Vault secret paths:
-          # - ci/common/grafana/grafana_frontend_platform_crowdin_bot
-          common_secrets: |
-            CROWDIN_TOKEN=grafana/grafana_frontend_platform_crowdin_bot:access_token
+          # - ci/repo/grafana/grafana-github-actions/grafana_frontend_platform_crowdin_bot
+          # NOTE: this is different to the common secret used in other workflows since creating a project requires additional permissions
+          repo_secrets: |
+            CROWDIN_TOKEN=grafana_frontend_platform_crowdin_bot:access_token
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
