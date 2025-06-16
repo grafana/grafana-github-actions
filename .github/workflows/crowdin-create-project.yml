@@ -28,6 +28,7 @@ jobs:
         with:
           # Vault secret paths:
           # - ci/repo/grafana/grafana-github-actions/grafana_frontend_platform_crowdin_bot
+          # NOTE: this is different to the common secret used in other workflows since creating a project requires additional permissions
           repo_secrets: |
             CROWDIN_TOKEN=grafana_frontend_platform_crowdin_bot:access_token
 

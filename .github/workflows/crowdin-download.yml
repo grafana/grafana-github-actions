@@ -38,9 +38,10 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
         with:
           # Vault secret paths:
-          # - ci/repo/grafana/grafana/grafana_frontend_platform_crowdin_bot
+          # - ci/common/grafana/grafana_frontend_platform_crowdin_bot
+          common_secrets: |
+            CROWDIN_TOKEN=grafana/grafana_frontend_platform_crowdin_bot:access_token
           repo_secrets: |
-            CROWDIN_TOKEN=grafana_frontend_platform_crowdin_bot:access_token
             GRAFANA_PR_AUTOMATION_APP_ID=grafana_pr_automation_app:app_id
             GRAFANA_PR_AUTOMATION_APP_PEM=grafana_pr_automation_app:app_pem
 
