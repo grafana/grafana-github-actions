@@ -26,7 +26,7 @@ jobs:
           yarn i18n-extract || (echo "${extract_error_message}" && false)
 
       - run: |
-          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'make i18n-extract', commit the changes and push again."
+          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'yarn i18n-extract', commit the changes and push again."
           file_diff=$(git diff --dirstat public/locales)
           if [ -n "$file_diff" ]; then
               echo "$file_diff"
