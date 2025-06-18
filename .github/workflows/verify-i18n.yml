@@ -27,7 +27,7 @@ jobs:
 
       - run: |
           uncommited_error_message="::error::Translation extraction has not been committed. Please run 'yarn i18n-extract', commit the changes and push again."
-          file_diff=$(git diff --dirstat public/locales)
+          file_diff=$(git diff)
           if [ -n "$file_diff" ]; then
               echo "$file_diff"
               echo "${uncommited_error_message}"
