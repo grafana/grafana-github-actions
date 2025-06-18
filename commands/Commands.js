@@ -143,7 +143,7 @@ class Commands {
         if (command.action === 'addToProject' &&
             command.addToProject &&
             command.addToProject.url &&
-            issue.labels.includes(command.name)) {
+            (command.name === 'changedfiles' || issue.labels.includes(command.name))) {
             const projectId = (0, utils_1.getProjectIdFromUrl)(command.addToProject.url);
             if (projectId) {
                 tasks.push(this.github.addIssueToProject(projectId, issue, command.addToProject.org, command.addToProject.column));
