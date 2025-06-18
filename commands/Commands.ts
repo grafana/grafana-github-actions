@@ -201,7 +201,7 @@ export class Commands {
 			command.action === 'addToProject' &&
 			command.addToProject &&
 			command.addToProject.url &&
-			issue.labels.includes(command.name)
+			(command.name === 'changedfiles' || issue.labels.includes(command.name))
 		) {
 			const projectId = getProjectIdFromUrl(command.addToProject.url)
 			if (projectId) {
