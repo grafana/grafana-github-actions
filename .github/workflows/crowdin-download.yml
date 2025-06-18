@@ -12,8 +12,8 @@ on:
         required: false
         type: string
       en_paths:
-        description: "Comma-separated list of paths to en-US locale files"
-        required: true
+        description: "Comma-separated list of paths to en-US locale files. NOTE: passing this input will enable automerge of the pull request."
+        required: false
         type: string
       github_board_id:
         description: "The ID of the GitHub project board to add the pull request to"
@@ -89,8 +89,45 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
           CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
 
+      - name: Get project board ID
+        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
+        id: get-project-id
+        if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+        with:
+          org: grafana
+          project_number: ${{ inputs.github_board_id }}
+          query: |
+            query getProjectId($org: String!, $project_number: Int!){
+              organization(login: $org) {
+                projectV2(number: $project_number) {
+                  title
+                  id
+                }
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      - name: Add to project board
+        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
+        if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+        with:
+          projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
+          prid: ${{ env.PULL_REQUEST_ID }}
+          query: |
+            mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
+              addProjectV2ItemById(input: {projectId: $projectid, contentId: $prid}) {
+                item {
+                  id
+                }
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       - name: Get vault secrets
         id: vault-secrets-approver
+        if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
         uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
         with:
           # Secrets placed in ci/repo/grafana/grafana/grafana-pr-approver
@@ -99,7 +136,7 @@ jobs:
             GRAFANA_PR_APPROVER_APP_PEM=grafana-pr-approver:private-key
 
       - name: Generate approver token
-        if: steps.crowdin-download.outputs.pull_request_url
+        if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
         id: generate_approver_token
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
         with:
@@ -107,7 +144,7 @@ jobs:
           private_key: ${{ env.GRAFANA_PR_APPROVER_APP_PEM }}
 
       - name: Approve and automerge PR
-        if: steps.crowdin-download.outputs.pull_request_url
+        if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
         shell: bash
         env:
           GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
@@ -176,39 +213,3 @@ jobs:
           echo "Approving and enabling automerge"
           gh pr review "$PR_URL" --approve
           gh pr merge --auto --squash "$PR_URL"
-
-      - name: Get project board ID
-        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
-        id: get-project-id
-        if: steps.crowdin-download.outputs.pull_request_url && inputs.github_board_id
-        with:
-          org: grafana
-          project_number: ${{ inputs.github_board_id }}
-          query: |
-            query getProjectId($org: String!, $project_number: Int!){
-              organization(login: $org) {
-                projectV2(number: $project_number) {
-                  title
-                  id
-                }
-              }
-            }
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-
-      - name: Add to project board
-        uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
-        if: steps.crowdin-download.outputs.pull_request_url && inputs.github_board_id
-        with:
-          projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
-          prid: ${{ env.PULL_REQUEST_ID }}
-          query: |
-            mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
-              addProjectV2ItemById(input: {projectId: $projectid, contentId: $prid}) {
-                item {
-                  id
-                }
-              }
-            }
-        env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
