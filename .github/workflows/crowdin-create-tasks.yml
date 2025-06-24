@@ -20,6 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          repository: "grafana/grafana-github-actions"
           persist-credentials: false
 
       - name: "Get vault secrets"
