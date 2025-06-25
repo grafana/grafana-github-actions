@@ -89,6 +89,17 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
           CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
 
+      - name: Get pull request ID
+        if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+        shell: bash
+        # Crowdin action returns us the URL of the pull request, but we need an ID for the GraphQL API
+        # that looks like 'PR_kwDOAOaWjc5mP_GU'
+        run: |
+          pr_id=$(gh pr view ${{ steps.crowdin-download.outputs.pull_request_url }} --json id -q .id)
+          echo "PULL_REQUEST_ID=$pr_id" >> "$GITHUB_ENV"
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       - name: Get project board ID
         uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
         id: get-project-id
