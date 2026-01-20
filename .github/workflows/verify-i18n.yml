@@ -20,15 +20,15 @@ jobs:
           if [ -f "pnpm-lock.yaml" ]; then
             echo "package_manager=pnpm" >> $GITHUB_OUTPUT
             echo "install_cmd=pnpm install --frozen-lockfile" >> $GITHUB_OUTPUT
-            echo "script_cmd=pnpm i18n:extract" >> $GITHUB_OUTPUT
+            echo "script_cmd=pnpm i18n-extract" >> $GITHUB_OUTPUT
           elif [ -f "yarn.lock" ]; then
             echo "package_manager=yarn" >> $GITHUB_OUTPUT
             echo "install_cmd=yarn install --immutable --check-cache" >> $GITHUB_OUTPUT
-            echo "script_cmd=yarn i18n:extract" >> $GITHUB_OUTPUT
+            echo "script_cmd=yarn i18n-extract" >> $GITHUB_OUTPUT
           elif [ -f "package-lock.json" ]; then
             echo "package_manager=npm" >> $GITHUB_OUTPUT
             echo "install_cmd=npm ci" >> $GITHUB_OUTPUT
-            echo "script_cmd=npm run i18n:extract" >> $GITHUB_OUTPUT
+            echo "script_cmd=npm run i18n-extract" >> $GITHUB_OUTPUT
           else
             echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
             exit 1
