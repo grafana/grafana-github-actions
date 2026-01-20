@@ -14,19 +14,43 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Detect package manager
+        id: detect-pm
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "package_manager=pnpm" >> $GITHUB_OUTPUT
+            echo "install_cmd=pnpm install --frozen-lockfile" >> $GITHUB_OUTPUT
+            echo "script_cmd=pnpm i18n-extract" >> $GITHUB_OUTPUT
+          elif [ -f "yarn.lock" ]; then
+            echo "package_manager=yarn" >> $GITHUB_OUTPUT
+            echo "install_cmd=yarn install --immutable --check-cache" >> $GITHUB_OUTPUT
+            echo "script_cmd=yarn i18n-extract" >> $GITHUB_OUTPUT
+          elif [ -f "package-lock.json" ]; then
+            echo "package_manager=npm" >> $GITHUB_OUTPUT
+            echo "install_cmd=npm ci" >> $GITHUB_OUTPUT
+            echo "script_cmd=npm run i18n-extract" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
+            exit 1
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: ${{ steps.detect-pm.outputs.package_manager }}
 
-      - run: yarn install --immutable --check-cache
+      - name: Install dependencies
+        run: ${{ steps.detect-pm.outputs.install_cmd }}
 
-      - run: |
+      - name: Extract translations
+        run: |
           # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
           extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '[warning]' to find the offending file.'
-          yarn i18n-extract || (echo "${extract_error_message}" && false)
+          ${{ steps.detect-pm.outputs.script_cmd }} || (echo "${extract_error_message}" && false)
 
-      - run: |
-          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'yarn i18n-extract', commit the changes and push again."
+      - name: Check for uncommitted changes
+        run: |
+          uncommited_error_message="::error::Translation extraction has not been committed. Please run '${{ steps.detect-pm.outputs.script_cmd }}', commit the changes and push again."
           file_diff=$(git diff)
           if [ -n "$file_diff" ]; then
               echo "$file_diff"
