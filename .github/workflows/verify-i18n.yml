@@ -34,6 +34,10 @@ jobs:
             exit 1
           fi
 
+      - name: Install pnpm
+          if: steps.detect-pm.outputs.package_manager == 'pnpm'
+          uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
