@@ -104,8 +104,6 @@ jobs:
         id: get-project-id
         if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
         with:
-          org: grafana
-          project_number: ${{ inputs.github_board_id }}
           query: |
             query getProjectId($org: String!, $project_number: Int!){
               organization(login: $org) {
@@ -115,6 +113,9 @@ jobs:
                 }
               }
             }
+          variables: |
+            org: grafana
+            project_number: ${{ inputs.github_board_id }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
@@ -122,8 +123,6 @@ jobs:
         uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
         if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
         with:
-          projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
-          prid: ${{ env.PULL_REQUEST_ID }}
           query: |
             mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
               addProjectV2ItemById(input: {projectId: $projectid, contentId: $prid}) {
@@ -132,6 +131,9 @@ jobs:
                 }
               }
             }
+          variables: |
+            projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
+            prid: ${{ env.PULL_REQUEST_ID }}
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
