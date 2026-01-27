@@ -1,104 +1,104 @@
 name: Verify i18n
 on:
-    workflow_call:
+  workflow_call:
 
 permissions: {}
 
 jobs:
-    verify-i18n:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  persist-credentials: false
+  verify-i18n:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
-            - name: Detect package manager
-              id: detect-pm
-              run: |
-                  if [ -f "pnpm-lock.yaml" ]; then
-                    echo "package_manager=pnpm" >> $GITHUB_OUTPUT
-                  elif [ -f "yarn.lock" ]; then
-                    echo "package_manager=yarn" >> $GITHUB_OUTPUT
-                  elif [ -f "package-lock.json" ]; then
-                    echo "package_manager=npm" >> $GITHUB_OUTPUT
-                  else
-                    echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
-                    exit 1
-                  fi
+      - name: Detect package manager
+        id: detect-pm
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "package_manager=pnpm" >> $GITHUB_OUTPUT
+          elif [ -f "yarn.lock" ]; then
+            echo "package_manager=yarn" >> $GITHUB_OUTPUT
+          elif [ -f "package-lock.json" ]; then
+            echo "package_manager=npm" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
+            exit 1
+          fi
 
-            - name: Install pnpm
-              if: steps.detect-pm.outputs.package_manager == 'pnpm'
-              uses: pnpm/action-setup@c5ba7f7862a0f64c1b1a05fbac13e0b8e86ba08c # v4
+      - name: Install pnpm
+        if: steps.detect-pm.outputs.package_manager == 'pnpm'
+        uses: pnpm/action-setup@c5ba7f7862a0f64c1b1a05fbac13e0b8e86ba08c # v4
 
-            - uses: actions/setup-node@v4
-              with:
-                  node-version-file: '.nvmrc'
-                  cache: ${{ steps.detect-pm.outputs.package_manager }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: ${{ steps.detect-pm.outputs.package_manager }}
 
-            - name: Install dependencies (pnpm)
-              if: steps.detect-pm.outputs.package_manager == 'pnpm'
-              run: pnpm install --frozen-lockfile
+      - name: Install dependencies (pnpm)
+        if: steps.detect-pm.outputs.package_manager == 'pnpm'
+        run: pnpm install --frozen-lockfile
 
-            - name: Install dependencies (yarn)
-              if: steps.detect-pm.outputs.package_manager == 'yarn'
-              run: yarn install --immutable --check-cache
+      - name: Install dependencies (yarn)
+        if: steps.detect-pm.outputs.package_manager == 'yarn'
+        run: yarn install --immutable --check-cache
 
-            - name: Install dependencies (npm)
-              if: steps.detect-pm.outputs.package_manager == 'npm'
-              run: npm ci
+      - name: Install dependencies (npm)
+        if: steps.detect-pm.outputs.package_manager == 'npm'
+        run: npm ci
 
-            - name: Extract translations (pnpm)
-              if: steps.detect-pm.outputs.package_manager == 'pnpm'
-              run: |
-                  # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
-                  extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
-                  pnpm i18n-extract || (echo "${extract_error_message}" && false)
+      - name: Extract translations (pnpm)
+        if: steps.detect-pm.outputs.package_manager == 'pnpm'
+        run: |
+          # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
+          extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
+          pnpm i18n-extract || (echo "${extract_error_message}" && false)
 
-            - name: Extract translations (yarn)
-              if: steps.detect-pm.outputs.package_manager == 'yarn'
-              run: |
-                  # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
-                  extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
-                  yarn i18n-extract || (echo "${extract_error_message}" && false)
+      - name: Extract translations (yarn)
+        if: steps.detect-pm.outputs.package_manager == 'yarn'
+        run: |
+          # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
+          extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
+          yarn i18n-extract || (echo "${extract_error_message}" && false)
 
-            - name: Extract translations (npm)
-              if: steps.detect-pm.outputs.package_manager == 'npm'
-              run: |
-                  # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
-                  extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
-                  npm run i18n-extract || (echo "${extract_error_message}" && false)
+      - name: Extract translations (npm)
+        if: steps.detect-pm.outputs.package_manager == 'npm'
+        run: |
+          # shellcheck disable=SC2102,SC2016,SC2125 # this is just a string. we _want_ all the bash features to be disabled.
+          extract_error_message='::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as "t(`preferences.theme.{themeID}`, themeName)" and that no translation key is used twice. Search the output for '"'"'[warning]'"'"' to find the offending file.'
+          npm run i18n-extract || (echo "${extract_error_message}" && false)
 
-            - name: Check for uncommitted changes (pnpm)
-              if: steps.detect-pm.outputs.package_manager == 'pnpm'
-              run: |
-                  uncommited_error_message="::error::Translation extraction has not been committed. Please run 'pnpm i18n-extract', commit the changes and push again."
-                  file_diff=$(git diff)
-                  if [ -n "$file_diff" ]; then
-                      echo "$file_diff"
-                      echo "${uncommited_error_message}"
-                      exit 1
-                  fi
+      - name: Check for uncommitted changes (pnpm)
+        if: steps.detect-pm.outputs.package_manager == 'pnpm'
+        run: |
+          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'pnpm i18n-extract', commit the changes and push again."
+          file_diff=$(git diff)
+          if [ -n "$file_diff" ]; then
+              echo "$file_diff"
+              echo "${uncommited_error_message}"
+              exit 1
+          fi
 
-            - name: Check for uncommitted changes (yarn)
-              if: steps.detect-pm.outputs.package_manager == 'yarn'
-              run: |
-                  uncommited_error_message="::error::Translation extraction has not been committed. Please run 'yarn i18n-extract', commit the changes and push again."
-                  file_diff=$(git diff)
-                  if [ -n "$file_diff" ]; then
-                      echo "$file_diff"
-                      echo "${uncommited_error_message}"
-                      exit 1
-                  fi
+      - name: Check for uncommitted changes (yarn)
+        if: steps.detect-pm.outputs.package_manager == 'yarn'
+        run: |
+          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'yarn i18n-extract', commit the changes and push again."
+          file_diff=$(git diff)
+          if [ -n "$file_diff" ]; then
+              echo "$file_diff"
+              echo "${uncommited_error_message}"
+              exit 1
+          fi
 
-            - name: Check for uncommitted changes (npm)
-              if: steps.detect-pm.outputs.package_manager == 'npm'
-              run: |
-                  uncommited_error_message="::error::Translation extraction has not been committed. Please run 'npm run i18n-extract', commit the changes and push again."
-                  file_diff=$(git diff)
-                  if [ -n "$file_diff" ]; then
-                      echo "$file_diff"
-                      echo "${uncommited_error_message}"
-                      exit 1
-                  fi
+      - name: Check for uncommitted changes (npm)
+        if: steps.detect-pm.outputs.package_manager == 'npm'
+        run: |
+          uncommited_error_message="::error::Translation extraction has not been committed. Please run 'npm run i18n-extract', commit the changes and push again."
+          file_diff=$(git diff)
+          if [ -n "$file_diff" ]; then
+              echo "$file_diff"
+              echo "${uncommited_error_message}"
+              exit 1
+          fi
