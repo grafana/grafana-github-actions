@@ -32,31 +32,12 @@ jobs:
           common_secrets: |
             CROWDIN_TOKEN=grafana/grafana_frontend_platform_crowdin_bot:access_token
 
-      - name: Detect package manager
-        id: detect-pm
-        run: |
-          if [ -f "pnpm-lock.yaml" ]; then
-            echo "package_manager=pnpm" >> $GITHUB_OUTPUT
-            echo "install_cmd=pnpm install --frozen-lockfile" >> $GITHUB_OUTPUT
-          elif [ -f "yarn.lock" ]; then
-            echo "package_manager=yarn" >> $GITHUB_OUTPUT
-            echo "install_cmd=yarn install --immutable --check-cache" >> $GITHUB_OUTPUT
-          elif [ -f "package-lock.json" ]; then
-            echo "package_manager=npm" >> $GITHUB_OUTPUT
-            echo "install_cmd=npm ci" >> $GITHUB_OUTPUT
-          else
-            echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
-            exit 1
-          fi
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ steps.detect-pm.outputs.package_manager }}
 
-      - name: Install dependencies
-        run: ${{ steps.detect-pm.outputs.install_cmd }}
+      - run: yarn install --immutable --check-cache
 
       - name: Create tasks
         env:
