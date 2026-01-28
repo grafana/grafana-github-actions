@@ -1,6 +1,5 @@
 name: otlp-gha-export.yml
 
-# zizmor: ignore[dangerous-triggers] -- mitigated by fork check in job condition
 on:
   workflow_run: # zizmor: ignore[dangerous-triggers] -- mitigated by fork check in job condition
     workflows:
