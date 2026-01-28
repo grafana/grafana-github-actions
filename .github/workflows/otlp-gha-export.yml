@@ -1,0 +1,36 @@
+name: otlp-gha-export.yml
+
+on:
+  workflow_run: # zizmor: ignore[dangerous-triggers] -- mitigated by fork check in job condition
+    workflows:
+      - test-otel-export-workflow.yml
+    types:
+      - completed
+
+jobs:
+  send-telemetry:
+    runs-on: ubuntu-latest
+    # Only run if the triggering workflow was NOT from a fork
+    if: github.event.workflow_run.head_repository.full_name == github.event.workflow_run.repository.full_name
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Get Vault secrets
+        if: steps.check-e2e-changes.outputs.changes > 0
+        id: vault-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        with:
+          repo_secrets: |
+            OTEL_EXPORTER_OTLP_API_KEY=grafana-oltp-exporter:grafana-oltp-api-key
+
+      - uses: grafana/grafana-github-actions/gha-otel-export@grambbledook/otel-exporter-actiopn
+        env:
+          OTEL_SERVICE_NAME: test-gha-otel-integration
+          OTEL_LOG_LEVEL: debug
+          OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
+          OTEL_EXPORTER_OTLP_ENDPOINT: "https://otlp-gateway-ops-eu-south-0.grafana-ops.net/otlp"
+          OTEL_EXPORTER_OTLP_HEADERS: api-key=${{ env.OTEL_EXPORTER_OTLP_API_KEY }}
+          OTEL_RESOURCE_ATTRIBUTES: team=grafana-backend,env=cd
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
