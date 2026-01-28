@@ -30,7 +30,7 @@ jobs:
           OTEL_LOG_LEVEL: debug
           OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
           OTEL_EXPORTER_OTLP_ENDPOINT: "https://otlp-gateway-ops-eu-south-0.grafana-ops.net/otlp"
-          OTEL_EXPORTER_OTLP_HEADERS: api-key=${{ env.OTEL_EXPORTER_OTLP_API_KEY }}
+          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}"
           OTEL_RESOURCE_ATTRIBUTES: team=grafana-backend,env=cd
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
