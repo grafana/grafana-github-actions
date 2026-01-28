@@ -1,0 +1,23 @@
+name: test-otel-export-workflow.yml
+on:
+  push:
+    branches:
+      - main
+      - grambbledook/test-workflow
+jobs:
+  phase_1:
+    runs-on: ubuntu-x64-small
+    steps:
+      - name: phase 1 step 1
+        run:
+          echo "phase 1 step1"
+      - name: phase 1 step 2
+        run: |
+          sleep 10
+          echo "phase 1 step 2"
+  phase_2:
+    runs-on: ubuntu-x64-small
+    steps:
+      - name: phase 2 step 1
+        run: |
+          echo "phase 2 step 1"
