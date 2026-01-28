@@ -10,6 +10,9 @@ on:
 jobs:
   send-telemetry:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Get Vault secrets
         if: steps.check-e2e-changes.outputs.changes > 0
@@ -21,7 +24,8 @@ jobs:
 
       - uses: grafana/grafana-github-actions/gha-otel-export@grambbledook/otel-exporter-actiopn
         env:
-          OTEL_SERVICE_NAME:
+          OTEL_SERVICE_NAME: test-gha-otel-integration
+          OTEL_LOG_LEVEL: debug
           OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
           OTEL_EXPORTER_OTLP_ENDPOINT: "https://otlp-gateway-ops-eu-south-0.grafana-ops.net/otlp"
           OTEL_EXPORTER_OTLP_HEADERS: api-key=${{ env.OTEL_EXPORTER_OTLP_API_KEY }}
