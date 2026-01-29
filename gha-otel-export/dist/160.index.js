@@ -2,7 +2,7 @@ export const id = 160;
 export const ids = [160];
 export const modules = {
 
-/***/ 6272:
+/***/ 66272:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -23,14 +23,14 @@ export const modules = {
  */
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.execAsync = void 0;
-const child_process = __webpack_require__(5317);
-const util = __webpack_require__(9023);
+const child_process = __webpack_require__(35317);
+const util = __webpack_require__(39023);
 exports.execAsync = util.promisify(child_process.exec);
 //# sourceMappingURL=execAsync.js.map
 
 /***/ }),
 
-/***/ 1160:
+/***/ 51160:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
@@ -52,8 +52,8 @@ exports.execAsync = util.promisify(child_process.exec);
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getMachineId = void 0;
 const process = __webpack_require__(932);
-const execAsync_1 = __webpack_require__(6272);
-const api_1 = __webpack_require__(3914);
+const execAsync_1 = __webpack_require__(66272);
+const api_1 = __webpack_require__(63914);
 async function getMachineId() {
     const args = 'QUERY HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Cryptography /v MachineGuid';
     let command = '%windir%\\System32\\REG.exe';
