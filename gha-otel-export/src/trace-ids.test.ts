@@ -17,35 +17,35 @@ const stepNumber = '8'
 
 describe('otel ID generation', () => {
 	it('GenerateTraceID', () => {
-		const expected = 'cfe93a0cde6f53f539e0eaff28e05efc'
+		const expected = '29f022cfd2ef0bec231e3facb2e5e888'
 		const actual = generateTraceID(repo, runId, runAttempt)
 
 		expect(actual).toBe(expected)
 	})
 
 	it('GenerateParentSpanID', () => {
-		const expected = '7e173813d01cc668'
+		const expected = '35dc80e3696a695f'
 		const actual = generateParentSpanID(repo, runId, runAttempt)
 
 		expect(actual).toBe(expected)
 	})
 
 	it('GenerateJobSpanID', () => {
-		const expected = 'b6f4de49eeda5bb7'
+		const expected = '38d13486123da355'
 		const actual = generateJobSpanID(repo, runId, runAttempt, jobName)
 
 		expect(actual).toBe(expected)
 	})
 
 	it('GenerateStepSpanID (by name)', () => {
-		const expected = 'eecd067487a1f884'
+		const expected = '52b5804425ed1c83'
 		const actual = generateStepSpanID(repo, runId, runAttempt, jobName, stepName)
 
 		expect(actual).toBe(expected)
 	})
 
 	it('GenerateStepSpanID (by number)', () => {
-		const expected = 'd70487f07693281c'
+		const expected = '5ac3072b544fdedc'
 		const actual = generateStepSpanID_Number(repo, runId, runAttempt, jobName, stepNumber)
 
 		expect(actual).toBe(expected)
