@@ -1,10 +1,13 @@
 import { detectResources, envDetector, Resource } from "@opentelemetry/resources";
-import { ReadableSpan } from "@opentelemetry/sdk-trace-base";
+import { BasicTracerProvider, SimpleSpanProcessor, ReadableSpan } from "@opentelemetry/sdk-trace-base";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { InstrumentationScope } from "@opentelemetry/core";
+import { trace } from "@opentelemetry/api";
+import assert from "assert";
 
-let exporter: OTLPTraceExporter | null = null;
+let traceProvider: BasicTracerProvider | null = null;
 let resource: Resource | null = null;
+let spanProcessor: SimpleSpanProcessor | null = null;
 
 const instrumentationScope: InstrumentationScope = {
   name: "gha-otel-export",
@@ -13,13 +16,20 @@ const instrumentationScope: InstrumentationScope = {
 
 export async function initTracing(): Promise<void> {
   resource = await detectResources({ detectors: [envDetector] });
-  exporter = new OTLPTraceExporter({});
+  
+  spanProcessor = new SimpleSpanProcessor(new OTLPTraceExporter({}));
+  
+  traceProvider = new BasicTracerProvider({
+    resource: resource,
+    spanProcessors: [spanProcessor]
+  });
+  
+  const result = trace.setGlobalTracerProvider(traceProvider);
+  assert(result, "Failed to set global tracer provider - it may already be set");
 }
 
 export function getResource(): Resource {
-  if (!resource) {
-    throw new Error("Tracing not initialized. Call initTracing() first.");
-  }
+  assert(resource, "Tracing not initialized. Call initTracing() first.");
   return resource;
 }
 
@@ -28,28 +38,22 @@ export function getInstrumentationScope(): InstrumentationScope {
 }
 
 export async function exportSpans(spans: ReadableSpan[]): Promise<void> {
-  if (!exporter) {
-    throw new Error("Tracing not initialized. Call initTracing() first.");
-  }
+  assert(spanProcessor, "Tracing not initialized. Call initTracing() first.");
 
-  return new Promise((resolve, reject) => {
-    exporter!.export(spans, (result) => {
-      if (result.code === 0) {
-        resolve();
-      } else {
-        reject(new Error(result.error?.message ?? "Failed to export spans"));
-      }
-    });
-  });
+  for (const span of spans) {
+    spanProcessor.onEnd(span);
+  }
+  
+  await spanProcessor.forceFlush();
 }
 
 export async function shutdownTracing(): Promise<void> {
-  if (!exporter) {
-    console.log("Exporter not initialized");
+  if (!traceProvider) {
+    console.log("Trace provider not initialized");
     return;
   }
 
   console.log("Shutting down exporter...");
-  await exporter.shutdown();
+  await traceProvider.shutdown();
   console.log("Tracing shut down");
 }
