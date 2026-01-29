@@ -22,7 +22,7 @@ jobs:
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           repo_secrets: |
-            OTEL_EXPORTER_OTLP_API_KEY=grafana-oltp-exporter:grafana-oltp-api-key
+            OTEL_EXPORTER_OTLP_API_KEY=grafana-oltp-exporter:api-key-base64
 
       - uses: grafana/grafana-github-actions/gha-otel-export@grambbledook/otel-exporter-actiopn
         env:
