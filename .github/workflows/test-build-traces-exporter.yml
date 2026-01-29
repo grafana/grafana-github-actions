@@ -15,6 +15,7 @@ jobs:
       OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
       OTEL_EXPORTER_OTLP_ENDPOINT: "https://otlp-gateway-ops-eu-south-0.grafana-ops.net/otlp"
       OTEL_RESOURCE_ATTRIBUTES: team=grafanabackend,env=cd
+      OTEL_SERVICE_NAME: test-otel-export-workflow
       
       # GitHub context variables for span/trace id calculation
       GITHUB_REPO: ${{ github.repository }}
