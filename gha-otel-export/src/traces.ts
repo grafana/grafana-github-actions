@@ -1,29 +1,29 @@
-import {WorkflowJobRun, WorkflowRun, WorkflowStep} from "./types.js";
-import {generateJobSpanID, generateParentSpanID, generateStepSpanID, generateTraceID} from "./trace-ids.js";
-import {SpanContext} from "@opentelemetry/api";
-import {ReadableSpan} from "@opentelemetry/sdk-trace-base";
-import {createSpan, createSpanContext} from "./span-utils.js";
+import {WorkflowJobRun, WorkflowRun, WorkflowStep} from "./types.js"
+import {generateJobSpanID, generateParentSpanID, generateStepSpanID, generateTraceID} from "./trace-ids.js"
+import {SpanContext} from "@opentelemetry/api"
+import {ReadableSpan} from "@opentelemetry/sdk-trace-base"
+import {createSpan, createSpanContext} from "./span-utils.js"
 
-export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: WorkflowJobRun[] }): { traceId: string; spans: ReadableSpan[] } {
-    const {workflow, workflowJobs} = jobs;
-    const spans: ReadableSpan[] = [];
+export function createTrace(jobs: { workflow: WorkflowRun, workflowJobs: WorkflowJobRun[] }): { traceId: string, spans: ReadableSpan[] } {
+    const {workflow, workflowJobs} = jobs
+    const spans: ReadableSpan[] = []
 
     const traceId = generateTraceID(
         String(workflow.id),
         String(workflow.runAttempt)
-    );
+    )
 
     const rootSpanId = generateParentSpanID(
         String(workflow.id),
         String(workflow.runAttempt)
-    );
+    )
 
     // Create the root workflow span (no parent)
-    const rootSpan = createWorkflowSpan(workflow, traceId, rootSpanId);
-    console.log(`Created root span: ${rootSpan.name} with ID: ${rootSpanId}`);
-    spans.push(rootSpan);
+    const rootSpan = createWorkflowSpan(workflow, traceId, rootSpanId)
+    console.log(`Created root span: ${rootSpan.name} with ID: ${rootSpanId}`)
+    spans.push(rootSpan)
 
-    const rootSpanContext = createSpanContext(traceId, rootSpanId);
+    const rootSpanContext = createSpanContext(traceId, rootSpanId)
 
     // Create job spans with workflow as parent
     for (const job of workflowJobs) {
@@ -31,13 +31,13 @@ export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: Workflo
             String(workflow.id),
             String(workflow.runAttempt),
             job.name
-        );
+        )
 
-        const jobSpan = createJobSpan(job, traceId, jobSpanId, rootSpanContext);
-        console.log(`Created job span: ${jobSpan.name} with ID: ${jobSpanId}`);
-        spans.push(jobSpan);
+        const jobSpan = createJobSpan(job, traceId, jobSpanId, rootSpanContext)
+        console.log(`Created job span: ${jobSpan.name} with ID: ${jobSpanId}`)
+        spans.push(jobSpan)
 
-        const jobSpanContext = createSpanContext(traceId, jobSpanId);
+        const jobSpanContext = createSpanContext(traceId, jobSpanId)
 
         // Create step spans with job as parent
         for (const step of job.steps) {
@@ -46,15 +46,15 @@ export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: Workflo
                 String(workflow.runAttempt),
                 job.name,
                 step.name
-            );
+            )
 
-            const stepSpan = createStepSpan(step, traceId, stepSpanId, jobSpanContext);
-            console.log(`Created step span: ${stepSpan.name} with ID: ${stepSpanId}`);
-            spans.push(stepSpan);
+            const stepSpan = createStepSpan(step, traceId, stepSpanId, jobSpanContext)
+            console.log(`Created step span: ${stepSpan.name} with ID: ${stepSpanId}`)
+            spans.push(stepSpan)
         }
     }
 
-    return {traceId, spans};
+    return {traceId, spans}
 }
 
 function createWorkflowSpan(
@@ -77,7 +77,7 @@ function createWorkflowSpan(
             "url": workflow.htmlUrl,
             "conclusion": workflow.conclusion,
         }
-    );
+    )
 }
 
 function createJobSpan(
@@ -103,7 +103,7 @@ function createJobSpan(
             "workflow_name": job.workflowName,
         },
         parentSpanContext
-    );
+    )
 }
 
 function createStepSpan(
@@ -124,5 +124,5 @@ function createStepSpan(
             "conclusion": step.conclusion,
         },
         parentSpanContext
-    );
+    )
 }
