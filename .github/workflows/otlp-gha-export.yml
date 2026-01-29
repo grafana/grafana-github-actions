@@ -17,12 +17,11 @@ jobs:
       contents: read
     steps:
       - name: Get Vault secrets
-        if: steps.check-e2e-changes.outputs.changes > 0
         id: vault-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@main
         with:
           repo_secrets: |
-            OTEL_EXPORTER_OTLP_API_KEY=grafana-oltp-exporter:api-key-base64
+            OTEL_EXPORTER_OTLP_API_KEY=grafana-otlp-api-key:api-key-base64
 
       - uses: grafana/grafana-github-actions/gha-otel-export@grambbledook/otel-exporter-actiopn
         env:
