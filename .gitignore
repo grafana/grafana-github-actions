@@ -1,4 +1,5 @@
 node_modules
+coverage
 *.js.map
 classifier/issue_data.json
 classifier/issue_labels.json
