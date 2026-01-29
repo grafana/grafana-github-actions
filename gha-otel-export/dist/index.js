@@ -79696,7 +79696,7 @@ async function run() {
         core.info(`Exporting ${spans.length} spans...`);
         await exportSpans(spans);
         core.setOutput("trace-id", traceId);
-        writeSummary(traceId);
+        await writeSummary(traceId);
     }
     catch (error) {
         if (error instanceof Error) {

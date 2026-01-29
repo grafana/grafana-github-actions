@@ -1,31 +1,31 @@
-import {SpanContext, SpanKind, SpanStatusCode, TraceFlags} from "@opentelemetry/api";
-import {ReadableSpan} from "@opentelemetry/sdk-trace-base";
-import {hrTimeDuration} from "@opentelemetry/core";
-import {getResource, getInstrumentationScope} from "./exporters.js";
+import {SpanContext, SpanKind, SpanStatusCode, TraceFlags} from "@opentelemetry/api"
+import {ReadableSpan} from "@opentelemetry/sdk-trace-base"
+import {hrTimeDuration} from "@opentelemetry/core"
+import {getResource, getInstrumentationScope} from "./exporters.js"
 
 /**
  * Convert a Date to OpenTelemetry HrTime format [seconds, nanoseconds]
  */
 export function dateToHrTime(date: Date): [number, number] {
-    const ms = date.getTime();
-    const seconds = Math.floor(ms / 1000);
-    const nanos = (ms % 1000) * 1_000_000;
-    return [seconds, nanos];
+    const ms = date.getTime()
+    const seconds = Math.floor(ms / 1000)
+    const nanos = (ms % 1000) * 1_000_000
+    return [seconds, nanos]
 }
 
 /**
  * Map GitHub conclusion to OpenTelemetry SpanStatusCode
  */
-export function conclusionToStatus(conclusion: string): { code: SpanStatusCode; message?: string } {
+export function conclusionToStatus(conclusion: string): { code: SpanStatusCode, message?: string } {
     switch (conclusion) {
         case "success":
-            return {code: SpanStatusCode.OK};
+            return {code: SpanStatusCode.OK}
         case "failure":
         case "cancelled":
         case "timed_out":
-            return {code: SpanStatusCode.ERROR, message: conclusion};
+            return {code: SpanStatusCode.ERROR, message: conclusion}
         default:
-            return {code: SpanStatusCode.UNSET};
+            return {code: SpanStatusCode.UNSET}
     }
 }
 
@@ -38,7 +38,7 @@ export function createSpanContext(traceId: string, spanId: string): SpanContext 
         spanId,
         traceFlags: TraceFlags.SAMPLED,
         isRemote: false,
-    };
+    }
 }
 
 /**
@@ -54,8 +54,8 @@ export function createSpan(
     attributes: Record<string, string | number | undefined>,
     parentSpanContext?: SpanContext
 ): ReadableSpan {
-    const startHrTime = dateToHrTime(startTime);
-    const endHrTime = dateToHrTime(endTime);
+    const startHrTime = dateToHrTime(startTime)
+    const endHrTime = dateToHrTime(endTime)
 
     return {
         name,
@@ -75,5 +75,5 @@ export function createSpan(
         droppedAttributesCount: 0,
         droppedEventsCount: 0,
         droppedLinksCount: 0,
-    };
+    }
 }

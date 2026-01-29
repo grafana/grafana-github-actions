@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "crypto"
 
 /**
  * Equivalent to:
@@ -7,9 +7,9 @@ import { createHash } from "crypto";
  * hex.EncodeToString(hash)[:32]
  */
 export function generateTraceID(runID: string, runAttempt: string): string {
-  const input = `${runID}${runAttempt}t`;
-  const hash = createHash("sha256").update(input).digest("hex");
-  return hash.slice(0, 32);
+  const input = `${runID}${runAttempt}t`
+  const hash = createHash("sha256").update(input).digest("hex")
+  return hash.slice(0, 32)
 }
 
 /**
@@ -18,9 +18,9 @@ export function generateTraceID(runID: string, runAttempt: string): string {
  * hex.EncodeToString(hash)[16:32]
  */
 export function generateParentSpanID(runID: string, runAttempt: string): string {
-  const input = `${runID}${runAttempt}s`;
-  const hash = createHash("sha256").update(input).digest("hex");
-  return hash.slice(16, 32);
+  const input = `${runID}${runAttempt}s`
+  const hash = createHash("sha256").update(input).digest("hex")
+  return hash.slice(16, 32)
 }
 
 /**
@@ -29,9 +29,9 @@ export function generateParentSpanID(runID: string, runAttempt: string): string 
  * hex.EncodeToString(hash)[16:32]
  */
 export function generateJobSpanID(runID: string, runAttempt: string, jobName: string): string {
-  const input = `${runID}${runAttempt}${jobName}`;
-  const hash = createHash("sha256").update(input).digest("hex");
-  return hash.slice(16, 32);
+  const input = `${runID}${runAttempt}${jobName}`
+  const hash = createHash("sha256").update(input).digest("hex")
+  return hash.slice(16, 32)
 }
 
 /**
@@ -40,9 +40,9 @@ export function generateJobSpanID(runID: string, runAttempt: string, jobName: st
  * hex.EncodeToString(hash)[16:32]
  */
 export function generateStepSpanID(runID: string, runAttempt: string, jobName: string, stepName: string): string {
-  const input = `${runID}${runAttempt}${jobName}${stepName}`;
-  const hash = createHash("sha256").update(input).digest("hex");
-  return hash.slice(16, 32);
+  const input = `${runID}${runAttempt}${jobName}${stepName}`
+  const hash = createHash("sha256").update(input).digest("hex")
+  return hash.slice(16, 32)
 }
 
 /**
@@ -56,7 +56,7 @@ export function generateStepSpanID_Number(
   jobName: string,
   stepNumber: string,
 ): string {
-  const input = `${runID}${runAttempt}${jobName}${stepNumber}`;
-  const hash = createHash("sha256").update(input).digest("hex");
-  return hash.slice(16, 32);
+  const input = `${runID}${runAttempt}${jobName}${stepNumber}`
+  const hash = createHash("sha256").update(input).digest("hex")
+  return hash.slice(16, 32)
 }
