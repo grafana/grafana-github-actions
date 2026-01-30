@@ -28,7 +28,7 @@
 		"@crowdin/crowdin-api-client": "^1.42.0",
 		"@octokit/graphql": "^4.8.0",
 		"@octokit/request-error": "^2.1.0",
-		"@octokit/webhooks": "^7.12.2",
+		"@octokit/webhooks": "^9.0.0",
 		"@types/lodash.escaperegexp": "^4.1.9",
 		"@types/micromatch": "^4.0.1",
 		"@types/semver": "^7.5.6",
