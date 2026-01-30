@@ -82,7 +82,15 @@ jobs:
           ./go-cache-plugin serve --plugin 5930 --http=localhost:5970 --modproxy &
 
           echo $! > go-cache-plugin.pid
-
+      
+      - name: Build Grafana With ToolExec
+        continue-on-error: true
+        env:
+          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}"
+          GITHUB_STEP_NAME: Build Grafana With ToolExec
+        run: |
+          WITH_TOOLEXEC make build-go
+      
       - name: Build Grafana
         continue-on-error: true
         env:
