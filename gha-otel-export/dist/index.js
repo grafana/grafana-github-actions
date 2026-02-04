@@ -75722,64 +75722,9 @@ var __webpack_exports__ = {};
 var core = __nccwpck_require__(37484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(93228);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/resources/build/src/index.js
-var src = __nccwpck_require__(75647);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/sdk-trace-base/build/src/index.js
-var build_src = __nccwpck_require__(94952);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/exporter-trace-otlp-proto/build/src/index.js
-var exporter_trace_otlp_proto_build_src = __nccwpck_require__(57358);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/api/build/src/index.js
-var api_build_src = __nccwpck_require__(63914);
 // EXTERNAL MODULE: external "assert"
 var external_assert_ = __nccwpck_require__(42613);
 var external_assert_default = /*#__PURE__*/__nccwpck_require__.n(external_assert_);
-;// CONCATENATED MODULE: ./src/exporters.ts
-
-
-
-
-
-let traceProvider = null;
-let resource = null;
-let spanProcessor = null;
-const instrumentationScope = {
-    name: 'gha-otel-export',
-    version: '1.0.0',
-};
-async function initTracing() {
-    resource = await (0,src.detectResources)({ detectors: [src.envDetector] });
-    spanProcessor = new build_src/* SimpleSpanProcessor */.tg(new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({}));
-    traceProvider = new build_src/* BasicTracerProvider */.l({
-        resource: resource,
-        spanProcessors: [spanProcessor],
-    });
-    const result = api_build_src.trace.setGlobalTracerProvider(traceProvider);
-    external_assert_default()(result, 'Failed to set global tracer provider - it may already be set');
-}
-function getResource() {
-    external_assert_default()(resource, 'Tracing not initialized. Call initTracing() first.');
-    return resource;
-}
-function getInstrumentationScope() {
-    return instrumentationScope;
-}
-async function exportSpans(spans) {
-    external_assert_default()(spanProcessor, 'Tracing not initialized. Call initTracing() first.');
-    for (const span of spans) {
-        spanProcessor.onEnd(span);
-    }
-    await spanProcessor.forceFlush();
-}
-async function shutdownTracing() {
-    if (!traceProvider) {
-        console.log('Trace provider not initialized');
-        return;
-    }
-    console.log('Shutting down exporter...');
-    await traceProvider.shutdown();
-    console.log('Tracing shut down');
-}
-
 // EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
 var main = __nccwpck_require__(18889);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/rest/node_modules/universal-user-agent/index.js
@@ -79924,8 +79869,63 @@ function generateStepSpanID_Number(repo, runID, runAttempt, jobName, stepNumber)
     return hash.slice(16, 32);
 }
 
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/api/build/src/index.js
+var src = __nccwpck_require__(63914);
 // EXTERNAL MODULE: ./node_modules/@opentelemetry/core/build/src/index.js
-var core_build_src = __nccwpck_require__(24637);
+var build_src = __nccwpck_require__(24637);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/resources/build/src/index.js
+var resources_build_src = __nccwpck_require__(75647);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/sdk-trace-base/build/src/index.js
+var sdk_trace_base_build_src = __nccwpck_require__(94952);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/exporter-trace-otlp-proto/build/src/index.js
+var exporter_trace_otlp_proto_build_src = __nccwpck_require__(57358);
+;// CONCATENATED MODULE: ./src/exporters.ts
+
+
+
+
+
+let traceProvider = null;
+let resource = null;
+let spanProcessor = null;
+const instrumentationScope = {
+    name: 'gha-otel-export',
+    version: '1.0.0',
+};
+async function initTracing() {
+    resource = await (0,resources_build_src.detectResources)({ detectors: [resources_build_src.envDetector] });
+    spanProcessor = new sdk_trace_base_build_src/* SimpleSpanProcessor */.tg(new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({}));
+    traceProvider = new sdk_trace_base_build_src/* BasicTracerProvider */.l({
+        resource: resource,
+        spanProcessors: [spanProcessor],
+    });
+    const result = src.trace.setGlobalTracerProvider(traceProvider);
+    external_assert_default()(result, 'Failed to set global tracer provider - it may already be set');
+}
+function getResource() {
+    external_assert_default()(resource, 'Tracing not initialized. Call initTracing() first.');
+    return resource;
+}
+function getInstrumentationScope() {
+    return instrumentationScope;
+}
+async function exportSpans(spans) {
+    external_assert_default()(spanProcessor, 'Tracing not initialized. Call initTracing() first.');
+    for (const span of spans) {
+        spanProcessor.onEnd(span);
+    }
+    await spanProcessor.forceFlush();
+}
+async function shutdownTracing() {
+    if (!traceProvider) {
+        console.log('Trace provider not initialized');
+        return;
+    }
+    console.log('Shutting down exporter...');
+    await traceProvider.shutdown();
+    console.log('Tracing shut down');
+}
+
 ;// CONCATENATED MODULE: ./src/span-utils.ts
 
 
@@ -79945,13 +79945,13 @@ function dateToHrTime(date) {
 function conclusionToStatus(conclusion) {
     switch (conclusion) {
         case 'success':
-            return { code: api_build_src.SpanStatusCode.OK };
+            return { code: src.SpanStatusCode.OK };
         case 'failure':
         case 'cancelled':
         case 'timed_out':
-            return { code: api_build_src.SpanStatusCode.ERROR, message: conclusion };
+            return { code: src.SpanStatusCode.ERROR, message: conclusion };
         default:
-            return { code: api_build_src.SpanStatusCode.UNSET };
+            return { code: src.SpanStatusCode.UNSET };
     }
 }
 /**
@@ -79961,7 +79961,7 @@ function createSpanContext(traceId, spanId) {
     return {
         traceId,
         spanId,
-        traceFlags: api_build_src.TraceFlags.SAMPLED,
+        traceFlags: src.TraceFlags.SAMPLED,
         isRemote: false,
     };
 }
@@ -79973,7 +79973,7 @@ function createSpan(name, traceId, spanId, startTime, endTime, conclusion, attri
     const endHrTime = dateToHrTime(endTime);
     return {
         name,
-        kind: api_build_src.SpanKind.INTERNAL,
+        kind: src.SpanKind.INTERNAL,
         spanContext: () => createSpanContext(traceId, spanId),
         parentSpanContext,
         startTime: startHrTime,
@@ -79982,7 +79982,7 @@ function createSpan(name, traceId, spanId, startTime, endTime, conclusion, attri
         attributes,
         links: [],
         events: [],
-        duration: (0,core_build_src.hrTimeDuration)(startHrTime, endHrTime),
+        duration: (0,build_src.hrTimeDuration)(startHrTime, endHrTime),
         ended: true,
         resource: getResource(),
         instrumentationScope: getInstrumentationScope(),
@@ -80122,7 +80122,6 @@ main_main().catch(console.error);
 
 
 
-
 async function writeSummary(traceId) {
     try {
         await core.summary
@@ -80137,39 +80136,25 @@ async function writeSummary(traceId) {
 async function run() {
     const token = core.getInput('github-token', { required: true });
     external_assert_default()(token, 'GitHub token is required');
-    try {
-        const context = github.context;
-        external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
-        const payload = context.payload;
-        external_assert_default()(payload.workflow_run, 'No workflow_run found in payload');
-        const workflowRun = payload.workflow_run;
-        const owner = context.repo.owner;
-        const repo = context.repo.repo;
-        const runId = workflowRun.id;
-        const attempt = workflowRun.run_attempt ?? 1;
-        const workflow = workflowRun.name;
-        const traceId = await runExporter({
-            token,
-            owner,
-            repo,
-            workflow,
-            runId,
-            attempt,
-        });
-        core.setOutput('trace-id', traceId);
-        await writeSummary(traceId);
-    }
-    catch (error) {
-        if (error instanceof Error) {
-            core.setFailed(error.message);
-        }
-        else {
-            core.setFailed('An unexpected error occurred');
-        }
-    }
-    finally {
-        await shutdownTracing();
-    }
+    const context = github.context;
+    external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
+    const payload = context.payload;
+    external_assert_default()(payload.workflow_run, 'No workflow_run found in payload');
+    const owner = context.repo.owner;
+    const repo = context.repo.repo;
+    const runId = payload.workflow_run.id;
+    const attempt = payload.workflow_run.run_attempt ?? 1;
+    const workflow = payload.workflow_run.name;
+    const traceId = await runExporter({
+        token,
+        owner,
+        repo,
+        workflow,
+        runId,
+        attempt,
+    });
+    core.setOutput('trace-id', traceId);
+    await writeSummary(traceId);
 }
 run().catch((error) => {
     if (error instanceof Error) {
