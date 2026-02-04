@@ -21,7 +21,7 @@ export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: Workflo
 
 	// Create the root workflow span (no parent)
 	const rootSpan = createWorkflowSpan(workflow, traceId, rootSpanId)
-	console.log(`Created root span: ${rootSpan.name} with ID: ${rootSpanId}`)
+	console.log(`Created root span: [${rootSpan.name}] with ID: ${rootSpanId}`)
 	spans.push(rootSpan)
 
 	const rootSpanContext = createSpanContext(traceId, rootSpanId)
@@ -36,7 +36,7 @@ export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: Workflo
 		)
 
 		const jobSpan = createJobSpan(job, traceId, jobSpanId, rootSpanContext)
-		console.log(`Created job span: ${jobSpan.name} with ID: ${jobSpanId}`)
+		console.log(`  Created job span: [${jobSpan.name}] with ID: ${jobSpanId}`)
 		spans.push(jobSpan)
 
 		const jobSpanContext = createSpanContext(traceId, jobSpanId)
@@ -52,7 +52,7 @@ export function createTrace(jobs: { workflow: WorkflowRun; workflowJobs: Workflo
 			)
 
 			const stepSpan = createStepSpan(step, traceId, stepSpanId, jobSpanContext)
-			console.log(`Created step span: ${stepSpan.name} with ID: ${stepSpanId}`)
+			console.log(`   • Created step span: [${stepSpan.name}] with ID: ${stepSpanId}`)
 			spans.push(stepSpan)
 		}
 	}
