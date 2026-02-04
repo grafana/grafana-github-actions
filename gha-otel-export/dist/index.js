@@ -80136,6 +80136,7 @@ async function writeSummary(traceId) {
 }
 async function run() {
     const token = core.getInput('github-token', { required: true });
+    external_assert_default()(token, 'GitHub token is required');
     try {
         const context = github.context;
         external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');

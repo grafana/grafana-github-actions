@@ -18,6 +18,7 @@ async function writeSummary(traceId: string) {
 
 async function run(): Promise<void> {
 	const token = core.getInput('github-token', { required: true })
+	assert(token, 'GitHub token is required')
 
 	try {
 		const context = github.context
