@@ -1,3 +1,11 @@
+export type JobRequest = {
+	name: string
+	owner: string
+	repo: string
+	runId: number
+	attempt: number
+}
+
 export type WorkflowStep = {
 	readonly name: string
 	readonly conclusion: string

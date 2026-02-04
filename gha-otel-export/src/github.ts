@@ -2,7 +2,7 @@ import { Octokit } from '@octokit/rest'
 import { retryAsync } from 'ts-retry'
 import { Endpoints } from '@octokit/types'
 import assert from 'assert'
-import { WorkflowRun, WorkflowJobRun, WorkflowStep } from './types.js'
+import { JobRequest, WorkflowRun, WorkflowJobRun, WorkflowStep } from './types.js'
 
 export type WorkflowResponse =
 	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['response']['data']
@@ -10,14 +10,6 @@ export type WorkflowJobsResponse =
 	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs']['response']['data']['jobs']
 export type WorkflowJobResponse = WorkflowJobsResponse[number]
 export type WorkflowStepResponse = NonNullable<WorkflowJobResponse['steps']>[number]
-
-export interface JobInfo {
-	name: string
-	owner: string
-	repo: string
-	runId: number
-	attempt: number
-}
 
 export const createGithubClient = (token: string): Octokit => {
 	return new Octokit({
@@ -28,7 +20,7 @@ export const createGithubClient = (token: string): Octokit => {
 
 export async function getRunData(
 	octokit: Octokit,
-	job: JobInfo,
+	job: JobRequest,
 ): Promise<{
 	workflow: WorkflowRun
 	workflowJobs: WorkflowJobRun[]
@@ -61,7 +53,7 @@ export async function getRunData(
 	}
 }
 
-async function fetchWorkflow(octokit: Octokit, job: JobInfo): Promise<WorkflowResponse> {
+async function fetchWorkflow(octokit: Octokit, job: JobRequest): Promise<WorkflowResponse> {
 	const result = await octokit.rest.actions.getWorkflowRunAttempt({
 		owner: job.owner,
 		repo: job.repo,
@@ -72,7 +64,7 @@ async function fetchWorkflow(octokit: Octokit, job: JobInfo): Promise<WorkflowRe
 	return result.data
 }
 
-async function fetchWorkflowJobs(octokit: Octokit, job: JobInfo): Promise<WorkflowJobsResponse> {
+async function fetchWorkflowJobs(octokit: Octokit, job: JobRequest): Promise<WorkflowJobsResponse> {
 	const result = await octokit.rest.actions.listJobsForWorkflowRunAttempt({
 		owner: job.owner,
 		repo: job.repo,
