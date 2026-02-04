@@ -55,4 +55,10 @@ async function run(): Promise<void> {
 	}
 }
 
-run()
+run().catch((error) => {
+	if (error instanceof Error) {
+		core.setFailed(error.message)
+	} else {
+		core.setFailed('An unexpected error occurred')
+	}
+})
