@@ -47931,6 +47931,399 @@ exports.Deprecation = Deprecation;
 
 /***/ }),
 
+/***/ 18889:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const fs = __nccwpck_require__(79896)
+const path = __nccwpck_require__(16928)
+const os = __nccwpck_require__(70857)
+const crypto = __nccwpck_require__(76982)
+const packageJson = __nccwpck_require__(80056)
+
+const version = packageJson.version
+
+const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
+
+// Parse src into an Object
+function parse (src) {
+  const obj = {}
+
+  // Convert buffer to string
+  let lines = src.toString()
+
+  // Convert line breaks to same format
+  lines = lines.replace(/\r\n?/mg, '\n')
+
+  let match
+  while ((match = LINE.exec(lines)) != null) {
+    const key = match[1]
+
+    // Default undefined or null to empty string
+    let value = (match[2] || '')
+
+    // Remove whitespace
+    value = value.trim()
+
+    // Check if double quoted
+    const maybeQuote = value[0]
+
+    // Remove surrounding quotes
+    value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+
+    // Expand newlines if double quoted
+    if (maybeQuote === '"') {
+      value = value.replace(/\\n/g, '\n')
+      value = value.replace(/\\r/g, '\r')
+    }
+
+    // Add to object
+    obj[key] = value
+  }
+
+  return obj
+}
+
+function _parseVault (options) {
+  options = options || {}
+
+  const vaultPath = _vaultPath(options)
+  options.path = vaultPath // parse .env.vault
+  const result = DotenvModule.configDotenv(options)
+  if (!result.parsed) {
+    const err = new Error(`MISSING_DATA: Cannot parse ${vaultPath} for an unknown reason`)
+    err.code = 'MISSING_DATA'
+    throw err
+  }
+
+  // handle scenario for comma separated keys - for use with key rotation
+  // example: DOTENV_KEY="dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=prod,dotenv://:key_7890@dotenvx.com/vault/.env.vault?environment=prod"
+  const keys = _dotenvKey(options).split(',')
+  const length = keys.length
+
+  let decrypted
+  for (let i = 0; i < length; i++) {
+    try {
+      // Get full key
+      const key = keys[i].trim()
+
+      // Get instructions for decrypt
+      const attrs = _instructions(result, key)
+
+      // Decrypt
+      decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key)
+
+      break
+    } catch (error) {
+      // last key
+      if (i + 1 >= length) {
+        throw error
+      }
+      // try next key
+    }
+  }
+
+  // Parse decrypted .env string
+  return DotenvModule.parse(decrypted)
+}
+
+function _warn (message) {
+  console.log(`[dotenv@${version}][WARN] ${message}`)
+}
+
+function _debug (message) {
+  console.log(`[dotenv@${version}][DEBUG] ${message}`)
+}
+
+function _log (message) {
+  console.log(`[dotenv@${version}] ${message}`)
+}
+
+function _dotenvKey (options) {
+  // prioritize developer directly setting options.DOTENV_KEY
+  if (options && options.DOTENV_KEY && options.DOTENV_KEY.length > 0) {
+    return options.DOTENV_KEY
+  }
+
+  // secondary infra already contains a DOTENV_KEY environment variable
+  if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) {
+    return process.env.DOTENV_KEY
+  }
+
+  // fallback to empty string
+  return ''
+}
+
+function _instructions (result, dotenvKey) {
+  // Parse DOTENV_KEY. Format is a URI
+  let uri
+  try {
+    uri = new URL(dotenvKey)
+  } catch (error) {
+    if (error.code === 'ERR_INVALID_URL') {
+      const err = new Error('INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development')
+      err.code = 'INVALID_DOTENV_KEY'
+      throw err
+    }
+
+    throw error
+  }
+
+  // Get decrypt key
+  const key = uri.password
+  if (!key) {
+    const err = new Error('INVALID_DOTENV_KEY: Missing key part')
+    err.code = 'INVALID_DOTENV_KEY'
+    throw err
+  }
+
+  // Get environment
+  const environment = uri.searchParams.get('environment')
+  if (!environment) {
+    const err = new Error('INVALID_DOTENV_KEY: Missing environment part')
+    err.code = 'INVALID_DOTENV_KEY'
+    throw err
+  }
+
+  // Get ciphertext payload
+  const environmentKey = `DOTENV_VAULT_${environment.toUpperCase()}`
+  const ciphertext = result.parsed[environmentKey] // DOTENV_VAULT_PRODUCTION
+  if (!ciphertext) {
+    const err = new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${environmentKey} in your .env.vault file.`)
+    err.code = 'NOT_FOUND_DOTENV_ENVIRONMENT'
+    throw err
+  }
+
+  return { ciphertext, key }
+}
+
+function _vaultPath (options) {
+  let possibleVaultPath = null
+
+  if (options && options.path && options.path.length > 0) {
+    if (Array.isArray(options.path)) {
+      for (const filepath of options.path) {
+        if (fs.existsSync(filepath)) {
+          possibleVaultPath = filepath.endsWith('.vault') ? filepath : `${filepath}.vault`
+        }
+      }
+    } else {
+      possibleVaultPath = options.path.endsWith('.vault') ? options.path : `${options.path}.vault`
+    }
+  } else {
+    possibleVaultPath = path.resolve(process.cwd(), '.env.vault')
+  }
+
+  if (fs.existsSync(possibleVaultPath)) {
+    return possibleVaultPath
+  }
+
+  return null
+}
+
+function _resolveHome (envPath) {
+  return envPath[0] === '~' ? path.join(os.homedir(), envPath.slice(1)) : envPath
+}
+
+function _configVault (options) {
+  const debug = Boolean(options && options.debug)
+  const quiet = options && 'quiet' in options ? options.quiet : true
+
+  if (debug || !quiet) {
+    _log('Loading env from encrypted .env.vault')
+  }
+
+  const parsed = DotenvModule._parseVault(options)
+
+  let processEnv = process.env
+  if (options && options.processEnv != null) {
+    processEnv = options.processEnv
+  }
+
+  DotenvModule.populate(processEnv, parsed, options)
+
+  return { parsed }
+}
+
+function configDotenv (options) {
+  const dotenvPath = path.resolve(process.cwd(), '.env')
+  let encoding = 'utf8'
+  const debug = Boolean(options && options.debug)
+  const quiet = options && 'quiet' in options ? options.quiet : true
+
+  if (options && options.encoding) {
+    encoding = options.encoding
+  } else {
+    if (debug) {
+      _debug('No encoding is specified. UTF-8 is used by default')
+    }
+  }
+
+  let optionPaths = [dotenvPath] // default, look for .env
+  if (options && options.path) {
+    if (!Array.isArray(options.path)) {
+      optionPaths = [_resolveHome(options.path)]
+    } else {
+      optionPaths = [] // reset default
+      for (const filepath of options.path) {
+        optionPaths.push(_resolveHome(filepath))
+      }
+    }
+  }
+
+  // Build the parsed data in a temporary object (because we need to return it).  Once we have the final
+  // parsed data, we will combine it with process.env (or options.processEnv if provided).
+  let lastError
+  const parsedAll = {}
+  for (const path of optionPaths) {
+    try {
+      // Specifying an encoding returns a string instead of a buffer
+      const parsed = DotenvModule.parse(fs.readFileSync(path, { encoding }))
+
+      DotenvModule.populate(parsedAll, parsed, options)
+    } catch (e) {
+      if (debug) {
+        _debug(`Failed to load ${path} ${e.message}`)
+      }
+      lastError = e
+    }
+  }
+
+  let processEnv = process.env
+  if (options && options.processEnv != null) {
+    processEnv = options.processEnv
+  }
+
+  DotenvModule.populate(processEnv, parsedAll, options)
+
+  if (debug || !quiet) {
+    const keysCount = Object.keys(parsedAll).length
+    const shortPaths = []
+    for (const filePath of optionPaths) {
+      try {
+        const relative = path.relative(process.cwd(), filePath)
+        shortPaths.push(relative)
+      } catch (e) {
+        if (debug) {
+          _debug(`Failed to load ${filePath} ${e.message}`)
+        }
+        lastError = e
+      }
+    }
+
+    _log(`injecting env (${keysCount}) from ${shortPaths.join(',')}`)
+  }
+
+  if (lastError) {
+    return { parsed: parsedAll, error: lastError }
+  } else {
+    return { parsed: parsedAll }
+  }
+}
+
+// Populates process.env from .env file
+function config (options) {
+  // fallback to original dotenv if DOTENV_KEY is not set
+  if (_dotenvKey(options).length === 0) {
+    return DotenvModule.configDotenv(options)
+  }
+
+  const vaultPath = _vaultPath(options)
+
+  // dotenvKey exists but .env.vault file does not exist
+  if (!vaultPath) {
+    _warn(`You set DOTENV_KEY but you are missing a .env.vault file at ${vaultPath}. Did you forget to build it?`)
+
+    return DotenvModule.configDotenv(options)
+  }
+
+  return DotenvModule._configVault(options)
+}
+
+function decrypt (encrypted, keyStr) {
+  const key = Buffer.from(keyStr.slice(-64), 'hex')
+  let ciphertext = Buffer.from(encrypted, 'base64')
+
+  const nonce = ciphertext.subarray(0, 12)
+  const authTag = ciphertext.subarray(-16)
+  ciphertext = ciphertext.subarray(12, -16)
+
+  try {
+    const aesgcm = crypto.createDecipheriv('aes-256-gcm', key, nonce)
+    aesgcm.setAuthTag(authTag)
+    return `${aesgcm.update(ciphertext)}${aesgcm.final()}`
+  } catch (error) {
+    const isRange = error instanceof RangeError
+    const invalidKeyLength = error.message === 'Invalid key length'
+    const decryptionFailed = error.message === 'Unsupported state or unable to authenticate data'
+
+    if (isRange || invalidKeyLength) {
+      const err = new Error('INVALID_DOTENV_KEY: It must be 64 characters long (or more)')
+      err.code = 'INVALID_DOTENV_KEY'
+      throw err
+    } else if (decryptionFailed) {
+      const err = new Error('DECRYPTION_FAILED: Please check your DOTENV_KEY')
+      err.code = 'DECRYPTION_FAILED'
+      throw err
+    } else {
+      throw error
+    }
+  }
+}
+
+// Populate process.env with parsed values
+function populate (processEnv, parsed, options = {}) {
+  const debug = Boolean(options && options.debug)
+  const override = Boolean(options && options.override)
+
+  if (typeof parsed !== 'object') {
+    const err = new Error('OBJECT_REQUIRED: Please check the processEnv argument being passed to populate')
+    err.code = 'OBJECT_REQUIRED'
+    throw err
+  }
+
+  // Set process.env
+  for (const key of Object.keys(parsed)) {
+    if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
+      if (override === true) {
+        processEnv[key] = parsed[key]
+      }
+
+      if (debug) {
+        if (override === true) {
+          _debug(`"${key}" is already defined and WAS overwritten`)
+        } else {
+          _debug(`"${key}" is already defined and was NOT overwritten`)
+        }
+      }
+    } else {
+      processEnv[key] = parsed[key]
+    }
+  }
+}
+
+const DotenvModule = {
+  configDotenv,
+  _configVault,
+  _parseVault,
+  config,
+  decrypt,
+  parse,
+  populate
+}
+
+module.exports.configDotenv = DotenvModule.configDotenv
+module.exports._configVault = DotenvModule._configVault
+module.exports._parseVault = DotenvModule._parseVault
+module.exports.config = DotenvModule.config
+module.exports.decrypt = DotenvModule.decrypt
+module.exports.parse = DotenvModule.parse
+module.exports.populate = DotenvModule.populate
+
+module.exports = DotenvModule
+
+
+/***/ }),
+
 /***/ 55560:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -75118,6 +75511,13 @@ module.exports.xL = safeParse
 __webpack_unused_export__ = defaultContentType
 
 
+/***/ }),
+
+/***/ 80056:
+/***/ ((module) => {
+
+module.exports = /*#__PURE__*/JSON.parse('{"name":"dotenv","version":"16.6.1","description":"Loads environment variables from .env file","main":"lib/main.js","types":"lib/main.d.ts","exports":{".":{"types":"./lib/main.d.ts","require":"./lib/main.js","default":"./lib/main.js"},"./config":"./config.js","./config.js":"./config.js","./lib/env-options":"./lib/env-options.js","./lib/env-options.js":"./lib/env-options.js","./lib/cli-options":"./lib/cli-options.js","./lib/cli-options.js":"./lib/cli-options.js","./package.json":"./package.json"},"scripts":{"dts-check":"tsc --project tests/types/tsconfig.json","lint":"standard","pretest":"npm run lint && npm run dts-check","test":"tap run --allow-empty-coverage --disable-coverage --timeout=60000","test:coverage":"tap run --show-full-coverage --timeout=60000 --coverage-report=text --coverage-report=lcov","prerelease":"npm test","release":"standard-version"},"repository":{"type":"git","url":"git://github.com/motdotla/dotenv.git"},"homepage":"https://github.com/motdotla/dotenv#readme","funding":"https://dotenvx.com","keywords":["dotenv","env",".env","environment","variables","config","settings"],"readmeFilename":"README.md","license":"BSD-2-Clause","devDependencies":{"@types/node":"^18.11.3","decache":"^4.6.2","sinon":"^14.0.1","standard":"^17.0.0","standard-version":"^9.5.0","tap":"^19.2.0","typescript":"^4.8.4"},"engines":{"node":">=12"},"browser":{"fs":false}}');
+
 /***/ })
 
 /******/ });
@@ -75322,6 +75722,66 @@ var __webpack_exports__ = {};
 var core = __nccwpck_require__(37484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(93228);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/resources/build/src/index.js
+var src = __nccwpck_require__(75647);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/sdk-trace-base/build/src/index.js
+var build_src = __nccwpck_require__(94952);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/exporter-trace-otlp-proto/build/src/index.js
+var exporter_trace_otlp_proto_build_src = __nccwpck_require__(57358);
+// EXTERNAL MODULE: ./node_modules/@opentelemetry/api/build/src/index.js
+var api_build_src = __nccwpck_require__(63914);
+// EXTERNAL MODULE: external "assert"
+var external_assert_ = __nccwpck_require__(42613);
+var external_assert_default = /*#__PURE__*/__nccwpck_require__.n(external_assert_);
+;// CONCATENATED MODULE: ./src/exporters.ts
+
+
+
+
+
+let traceProvider = null;
+let resource = null;
+let spanProcessor = null;
+const instrumentationScope = {
+    name: 'gha-otel-export',
+    version: '1.0.0',
+};
+async function initTracing() {
+    resource = await (0,src.detectResources)({ detectors: [src.envDetector] });
+    spanProcessor = new build_src/* SimpleSpanProcessor */.tg(new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({}));
+    traceProvider = new build_src/* BasicTracerProvider */.l({
+        resource: resource,
+        spanProcessors: [spanProcessor],
+    });
+    const result = api_build_src.trace.setGlobalTracerProvider(traceProvider);
+    external_assert_default()(result, 'Failed to set global tracer provider - it may already be set');
+}
+function getResource() {
+    external_assert_default()(resource, 'Tracing not initialized. Call initTracing() first.');
+    return resource;
+}
+function getInstrumentationScope() {
+    return instrumentationScope;
+}
+async function exportSpans(spans) {
+    external_assert_default()(spanProcessor, 'Tracing not initialized. Call initTracing() first.');
+    for (const span of spans) {
+        spanProcessor.onEnd(span);
+    }
+    await spanProcessor.forceFlush();
+}
+async function shutdownTracing() {
+    if (!traceProvider) {
+        console.log('Trace provider not initialized');
+        return;
+    }
+    console.log('Shutting down exporter...');
+    await traceProvider.shutdown();
+    console.log('Tracing shut down');
+}
+
+// EXTERNAL MODULE: ./node_modules/dotenv/lib/main.js
+var main = __nccwpck_require__(18889);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/rest/node_modules/universal-user-agent/index.js
 function getUserAgent() {
   if (typeof navigator === "object" && "userAgent" in navigator) {
@@ -79307,9 +79767,6 @@ const dist_src_Octokit = Octokit.plugin(requestLog, legacyRestEndpointMethods, p
 
 // EXTERNAL MODULE: ./node_modules/ts-retry/lib/cjs/index.js
 var cjs = __nccwpck_require__(84151);
-// EXTERNAL MODULE: external "assert"
-var external_assert_ = __nccwpck_require__(42613);
-var external_assert_default = /*#__PURE__*/__nccwpck_require__.n(external_assert_);
 ;// CONCATENATED MODULE: ./src/github.ts
 
 
@@ -79467,63 +79924,8 @@ function generateStepSpanID_Number(repo, runID, runAttempt, jobName, stepNumber)
     return hash.slice(16, 32);
 }
 
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/api/build/src/index.js
-var src = __nccwpck_require__(63914);
 // EXTERNAL MODULE: ./node_modules/@opentelemetry/core/build/src/index.js
-var build_src = __nccwpck_require__(24637);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/resources/build/src/index.js
-var resources_build_src = __nccwpck_require__(75647);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/sdk-trace-base/build/src/index.js
-var sdk_trace_base_build_src = __nccwpck_require__(94952);
-// EXTERNAL MODULE: ./node_modules/@opentelemetry/exporter-trace-otlp-proto/build/src/index.js
-var exporter_trace_otlp_proto_build_src = __nccwpck_require__(57358);
-;// CONCATENATED MODULE: ./src/exporters.ts
-
-
-
-
-
-let traceProvider = null;
-let resource = null;
-let spanProcessor = null;
-const instrumentationScope = {
-    name: 'gha-otel-export',
-    version: '1.0.0',
-};
-async function initTracing() {
-    resource = await (0,resources_build_src.detectResources)({ detectors: [resources_build_src.envDetector] });
-    spanProcessor = new sdk_trace_base_build_src/* SimpleSpanProcessor */.tg(new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({}));
-    traceProvider = new sdk_trace_base_build_src/* BasicTracerProvider */.l({
-        resource: resource,
-        spanProcessors: [spanProcessor],
-    });
-    const result = src.trace.setGlobalTracerProvider(traceProvider);
-    external_assert_default()(result, 'Failed to set global tracer provider - it may already be set');
-}
-function getResource() {
-    external_assert_default()(resource, 'Tracing not initialized. Call initTracing() first.');
-    return resource;
-}
-function getInstrumentationScope() {
-    return instrumentationScope;
-}
-async function exportSpans(spans) {
-    external_assert_default()(spanProcessor, 'Tracing not initialized. Call initTracing() first.');
-    for (const span of spans) {
-        spanProcessor.onEnd(span);
-    }
-    await spanProcessor.forceFlush();
-}
-async function shutdownTracing() {
-    if (!traceProvider) {
-        console.log('Trace provider not initialized');
-        return;
-    }
-    console.log('Shutting down exporter...');
-    await traceProvider.shutdown();
-    console.log('Tracing shut down');
-}
-
+var core_build_src = __nccwpck_require__(24637);
 ;// CONCATENATED MODULE: ./src/span-utils.ts
 
 
@@ -79543,13 +79945,13 @@ function dateToHrTime(date) {
 function conclusionToStatus(conclusion) {
     switch (conclusion) {
         case 'success':
-            return { code: src.SpanStatusCode.OK };
+            return { code: api_build_src.SpanStatusCode.OK };
         case 'failure':
         case 'cancelled':
         case 'timed_out':
-            return { code: src.SpanStatusCode.ERROR, message: conclusion };
+            return { code: api_build_src.SpanStatusCode.ERROR, message: conclusion };
         default:
-            return { code: src.SpanStatusCode.UNSET };
+            return { code: api_build_src.SpanStatusCode.UNSET };
     }
 }
 /**
@@ -79559,7 +79961,7 @@ function createSpanContext(traceId, spanId) {
     return {
         traceId,
         spanId,
-        traceFlags: src.TraceFlags.SAMPLED,
+        traceFlags: api_build_src.TraceFlags.SAMPLED,
         isRemote: false,
     };
 }
@@ -79571,7 +79973,7 @@ function createSpan(name, traceId, spanId, startTime, endTime, conclusion, attri
     const endHrTime = dateToHrTime(endTime);
     return {
         name,
-        kind: src.SpanKind.INTERNAL,
+        kind: api_build_src.SpanKind.INTERNAL,
         spanContext: () => createSpanContext(traceId, spanId),
         parentSpanContext,
         startTime: startHrTime,
@@ -79580,7 +79982,7 @@ function createSpan(name, traceId, spanId, startTime, endTime, conclusion, attri
         attributes,
         links: [],
         events: [],
-        duration: (0,build_src.hrTimeDuration)(startHrTime, endHrTime),
+        duration: (0,core_build_src.hrTimeDuration)(startHrTime, endHrTime),
         ended: true,
         resource: getResource(),
         instrumentationScope: getInstrumentationScope(),
@@ -79600,21 +80002,21 @@ function createTrace(jobs) {
     const rootSpanId = generateParentSpanID(workflow.repository, String(workflow.id), String(workflow.runAttempt));
     // Create the root workflow span (no parent)
     const rootSpan = createWorkflowSpan(workflow, traceId, rootSpanId);
-    console.log(`Created root span: ${rootSpan.name} with ID: ${rootSpanId}`);
+    console.log(`Created root span: [${rootSpan.name}] with ID: ${rootSpanId}`);
     spans.push(rootSpan);
     const rootSpanContext = createSpanContext(traceId, rootSpanId);
     // Create job spans with workflow as parent
     for (const job of workflowJobs) {
         const jobSpanId = generateJobSpanID(workflow.repository, String(workflow.id), String(workflow.runAttempt), job.name);
         const jobSpan = createJobSpan(job, traceId, jobSpanId, rootSpanContext);
-        console.log(`Created job span: ${jobSpan.name} with ID: ${jobSpanId}`);
+        console.log(`  Created job span: [${jobSpan.name}] with ID: ${jobSpanId}`);
         spans.push(jobSpan);
         const jobSpanContext = createSpanContext(traceId, jobSpanId);
         // Create step spans with job as parent
         for (const step of job.steps) {
             const stepSpanId = generateStepSpanID(workflow.repository, String(workflow.id), String(workflow.runAttempt), job.name, step.name);
             const stepSpan = createStepSpan(step, traceId, stepSpanId, jobSpanContext);
-            console.log(`Created step span: ${stepSpan.name} with ID: ${stepSpanId}`);
+            console.log(`   • Created step span: [${stepSpan.name}] with ID: ${stepSpanId}`);
             spans.push(stepSpan);
         }
     }
@@ -79648,8 +80050,73 @@ function createStepSpan(step, traceId, spanId, parentSpanContext) {
     }, parentSpanContext);
 }
 
-;// CONCATENATED MODULE: ./src/index.ts
+;// CONCATENATED MODULE: ./src/main.ts
 
+
+
+
+
+main.config();
+async function main_main() {
+    const token = process.env.GITHUB_TOKEN;
+    external_assert_default()(token, 'GITHUB_TOKEN is not set');
+    const repoInput = process.env.REPO;
+    external_assert_default()(repoInput, 'REPO is not set');
+    const [owner, repo] = repoInput.split('/');
+    external_assert_default()(owner, 'REPO owner is not set');
+    external_assert_default()(repo, 'REPO name is not set');
+    const workflow = process.env.WORKFLOW_NAME;
+    external_assert_default()(workflow, 'WORKFLOW_NAME is not set');
+    let runIdString = process.env.RUN_ID;
+    external_assert_default()(runIdString, 'RUN_ID is not set');
+    const runId = parseInt(runIdString);
+    external_assert_default()(!isNaN(runId), 'RUN_ID is not a number');
+    let attemptString = process.env.RUN_ATTEMPT;
+    external_assert_default()(attemptString, 'RUN_ATTEMPT is not set');
+    const attempt = parseInt(attemptString);
+    external_assert_default()(!isNaN(attempt), 'RUN_ATTEMPT is not a number');
+    await runExporter({
+        token,
+        owner,
+        repo,
+        workflow,
+        runId,
+        attempt,
+    });
+}
+async function runExporter(config) {
+    await initTracing();
+    const { token, owner, repo, workflow, runId, attempt } = config;
+    try {
+        const oktokit = createGithubClient(token);
+        console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`);
+        console.log(`Processing workflow: ${workflow}`);
+        console.log(`Run ID: ${runId}, Attempt: ${attempt}`);
+        console.log(`Repository: ${owner}/${repo}`);
+        const jobs = await getRunData(oktokit, {
+            owner: owner,
+            repo: repo,
+            name: workflow,
+            runId: runId,
+            attempt: attempt,
+        });
+        const { traceId, spans } = createTrace(jobs);
+        console.log(`Trace ID: ${traceId}`);
+        console.log(`Exporting ${spans.length} spans...`);
+        await exportSpans(spans);
+        return traceId;
+    }
+    catch (err) {
+        console.error('Error:', err.message);
+        throw err;
+    }
+    finally {
+        await shutdownTracing();
+    }
+}
+main_main().catch(console.error);
+
+;// CONCATENATED MODULE: ./src/index.ts
 
 
 
@@ -79669,33 +80136,25 @@ async function writeSummary(traceId) {
 }
 async function run() {
     const token = core.getInput('github-token', { required: true });
-    const context = github.context;
-    external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
-    const payload = context.payload;
-    external_assert_default()(payload.workflow_run, 'No workflow_run found in payload');
-    const workflowRun = payload.workflow_run;
-    const owner = context.repo.owner;
-    const repo = context.repo.repo;
-    const runId = workflowRun.id;
-    const attempt = workflowRun.run_attempt ?? 1;
-    const workflowName = workflowRun.name;
-    core.info(`Processing workflow: ${workflowName}`);
-    core.info(`Run ID: ${runId}, Attempt: ${attempt}`);
-    core.info(`Repository: ${owner}/${repo}`);
-    await initTracing();
     try {
-        const octokit = createGithubClient(token);
-        const jobs = await getRunData(octokit, {
+        const context = github.context;
+        external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
+        const payload = context.payload;
+        external_assert_default()(payload.workflow_run, 'No workflow_run found in payload');
+        const workflowRun = payload.workflow_run;
+        const owner = context.repo.owner;
+        const repo = context.repo.repo;
+        const runId = workflowRun.id;
+        const attempt = workflowRun.run_attempt ?? 1;
+        const workflow = workflowRun.name;
+        const traceId = await runExporter({
+            token,
             owner,
             repo,
-            name: workflowName,
+            workflow,
             runId,
             attempt,
         });
-        const { traceId, spans } = createTrace(jobs);
-        core.info(`Trace ID: ${traceId}`);
-        core.info(`Exporting ${spans.length} spans...`);
-        await exportSpans(spans);
         core.setOutput('trace-id', traceId);
         await writeSummary(traceId);
     }
@@ -79711,7 +80170,14 @@ async function run() {
         await shutdownTracing();
     }
 }
-run();
+run().catch((error) => {
+    if (error instanceof Error) {
+        core.setFailed(error.message);
+    }
+    else {
+        core.setFailed('An unexpected error occurred');
+    }
+});
 
 
 //# sourceMappingURL=index.js.map
