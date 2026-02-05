@@ -5,6 +5,8 @@ classifier/issue_labels.json
 **/.DS_Store
 .env
 .idea/
+.zed/
+coverage
 
 # Yarn
 .yarn/*

@@ -1,0 +1,16 @@
+name: 'GitHub Actions OpenTelemetry Exporter'
+description: 'Export GitHub Actions workflow runs as OpenTelemetry traces'
+author: 'Grafana'
+
+branding:
+    icon: 'activity'
+    color: 'orange'
+
+inputs:
+    github-token:
+        description: 'GitHub token for API access'
+        required: true
+
+runs:
+    using: 'node20'
+    main: 'dist/index.js'
