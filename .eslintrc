@@ -18,7 +18,8 @@
 	],
 	"ignorePatterns": [
 		"node_modules",
-		"*.js"
+		"*.js",
+		"gha-otel-export/**"
 	],
 	"rules": {
 		"no-unused-vars": "off",
