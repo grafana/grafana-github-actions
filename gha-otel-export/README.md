@@ -67,9 +67,10 @@ jobs:
 
 ## Inputs
 
-| Input          | Description                                                    | Required |
-| -------------- | -------------------------------------------------------------- | -------- |
-| `github-token` | GitHub token for API access. Use `${{ secrets.GITHUB_TOKEN }}` | Yes      |
+| Input          | Description                                                               | Required |
+| -------------- | ------------------------------------------------------------------------- | -------- |
+| `github-token` | GitHub token for API access. Use `${{ secrets.GITHUB_TOKEN }}`            | Yes      |
+| `trace-files`  | Comma-separated list of local JSONL trace file paths to include in export | No       |
 
 ## Outputs
 

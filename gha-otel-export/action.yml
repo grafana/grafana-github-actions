@@ -10,6 +10,9 @@ inputs:
     github-token:
         description: 'GitHub token for API access'
         required: true
+    trace-files-glob:
+        description: 'Glob pattern for local JSONL trace files to include in export'
+        required: false
 
 runs:
     using: 'node20'

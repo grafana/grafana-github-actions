@@ -3,12 +3,23 @@ import { createGithubClient, getRunData } from './github.js'
 import { createTrace } from './traces.js'
 import { initTracing, shutdownTracing, exportSpans } from './exporters.js'
 import assert from 'assert'
+import { execSync } from 'child_process'
 
 dotenv.config()
 
+function getGithubToken(): string {
+	try {
+		const token = execSync('gh auth token', { encoding: 'utf8' }).trim()
+		return token
+	} catch (error) {
+		assert(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN is not set')
+		return process.env.GITHUB_TOKEN
+	}
+}
+
 async function main() {
-	const token = process.env.GITHUB_TOKEN
-	assert(token, 'GITHUB_TOKEN is not set')
+	const token = getGithubToken()
+	assert(token, 'GITHUB_TOKEN is not set and gh CLI is not authenticated. Run: gh auth login')
 
 	const repoInput = process.env.REPO
 	assert(repoInput, 'REPO is not set')
@@ -32,6 +43,8 @@ async function main() {
 	const attempt = parseInt(attemptString)
 	assert(!isNaN(attempt), 'RUN_ATTEMPT is not a number')
 
+	const traceFileGlob = process.env.TRACE_FILE_GLOB
+
 	await runExporter({
 		token,
 		owner,
@@ -39,6 +52,7 @@ async function main() {
 		workflow,
 		runId,
 		attempt,
+		traceFileGlob,
 	})
 }
 
@@ -49,9 +63,10 @@ export async function runExporter(config: {
 	workflow: string
 	runId: number
 	attempt: number
+	traceFileGlob?: string
 }): Promise<string> {
 	await initTracing()
-	const { token, owner, repo, workflow, runId, attempt } = config
+	const { token, owner, repo, workflow, runId, attempt, traceFileGlob = [] } = config
 
 	try {
 		const oktokit = createGithubClient(token)

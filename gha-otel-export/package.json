@@ -16,7 +16,9 @@
 		"package": "npx ncc build src/index.ts -o dist --source-map",
 		"test": "jest --coverage",
 		"all": "npm run format:write && npm run test && npm run package",
-		"start": "tsx src/main.ts"
+		"start": "tsx src/main.ts",
+		"parse-local": "tsx src/parse-local.ts",
+		"test-artifact": "tsx src/test-artifact-download.ts"
 	},
 	"dependencies": {
 		"@actions/core": "^1.11.1",
@@ -26,7 +28,9 @@
 		"@opentelemetry/exporter-trace-otlp-proto": "^0.208.0",
 		"@opentelemetry/resources": "^2.2.0",
 		"@opentelemetry/sdk-trace-base": "^2.2.0",
+		"adm-zip": "^0.5.16",
 		"dotenv": "^16.3.1",
+		"minimatch": "^9.0.5",
 		"ts-retry": "^5.0.1"
 	},
 	"devDependencies": {
@@ -35,6 +39,7 @@
 		"@octokit/types": "^16.0.0",
 		"@opentelemetry/sdk-node": "0.208.0",
 		"@opentelemetry/semantic-conventions": "^1.38.0",
+		"@types/adm-zip": "^0.5.7",
 		"@types/jest": "^27.4.0",
 		"@types/node": "^24.10.0",
 		"@typescript-eslint/eslint-plugin": "^8.46.3",
