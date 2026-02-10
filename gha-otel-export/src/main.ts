@@ -1,10 +1,5 @@
 import * as dotenv from 'dotenv'
-import {
-	createGithubClient,
-	getRunData,
-	downloadAndParseArtifacts,
-	downloadArtifactBuffer,
-} from './github.js'
+import { createGithubClient, getRunData, downloadAndParseArtifacts } from './github.js'
 import { createTrace } from './github_actions_traces.js'
 import { parseToolexecTrace } from './tollexec_traces.js'
 import { initTracing, shutdownTracing, exportSpans } from './exporters.js'
@@ -38,7 +33,7 @@ async function main() {
 	const attempt = parseInt(attemptString)
 	assert(!isNaN(attempt), 'RUN_ATTEMPT is not a number')
 
-	const traceFileGlob = process.env.TRACE_FILE_GLOB
+	const traceArtifactGlob = process.env.TRACE_ARTIFACTS_GLOB
 
 	await runExporter({
 		token,
@@ -47,7 +42,7 @@ async function main() {
 		workflow,
 		runId,
 		attempt,
-		traceFileGlob,
+		traceArtifactGlob,
 	})
 }
 
@@ -58,13 +53,13 @@ export async function runExporter(config: {
 	workflow: string
 	runId: number
 	attempt: number
-	traceFileGlob?: string
+	traceArtifactGlob?: string
 }): Promise<string> {
 	await initTracing()
 
 	try {
 		const traceId = await traces(config)
-		const artifacts = await processTookexecTraces(config)
+		await processTookexecTraces(config)
 		return traceId
 	} catch (err: any) {
 		console.error('Error:', err.message)
@@ -81,9 +76,8 @@ async function traces(config: {
 	workflow: string
 	runId: number
 	attempt: number
-	traceFileGlob?: string
 }): Promise<string> {
-	const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config
+	const { token, owner, repo, workflow, runId, attempt } = config
 
 	const oktokit = createGithubClient(token)
 	console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`)
@@ -116,11 +110,11 @@ async function processTookexecTraces(config: {
 	workflow: string
 	runId: number
 	attempt: number
-	traceFileGlob?: string
+	traceArtifactGlob?: string
 }): Promise<number> {
-	const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config
+	const { token, owner, repo, workflow, runId, attempt, traceArtifactGlob } = config
 
-	if (!traceFileGlob) {
+	if (!traceArtifactGlob) {
 		return 0
 	}
 
@@ -134,7 +128,7 @@ async function processTookexecTraces(config: {
 	}
 
 	console.log('Fetching artifacts...')
-	const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceFileGlob)
+	const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceArtifactGlob)
 	console.log(`Artifacts contain ${parsedSpans.length} spans in total`)
 	console.log(`Processing spans... ${parsedSpans.map((artifact) => artifact.name).join(', ')}`)
 	const spans = parsedSpans.map(parseToolexecTrace)
