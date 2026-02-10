@@ -18,7 +18,8 @@
 		"all": "npm run format:write && npm run test && npm run package",
 		"start": "tsx src/main.ts",
 		"parse-local": "tsx src/parse-local.ts",
-		"test-artifact": "tsx src/test-artifact-download.ts"
+		"test-artifact": "tsx src/test-artifact-download.ts",
+		"test-auth": "tsx src/test-auth.ts"
 	},
 	"dependencies": {
 		"@actions/core": "^1.11.1",

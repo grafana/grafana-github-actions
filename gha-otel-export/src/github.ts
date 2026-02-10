@@ -5,42 +5,16 @@ import assert from 'assert'
 import { JobRequest, WorkflowRun, WorkflowJobRun, WorkflowStep } from './types.js'
 import AdmZip from 'adm-zip'
 import { minimatch } from 'minimatch'
-import { execSync } from 'child_process'
-
-/**
- * Get GitHub token from gh CLI
- * @returns Token from gh CLI or null if not available
- */
-export function getGhCliToken(): string | null {
-	try {
-		const token = execSync('gh auth token', { encoding: 'utf8' }).trim()
-		return token || null
-	} catch (error) {
-		return null
-	}
-}
-
-/**
- * Get GitHub token from environment or gh CLI
- * @returns Token from GITHUB_TOKEN env var or gh CLI
- */
-export function getGithubToken(): string | null {
-	// First try environment variable
-	const envToken = process.env.GITHUB_TOKEN
-	if (envToken) {
-		return envToken
-	}
-
-	// Fall back to gh CLI
-	return getGhCliToken()
-}
-
 export type WorkflowResponse =
 	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['response']['data']
 export type WorkflowJobsResponse =
 	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs']['response']['data']['jobs']
+export type ArtifactResponse =
+	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['response']['data']['artifacts'][number]
 export type WorkflowJobResponse = WorkflowJobsResponse[number]
 export type WorkflowStepResponse = NonNullable<WorkflowJobResponse['steps']>[number]
+
+const ARTIFACT_MAX_SIZE_BYTES = 1 * 1024 * 1024 // 1MB
 
 export const createGithubClient = (token: string): Octokit => {
 	return new Octokit({
@@ -162,13 +136,6 @@ function convertSteps(step: WorkflowStepResponse): WorkflowStep {
 		completedAt: new Date(step.completed_at),
 	}
 }
-
-export type ArtifactResponse =
-	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['response']['data']['artifacts'][number]
-
-/**
- * List all artifacts for a workflow run
- */
 export async function listArtifacts(octokit: Octokit, job: JobRequest): Promise<ArtifactResponse[]> {
 	const result = await octokit.rest.actions.listWorkflowRunArtifacts({
 		owner: job.owner,
@@ -179,9 +146,6 @@ export async function listArtifacts(octokit: Octokit, job: JobRequest): Promise<
 	return result.data.artifacts
 }
 
-/**
- * Find artifacts matching a glob pattern
- */
 export async function findArtifactsByPattern(
 	octokit: Octokit,
 	job: JobRequest,
@@ -191,9 +155,6 @@ export async function findArtifactsByPattern(
 	return artifacts.filter((artifact) => minimatch(artifact.name, pattern))
 }
 
-/**
- * Download artifact data as a Buffer (in-memory)
- */
 export async function downloadArtifactBuffer(
 	octokit: Octokit,
 	job: JobRequest,
@@ -209,26 +170,41 @@ export async function downloadArtifactBuffer(
 	return Buffer.from(result.data as ArrayBuffer)
 }
 
-/**
- * Extract JSONL content from a zip buffer
- * Returns array of parsed JSON objects from all .jsonl files in the zip
- */
-export function extractJsonlFromZip(zipBuffer: Buffer): any[] {
+export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): any[] {
 	const zip = new AdmZip(zipBuffer)
 	const entries = zip.getEntries()
 	const results: any[] = []
 
 	for (const entry of entries) {
-		if (!entry.isDirectory && entry.entryName.endsWith('.jsonl')) {
-			const content = entry.getData().toString('utf8')
-			const lines = content.split('\n').filter((line: string) => line.trim())
+		if (entry.isDirectory) {
+			continue
+		}
 
-			for (const line of lines) {
-				try {
-					results.push(JSON.parse(line))
-				} catch (error) {
-					console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`)
+		// Assert entry size before loading into memory
+		const entrySize = entry.header.size
+		assert(
+			entrySize <= ARTIFACT_MAX_SIZE_BYTES,
+			`Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`,
+		)
+
+		const content = entry.getData().toString('utf8')
+		const lines = content.split('\n').filter((line: string) => line.trim())
+
+		for (const line of lines) {
+			try {
+				const span = JSON.parse(line)
+
+				if (!span.Attributes) {
+					span.Attributes = []
 				}
+
+				span.Attributes.push({
+					Key: 'ci.artifact.name',
+					Value: { Type: 'STRING', Value: artifactName },
+				})
+				results.push(span)
+			} catch (error) {
+				console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`)
 			}
 		}
 	}
@@ -236,10 +212,6 @@ export function extractJsonlFromZip(zipBuffer: Buffer): any[] {
 	return results
 }
 
-/**
- * Download and parse artifacts matching a pattern
- * Returns array of parsed trace data from all matching artifacts
- */
 export async function downloadAndParseArtifacts(
 	octokit: Octokit,
 	job: JobRequest,
@@ -248,24 +220,27 @@ export async function downloadAndParseArtifacts(
 	const artifacts = await findArtifactsByPattern(octokit, job, pattern)
 
 	if (artifacts.length === 0) {
-		console.warn(`No artifacts found matching pattern: ${pattern}`)
+		console.info(`No artifacts found matching pattern: ${pattern}`)
 		return []
 	}
 
 	console.log(`Found ${artifacts.length} artifact(s) matching pattern "${pattern}"`)
 
-	const allTraces: any[] = []
+	const spans: any[] = []
 
 	for (const artifact of artifacts) {
+		assert(
+			artifact.size_in_bytes <= ARTIFACT_MAX_SIZE_BYTES,
+			`Artifact size exceeds limit: ${artifact.size_in_bytes} bytes`,
+		)
+
 		console.log(`Downloading and parsing artifact: ${artifact.name} (${artifact.size_in_bytes} bytes)`)
 
 		const zipBuffer = await downloadArtifactBuffer(octokit, job, artifact.id)
-		const traces = extractJsonlFromZip(zipBuffer)
-
-		console.log(`  Extracted ${traces.length} trace(s) from ${artifact.name}`)
-		allTraces.push(...traces)
+		const extracted = extractJsonlFromZip(zipBuffer, artifact.name)
+		console.log(`  Extracted ${extracted.length} trace(s) from ${artifact.name}`)
+		spans.push(...extracted)
 	}
 
-	console.log(`Total traces extracted: ${allTraces.length}`)
-	return allTraces
+	return spans
 }

@@ -83283,6 +83283,7 @@ const dist_src_Octokit = Octokit.plugin(requestLog, legacyRestEndpointMethods, p
 var cjs = __nccwpck_require__(84151);
 // EXTERNAL MODULE: ./node_modules/adm-zip/adm-zip.js
 var adm_zip = __nccwpck_require__(71316);
+var adm_zip_default = /*#__PURE__*/__nccwpck_require__.n(adm_zip);
 // EXTERNAL MODULE: ./node_modules/brace-expansion/index.js
 var brace_expansion = __nccwpck_require__(94691);
 ;// CONCATENATED MODULE: ./node_modules/minimatch/dist/esm/assert-valid-pattern.js
@@ -84080,7 +84081,7 @@ const escape_escape = (s, { windowsPathsNoEscape = false, } = {}) => {
 
 
 
-const esm_minimatch = (p, pattern, options = {}) => {
+const minimatch = (p, pattern, options = {}) => {
     assertValidPattern(pattern);
     // shortcut: comments match nothing.
     if (!options.nocomment && pattern.charAt(0) === '#') {
@@ -84152,9 +84153,9 @@ const path = {
 };
 /* c8 ignore stop */
 const esm_sep = defaultPlatform === 'win32' ? path.win32.sep : path.posix.sep;
-esm_minimatch.sep = esm_sep;
+minimatch.sep = esm_sep;
 const GLOBSTAR = Symbol('globstar **');
-esm_minimatch.GLOBSTAR = GLOBSTAR;
+minimatch.GLOBSTAR = GLOBSTAR;
 // any single thing other than /
 // don't need to escape / when using new RegExp()
 const esm_qmark = '[^/]';
@@ -84167,14 +84168,14 @@ const twoStarDot = '(?:(?!(?:\\/|^)(?:\\.{1,2})($|\\/)).)*?';
 // not a ^ or / followed by a dot,
 // followed by anything, any number of times.
 const twoStarNoDot = '(?:(?!(?:\\/|^)\\.).)*?';
-const filter = (pattern, options = {}) => (p) => esm_minimatch(p, pattern, options);
-esm_minimatch.filter = filter;
+const filter = (pattern, options = {}) => (p) => minimatch(p, pattern, options);
+minimatch.filter = filter;
 const ext = (a, b = {}) => Object.assign({}, a, b);
 const defaults = (def) => {
     if (!def || typeof def !== 'object' || !Object.keys(def).length) {
-        return esm_minimatch;
+        return minimatch;
     }
-    const orig = esm_minimatch;
+    const orig = minimatch;
     const m = (p, pattern, options = {}) => orig(p, pattern, ext(def, options));
     return Object.assign(m, {
         Minimatch: class Minimatch extends orig.Minimatch {
@@ -84206,7 +84207,7 @@ const defaults = (def) => {
         GLOBSTAR: GLOBSTAR,
     });
 };
-esm_minimatch.defaults = defaults;
+minimatch.defaults = defaults;
 // Brace expansion:
 // a{b,c}d -> abd acd
 // a{b,}c -> abc ac
@@ -84227,7 +84228,7 @@ const braceExpand = (pattern, options = {}) => {
     }
     return brace_expansion(pattern);
 };
-esm_minimatch.braceExpand = braceExpand;
+minimatch.braceExpand = braceExpand;
 // parse a component of the expanded set.
 // At this point, no pattern may contain "/" in it
 // so we're going to return a 2d array, where each entry is the full
@@ -84240,7 +84241,7 @@ esm_minimatch.braceExpand = braceExpand;
 // of * is equivalent to a single *.  Globstar behavior is enabled by
 // default, and can be disabled by setting options.noglobstar.
 const makeRe = (pattern, options = {}) => new Minimatch(pattern, options).makeRe();
-esm_minimatch.makeRe = makeRe;
+minimatch.makeRe = makeRe;
 const match = (list, pattern, options = {}) => {
     const mm = new Minimatch(pattern, options);
     list = list.filter(f => mm.match(f));
@@ -84249,7 +84250,7 @@ const match = (list, pattern, options = {}) => {
     }
     return list;
 };
-esm_minimatch.match = match;
+minimatch.match = match;
 // replace stuff like \* with *
 const globMagic = /[?*]|[+@!]\(.*?\)|\[|\]/;
 const esm_regExpEscape = (s) => s.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
@@ -85063,7 +85064,7 @@ class Minimatch {
         return this.negate;
     }
     static defaults(def) {
-        return esm_minimatch.defaults(def).Minimatch;
+        return minimatch.defaults(def).Minimatch;
     }
 }
 /* c8 ignore start */
@@ -85071,46 +85072,18 @@ class Minimatch {
 
 
 /* c8 ignore stop */
-esm_minimatch.AST = AST;
-esm_minimatch.Minimatch = Minimatch;
-esm_minimatch.escape = escape_escape;
-esm_minimatch.unescape = unescape_unescape;
+minimatch.AST = AST;
+minimatch.Minimatch = Minimatch;
+minimatch.escape = escape_escape;
+minimatch.unescape = unescape_unescape;
 //# sourceMappingURL=index.js.map
-// EXTERNAL MODULE: external "child_process"
-var external_child_process_ = __nccwpck_require__(35317);
 ;// CONCATENATED MODULE: ./src/github.ts
 
 
 
 
 
-
-/**
- * Get GitHub token from gh CLI
- * @returns Token from gh CLI or null if not available
- */
-function getGhCliToken() {
-    try {
-        const token = execSync('gh auth token', { encoding: 'utf8' }).trim();
-        return token || null;
-    }
-    catch (error) {
-        return null;
-    }
-}
-/**
- * Get GitHub token from environment or gh CLI
- * @returns Token from GITHUB_TOKEN env var or gh CLI
- */
-function getGithubToken() {
-    // First try environment variable
-    const envToken = process.env.GITHUB_TOKEN;
-    if (envToken) {
-        return envToken;
-    }
-    // Fall back to gh CLI
-    return getGhCliToken();
-}
+const ARTIFACT_MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1MB
 const createGithubClient = (token) => {
     return new dist_src_Octokit({
         baseUrl: 'https://api.github.com',
@@ -85207,9 +85180,6 @@ function convertSteps(step) {
         completedAt: new Date(step.completed_at),
     };
 }
-/**
- * List all artifacts for a workflow run
- */
 async function listArtifacts(octokit, job) {
     const result = await octokit.rest.actions.listWorkflowRunArtifacts({
         owner: job.owner,
@@ -85219,16 +85189,10 @@ async function listArtifacts(octokit, job) {
     });
     return result.data.artifacts;
 }
-/**
- * Find artifacts matching a glob pattern
- */
 async function findArtifactsByPattern(octokit, job, pattern) {
     const artifacts = await listArtifacts(octokit, job);
     return artifacts.filter((artifact) => minimatch(artifact.name, pattern));
 }
-/**
- * Download artifact data as a Buffer (in-memory)
- */
 async function downloadArtifactBuffer(octokit, job, artifactId) {
     const result = await octokit.rest.actions.downloadArtifact({
         owner: job.owner,
@@ -85238,51 +85202,55 @@ async function downloadArtifactBuffer(octokit, job, artifactId) {
     });
     return Buffer.from(result.data);
 }
-/**
- * Extract JSONL content from a zip buffer
- * Returns array of parsed JSON objects from all .jsonl files in the zip
- */
-function extractJsonlFromZip(zipBuffer) {
-    const zip = new AdmZip(zipBuffer);
+function extractJsonlFromZip(zipBuffer, artifactName) {
+    const zip = new (adm_zip_default())(zipBuffer);
     const entries = zip.getEntries();
     const results = [];
     for (const entry of entries) {
-        if (!entry.isDirectory && entry.entryName.endsWith('.jsonl')) {
-            const content = entry.getData().toString('utf8');
-            const lines = content.split('\n').filter((line) => line.trim());
-            for (const line of lines) {
-                try {
-                    results.push(JSON.parse(line));
+        if (entry.isDirectory) {
+            continue;
+        }
+        // Assert entry size before loading into memory
+        const entrySize = entry.header.size;
+        external_assert_default()(entrySize <= ARTIFACT_MAX_SIZE_BYTES, `Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`);
+        const content = entry.getData().toString('utf8');
+        const lines = content.split('\n').filter((line) => line.trim());
+        for (const line of lines) {
+            try {
+                const span = JSON.parse(line);
+                if (!span.Attributes) {
+                    span.Attributes = [];
                 }
-                catch (error) {
-                    console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`);
-                }
+                span.Attributes.push({
+                    Key: 'ci.artifact.name',
+                    Value: { Type: 'STRING', Value: artifactName },
+                });
+                results.push(span);
+            }
+            catch (error) {
+                console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`);
             }
         }
     }
     return results;
 }
-/**
- * Download and parse artifacts matching a pattern
- * Returns array of parsed trace data from all matching artifacts
- */
 async function downloadAndParseArtifacts(octokit, job, pattern) {
     const artifacts = await findArtifactsByPattern(octokit, job, pattern);
     if (artifacts.length === 0) {
-        console.warn(`No artifacts found matching pattern: ${pattern}`);
+        console.info(`No artifacts found matching pattern: ${pattern}`);
         return [];
     }
     console.log(`Found ${artifacts.length} artifact(s) matching pattern "${pattern}"`);
-    const allTraces = [];
+    const spans = [];
     for (const artifact of artifacts) {
+        external_assert_default()(artifact.size_in_bytes <= ARTIFACT_MAX_SIZE_BYTES, `Artifact size exceeds limit: ${artifact.size_in_bytes} bytes`);
         console.log(`Downloading and parsing artifact: ${artifact.name} (${artifact.size_in_bytes} bytes)`);
         const zipBuffer = await downloadArtifactBuffer(octokit, job, artifact.id);
-        const traces = extractJsonlFromZip(zipBuffer);
-        console.log(`  Extracted ${traces.length} trace(s) from ${artifact.name}`);
-        allTraces.push(...traces);
+        const extracted = extractJsonlFromZip(zipBuffer, artifact.name);
+        console.log(`  Extracted ${extracted.length} trace(s) from ${artifact.name}`);
+        spans.push(...extracted);
     }
-    console.log(`Total traces extracted: ${allTraces.length}`);
-    return allTraces;
+    return spans;
 }
 
 // EXTERNAL MODULE: external "crypto"
@@ -85464,7 +85432,7 @@ function createSpan(name, traceId, spanId, startTime, endTime, conclusion, attri
     };
 }
 
-;// CONCATENATED MODULE: ./src/traces.ts
+;// CONCATENATED MODULE: ./src/github_actions_traces.ts
 
 
 function createTrace(jobs) {
@@ -85522,6 +85490,103 @@ function createStepSpan(step, traceId, spanId, parentSpanContext) {
     }, parentSpanContext);
 }
 
+;// CONCATENATED MODULE: ./src/tollexec_traces.ts
+
+
+
+
+function rfc3339ToHrTime(timestamp) {
+    const date = new Date(timestamp);
+    const ms = date.getTime();
+    const seconds = Math.floor(ms / 1000);
+    const nanos = (ms % 1000) * 1000000;
+    return [seconds, nanos];
+}
+function parseStatus(statusCode) {
+    switch (statusCode) {
+        case 'Ok':
+        case 'OK':
+            return src.SpanStatusCode.OK;
+        case 'Error':
+        case 'ERROR':
+            return src.SpanStatusCode.ERROR;
+        case 'Unset':
+        case 'UNSET':
+        default:
+            return src.SpanStatusCode.UNSET;
+    }
+}
+function extractAttributes(attrs) {
+    if (!attrs || attrs.length === 0)
+        return {};
+    const result = {};
+    for (const attr of attrs) {
+        if (attr.Key && attr.Value?.Value !== undefined) {
+            result[attr.Key] = attr.Value.Value;
+        }
+    }
+    return result;
+}
+/**
+ * Parse a Go toolexec trace and convert to ReadableSpan
+ */
+function parseToolexecTrace(original) {
+    external_assert_default()(original.Name, 'Span Name is required');
+    external_assert_default()(original.StartTime, 'Span StartTime is required');
+    external_assert_default()(original.EndTime, 'Span EndTime is required');
+    // Span details
+    external_assert_default()(original.SpanContext, 'Span SpanContext object is required');
+    external_assert_default()(original.SpanContext.TraceID, 'Span SpanContext.TraceID is required');
+    external_assert_default()(original.SpanContext.SpanID, 'Span SpanContext.SpanID is required');
+    external_assert_default()(original.SpanContext.TraceFlags, 'Span SpanContext.TraceFlags is required');
+    // Parent Span details
+    external_assert_default()(original.Parent, 'Span Parent object is required');
+    external_assert_default()(original.Parent.SpanID, 'Span Parent.SpanID is required');
+    external_assert_default()(original.Parent.TraceID, 'Span Parent.TraceID is required');
+    external_assert_default()(original.Parent.Remote, 'Span Parent.Remote is required');
+    // Span Attributes
+    external_assert_default()(original.Attributes, 'Span Attributes object is required');
+    const originalContext = {
+        traceId: original.SpanContext.TraceID,
+        spanId: original.SpanContext.SpanID,
+        traceFlags: src.TraceFlags.SAMPLED,
+        isRemote: original.SpanContext.Remote,
+    };
+    const parentSpanContext = {
+        traceId: original.Parent.TraceID,
+        spanId: original.Parent.SpanID,
+        traceFlags: src.TraceFlags.SAMPLED,
+        isRemote: original.Parent.Remote,
+    };
+    const attributes = extractAttributes(original.Attributes);
+    const status = {
+        code: parseStatus(original.Status?.Code || 'Unset'),
+        message: original.Status?.Description || undefined,
+    };
+    const startTime = rfc3339ToHrTime(original.StartTime);
+    const endTime = rfc3339ToHrTime(original.EndTime);
+    const readableSpan = {
+        name: original.Name,
+        kind: original.SpanKind || src.SpanKind.INTERNAL,
+        spanContext: () => originalContext,
+        parentSpanContext,
+        startTime,
+        endTime,
+        status,
+        attributes,
+        links: [],
+        events: [],
+        duration: (0,build_src.hrTimeDuration)(startTime, endTime),
+        ended: true,
+        resource: getResource(),
+        instrumentationScope: original.InstrumentationScope || original.InstrumentationLibrary || getInstrumentationScope(),
+        droppedAttributesCount: original.DroppedAttributes || 0,
+        droppedEventsCount: original.DroppedEvents || 0,
+        droppedLinksCount: original.DroppedLinks || 0,
+    };
+    return readableSpan;
+}
+
 ;// CONCATENATED MODULE: ./src/main.ts
 
 
@@ -85530,18 +85595,8 @@ function createStepSpan(step, traceId, spanId, parentSpanContext) {
 
 
 main.config();
-function main_getGithubToken() {
-    try {
-        const token = (0,external_child_process_.execSync)('gh auth token', { encoding: 'utf8' }).trim();
-        return token;
-    }
-    catch (error) {
-        external_assert_default()(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN is not set');
-        return process.env.GITHUB_TOKEN;
-    }
-}
 async function main_main() {
-    const token = main_getGithubToken();
+    const token = process.env.GITHUB_TOKEN;
     external_assert_default()(token, 'GITHUB_TOKEN is not set and gh CLI is not authenticated. Run: gh auth login');
     const repoInput = process.env.REPO;
     external_assert_default()(repoInput, 'REPO is not set');
@@ -85571,24 +85626,9 @@ async function main_main() {
 }
 async function runExporter(config) {
     await initTracing();
-    const { token, owner, repo, workflow, runId, attempt, traceFileGlob = [] } = config;
     try {
-        const oktokit = createGithubClient(token);
-        console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`);
-        console.log(`Processing workflow: ${workflow}`);
-        console.log(`Run ID: ${runId}, Attempt: ${attempt}`);
-        console.log(`Repository: ${owner}/${repo}`);
-        const jobs = await getRunData(oktokit, {
-            owner: owner,
-            repo: repo,
-            name: workflow,
-            runId: runId,
-            attempt: attempt,
-        });
-        const { traceId, spans } = createTrace(jobs);
-        console.log(`Trace ID: ${traceId}`);
-        console.log(`Exporting ${spans.length} spans...`);
-        await exportSpans(spans);
+        const traceId = await traces(config);
+        const artifacts = await processTookexecTraces(config);
         return traceId;
     }
     catch (err) {
@@ -85598,6 +85638,47 @@ async function runExporter(config) {
     finally {
         await shutdownTracing();
     }
+}
+async function traces(config) {
+    const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config;
+    const oktokit = createGithubClient(token);
+    console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`);
+    console.log(`Processing workflow: ${workflow}`);
+    console.log(`Run ID: ${runId}, Attempt: ${attempt}`);
+    console.log(`Repository: ${owner}/${repo}`);
+    const jobs = await getRunData(oktokit, {
+        owner: owner,
+        repo: repo,
+        name: workflow,
+        runId: runId,
+        attempt: attempt,
+    });
+    const { traceId, spans } = createTrace(jobs);
+    console.log(`Trace ID: ${traceId}`);
+    console.log(`Exporting ${spans.length} spans...`);
+    await exportSpans(spans);
+    return traceId;
+}
+async function processTookexecTraces(config) {
+    const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config;
+    if (!traceFileGlob) {
+        return 0;
+    }
+    const oktokit = createGithubClient(token);
+    const jobRequest = {
+        owner: owner,
+        repo: repo,
+        name: workflow,
+        runId: runId,
+        attempt: attempt,
+    };
+    console.log('Fetching artifacts...');
+    const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceFileGlob);
+    console.log(`Artifacts contain ${parsedSpans.length} spans in total`);
+    console.log(`Processing spans... ${parsedSpans.map((artifact) => artifact.name).join(', ')}`);
+    const spans = parsedSpans.map(parseToolexecTrace);
+    await exportSpans(spans);
+    return spans.length;
 }
 main_main().catch(console.error);
 

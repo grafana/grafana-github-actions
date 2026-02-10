@@ -1,24 +1,19 @@
 import * as dotenv from 'dotenv'
-import { createGithubClient, getRunData } from './github.js'
-import { createTrace } from './traces.js'
+import {
+	createGithubClient,
+	getRunData,
+	downloadAndParseArtifacts,
+	downloadArtifactBuffer,
+} from './github.js'
+import { createTrace } from './github_actions_traces.js'
+import { parseToolexecTrace } from './tollexec_traces.js'
 import { initTracing, shutdownTracing, exportSpans } from './exporters.js'
 import assert from 'assert'
-import { execSync } from 'child_process'
 
 dotenv.config()
 
-function getGithubToken(): string {
-	try {
-		const token = execSync('gh auth token', { encoding: 'utf8' }).trim()
-		return token
-	} catch (error) {
-		assert(process.env.GITHUB_TOKEN, 'GITHUB_TOKEN is not set')
-		return process.env.GITHUB_TOKEN
-	}
-}
-
 async function main() {
-	const token = getGithubToken()
+	const token = process.env.GITHUB_TOKEN
 	assert(token, 'GITHUB_TOKEN is not set and gh CLI is not authenticated. Run: gh auth login')
 
 	const repoInput = process.env.REPO
@@ -66,30 +61,10 @@ export async function runExporter(config: {
 	traceFileGlob?: string
 }): Promise<string> {
 	await initTracing()
-	const { token, owner, repo, workflow, runId, attempt, traceFileGlob = [] } = config
 
 	try {
-		const oktokit = createGithubClient(token)
-		console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`)
-
-		console.log(`Processing workflow: ${workflow}`)
-		console.log(`Run ID: ${runId}, Attempt: ${attempt}`)
-		console.log(`Repository: ${owner}/${repo}`)
-
-		const jobs = await getRunData(oktokit, {
-			owner: owner,
-			repo: repo,
-			name: workflow,
-			runId: runId,
-			attempt: attempt,
-		})
-
-		const { traceId, spans } = createTrace(jobs)
-
-		console.log(`Trace ID: ${traceId}`)
-		console.log(`Exporting ${spans.length} spans...`)
-
-		await exportSpans(spans)
+		const traceId = await traces(config)
+		const artifacts = await processTookexecTraces(config)
 		return traceId
 	} catch (err: any) {
 		console.error('Error:', err.message)
@@ -97,6 +72,75 @@ export async function runExporter(config: {
 	} finally {
 		await shutdownTracing()
 	}
+}
+
+async function traces(config: {
+	token: string
+	owner: string
+	repo: string
+	workflow: string
+	runId: number
+	attempt: number
+	traceFileGlob?: string
+}): Promise<string> {
+	const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config
+
+	const oktokit = createGithubClient(token)
+	console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`)
+
+	console.log(`Processing workflow: ${workflow}`)
+	console.log(`Run ID: ${runId}, Attempt: ${attempt}`)
+	console.log(`Repository: ${owner}/${repo}`)
+
+	const jobs = await getRunData(oktokit, {
+		owner: owner,
+		repo: repo,
+		name: workflow,
+		runId: runId,
+		attempt: attempt,
+	})
+
+	const { traceId, spans } = createTrace(jobs)
+
+	console.log(`Trace ID: ${traceId}`)
+	console.log(`Exporting ${spans.length} spans...`)
+
+	await exportSpans(spans)
+	return traceId
+}
+
+async function processTookexecTraces(config: {
+	token: string
+	owner: string
+	repo: string
+	workflow: string
+	runId: number
+	attempt: number
+	traceFileGlob?: string
+}): Promise<number> {
+	const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config
+
+	if (!traceFileGlob) {
+		return 0
+	}
+
+	const oktokit = createGithubClient(token)
+	const jobRequest = {
+		owner: owner,
+		repo: repo,
+		name: workflow,
+		runId: runId,
+		attempt: attempt,
+	}
+
+	console.log('Fetching artifacts...')
+	const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceFileGlob)
+	console.log(`Artifacts contain ${parsedSpans.length} spans in total`)
+	console.log(`Processing spans... ${parsedSpans.map((artifact) => artifact.name).join(', ')}`)
+	const spans = parsedSpans.map(parseToolexecTrace)
+
+	await exportSpans(spans)
+	return spans.length
 }
 
 main().catch(console.error)
