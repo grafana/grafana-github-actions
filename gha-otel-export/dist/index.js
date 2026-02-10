@@ -85613,7 +85613,7 @@ async function main_main() {
     external_assert_default()(attemptString, 'RUN_ATTEMPT is not set');
     const attempt = parseInt(attemptString);
     external_assert_default()(!isNaN(attempt), 'RUN_ATTEMPT is not a number');
-    const traceFileGlob = process.env.TRACE_FILE_GLOB;
+    const traceArtifactGlob = process.env.TRACE_ARTIFACTS_GLOB;
     await runExporter({
         token,
         owner,
@@ -85621,14 +85621,14 @@ async function main_main() {
         workflow,
         runId,
         attempt,
-        traceFileGlob,
+        traceArtifactGlob,
     });
 }
 async function runExporter(config) {
     await initTracing();
     try {
         const traceId = await traces(config);
-        const artifacts = await processTookexecTraces(config);
+        await processTookexecTraces(config);
         return traceId;
     }
     catch (err) {
@@ -85640,7 +85640,7 @@ async function runExporter(config) {
     }
 }
 async function traces(config) {
-    const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config;
+    const { token, owner, repo, workflow, runId, attempt } = config;
     const oktokit = createGithubClient(token);
     console.log(`Fetching ${workflow} jobs for ${owner}/${repo}`);
     console.log(`Processing workflow: ${workflow}`);
@@ -85660,8 +85660,8 @@ async function traces(config) {
     return traceId;
 }
 async function processTookexecTraces(config) {
-    const { token, owner, repo, workflow, runId, attempt, traceFileGlob } = config;
-    if (!traceFileGlob) {
+    const { token, owner, repo, workflow, runId, attempt, traceArtifactGlob } = config;
+    if (!traceArtifactGlob) {
         return 0;
     }
     const oktokit = createGithubClient(token);
@@ -85673,7 +85673,7 @@ async function processTookexecTraces(config) {
         attempt: attempt,
     };
     console.log('Fetching artifacts...');
-    const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceFileGlob);
+    const parsedSpans = await downloadAndParseArtifacts(oktokit, jobRequest, traceArtifactGlob);
     console.log(`Artifacts contain ${parsedSpans.length} spans in total`);
     console.log(`Processing spans... ${parsedSpans.map((artifact) => artifact.name).join(', ')}`);
     const spans = parsedSpans.map(parseToolexecTrace);
@@ -85702,6 +85702,7 @@ async function writeSummary(traceId) {
 async function run() {
     const token = core.getInput('github-token', { required: true });
     external_assert_default()(token, 'GitHub token is required');
+    const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false }) || 'toolexec-traces-*.jsonl';
     const context = github.context;
     external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
     const payload = context.payload;
@@ -85718,6 +85719,7 @@ async function run() {
         workflow,
         runId,
         attempt,
+        traceArtifactGlob,
     });
     core.setOutput('trace-id', traceId);
     await writeSummary(traceId);
