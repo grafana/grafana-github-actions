@@ -40,13 +40,13 @@
 		"semver": "^7.5.4"
 	},
 	"devDependencies": {
-		"@types/chai": "^4.2.10",
+		"@types/chai": "^4.3.0",
 		"@types/jest": "^27.4.0",
 		"@types/node": "^20.9.2",
 		"@types/yargs": "^17.0.32",
 		"@typescript-eslint/eslint-plugin": "^6.19.0",
 		"@typescript-eslint/parser": "^6.19.0",
-		"chai": "^4.2.0",
+		"chai": "^4.5.0",
 		"eslint": "^8.4.1",
 		"eslint-config-prettier": "^8.3.0",
 		"eslint-plugin-prettier": "^4.0.0",
