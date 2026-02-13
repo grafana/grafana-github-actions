@@ -14,7 +14,8 @@ export type ArtifactResponse =
 export type WorkflowJobResponse = WorkflowJobsResponse[number]
 export type WorkflowStepResponse = NonNullable<WorkflowJobResponse['steps']>[number]
 
-const ARTIFACT_MAX_SIZE_BYTES = 1 * 1024 * 1024 // 1MB
+const ARTIFACT_MAX_SIZE_BYTES = 15 * 1024 * 1024 // 5MB
+const MAX_DISTINCT_SPANS_PER_FILE = 100
 
 export const createGithubClient = (token: string): Octokit => {
 	return new Octokit({
@@ -173,14 +174,13 @@ export async function downloadArtifactBuffer(
 export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): any[] {
 	const zip = new AdmZip(zipBuffer)
 	const entries = zip.getEntries()
-	const results: any[] = []
 
+	const results: any[] = []
 	for (const entry of entries) {
 		if (entry.isDirectory) {
 			continue
 		}
 
-		// Assert entry size before loading into memory
 		const entrySize = entry.header.size
 		assert(
 			entrySize <= ARTIFACT_MAX_SIZE_BYTES,
@@ -190,6 +190,7 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 		const content = entry.getData().toString('utf8')
 		const lines = content.split('\n').filter((line: string) => line.trim())
 
+		const spans: any[] = []
 		for (const line of lines) {
 			try {
 				const span = JSON.parse(line)
@@ -200,12 +201,50 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 
 				span.Attributes.push({
 					Key: 'ci.artifact.name',
-					Value: { Type: 'STRING', Value: artifactName },
+					Value: { Type: 'STRING', Value: entry.entryName },
 				})
-				results.push(span)
+
+				const startTime = new Date(span.StartTime).getTime()
+				const endTime = new Date(span.EndTime).getTime()
+				span.duration = (endTime - startTime) * 1000000 // Convert ms to ns
+
+				spans.push(span)
 			} catch (error) {
 				console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`)
 			}
+		}
+
+		spans.sort((a, b) => b.duration - a.duration)
+
+		results.push(...spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE))
+
+		if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
+			const remainingSpans = spans.slice(MAX_DISTINCT_SPANS_PER_FILE)
+			const totalDuration = remainingSpans.reduce((sum, span) => sum + span.duration, 0)
+
+			const aggregateSpan = {
+				...remainingSpans[0],
+				Name: `${entry.entryName}_aggregates`,
+				StartTime: remainingSpans[0].StartTime,
+				EndTime: new Date(
+					new Date(remainingSpans[0].StartTime).getTime() + totalDuration / 1000000,
+				).toISOString(),
+				duration: totalDuration,
+			}
+
+			aggregateSpan.Attributes = []
+			aggregateSpan.Attributes.push(
+				{
+					Key: 'total_items',
+					Value: { Type: 'INT', Value: remainingSpans.length },
+				},
+				{
+					Key: 'ci.artifact.name',
+					Value: { Type: 'STRING', Value: entry.entryName },
+				},
+			)
+
+			results.push(aggregateSpan)
 		}
 	}
 

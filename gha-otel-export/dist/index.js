@@ -85083,7 +85083,8 @@ minimatch.unescape = unescape_unescape;
 
 
 
-const ARTIFACT_MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1MB
+const ARTIFACT_MAX_SIZE_BYTES = 15 * 1024 * 1024; // 5MB
+const MAX_DISTINCT_SPANS_PER_FILE = 100;
 const createGithubClient = (token) => {
     return new dist_src_Octokit({
         baseUrl: 'https://api.github.com',
@@ -85210,11 +85211,11 @@ function extractJsonlFromZip(zipBuffer, artifactName) {
         if (entry.isDirectory) {
             continue;
         }
-        // Assert entry size before loading into memory
         const entrySize = entry.header.size;
         external_assert_default()(entrySize <= ARTIFACT_MAX_SIZE_BYTES, `Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`);
         const content = entry.getData().toString('utf8');
         const lines = content.split('\n').filter((line) => line.trim());
+        const spans = [];
         for (const line of lines) {
             try {
                 const span = JSON.parse(line);
@@ -85223,13 +85224,38 @@ function extractJsonlFromZip(zipBuffer, artifactName) {
                 }
                 span.Attributes.push({
                     Key: 'ci.artifact.name',
-                    Value: { Type: 'STRING', Value: artifactName },
+                    Value: { Type: 'STRING', Value: entry.entryName },
                 });
-                results.push(span);
+                const startTime = new Date(span.StartTime).getTime();
+                const endTime = new Date(span.EndTime).getTime();
+                span.duration = (endTime - startTime) * 1000000; // Convert ms to ns
+                spans.push(span);
             }
             catch (error) {
                 console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`);
             }
+        }
+        spans.sort((a, b) => b.duration - a.duration);
+        results.push(...spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE));
+        if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
+            const remainingSpans = spans.slice(MAX_DISTINCT_SPANS_PER_FILE);
+            const totalDuration = remainingSpans.reduce((sum, span) => sum + span.duration, 0);
+            const aggregateSpan = {
+                ...remainingSpans[0],
+                Name: `${entry.entryName}_aggregates`,
+                StartTime: remainingSpans[0].StartTime,
+                EndTime: new Date(new Date(remainingSpans[0].StartTime).getTime() + totalDuration / 1000000).toISOString(),
+                duration: totalDuration,
+            };
+            aggregateSpan.Attributes = [];
+            aggregateSpan.Attributes.push({
+                Key: 'total_items',
+                Value: { Type: 'INT', Value: remainingSpans.length },
+            }, {
+                Key: 'ci.artifact.name',
+                Value: { Type: 'STRING', Value: entry.entryName },
+            });
+            results.push(aggregateSpan);
         }
     }
     return results;
@@ -85702,7 +85728,7 @@ async function writeSummary(traceId) {
 async function run() {
     const token = core.getInput('github-token', { required: true });
     external_assert_default()(token, 'GitHub token is required');
-    const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false }) || 'toolexec-traces-*.jsonl';
+    const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false }) || 'traces-*.jsonl';
     const context = github.context;
     external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
     const payload = context.payload;

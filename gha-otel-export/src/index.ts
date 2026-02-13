@@ -19,8 +19,7 @@ async function run(): Promise<void> {
 	const token = core.getInput('github-token', { required: true })
 	assert(token, 'GitHub token is required')
 
-	const traceArtifactGlob =
-		core.getInput('trace-artifacts-glob', { required: false }) || 'toolexec-traces-*.jsonl'
+	const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false }) || 'traces-*.jsonl'
 
 	const context = github.context
 	assert(context.eventName === 'workflow_run', 'This action only supports workflow_run events')
