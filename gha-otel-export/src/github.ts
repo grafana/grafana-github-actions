@@ -255,7 +255,7 @@ function processZipEntry(entry: AdmZip.IZipEntry): any[] {
 
 		return results
 	} catch (error) {
-		console.error(`Failed to process entry ${entry.entryName}:`, error)
+		console.error(`  Failed to process entry ${entry.entryName}: ${error}`)
 		return []
 	}
 }

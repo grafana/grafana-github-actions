@@ -86028,7 +86028,7 @@ function processZipEntry(entry) {
         return results;
     }
     catch (error) {
-        console.error(`Failed to process entry ${entry.entryName}:`, error);
+        console.error(`Failed to process entry ${entry.entryName}: ${error}`);
         return [];
     }
 }
