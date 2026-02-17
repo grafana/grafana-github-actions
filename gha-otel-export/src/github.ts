@@ -5,6 +5,8 @@ import assert from 'assert'
 import { JobRequest, WorkflowRun, WorkflowJobRun, WorkflowStep } from './types.js'
 import AdmZip from 'adm-zip'
 import { minimatch } from 'minimatch'
+import { brotliDecompressSync } from 'zlib'
+import { decompress as zstdDecompress } from 'fzstd'
 export type WorkflowResponse =
 	Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['response']['data']
 export type WorkflowJobsResponse =
@@ -187,7 +189,18 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 			`Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`,
 		)
 
-		const content = entry.getData().toString('utf8')
+		let data = entry.getData()
+
+		const entryName = entry.entryName.toLowerCase()
+		if (entryName.endsWith('.br') || entryName.endsWith('.brotli')) {
+			console.log(`Decompressing brotli file: ${entry.entryName}`)
+			data = brotliDecompressSync(data)
+		} else if (entryName.endsWith('.zst') || entryName.endsWith('.zstd')) {
+			console.log(`Decompressing zstandard file: ${entry.entryName}`)
+			data = Buffer.from(zstdDecompress(data))
+		}
+
+		const content = data.toString('utf8')
 		const lines = content.split('\n').filter((line: string) => line.trim())
 
 		const spans: any[] = []
