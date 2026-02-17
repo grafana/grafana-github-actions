@@ -85962,19 +85962,14 @@ async function downloadArtifactBuffer(octokit, job, artifactId) {
     });
     return Buffer.from(result.data);
 }
-function extractJsonlFromZip(zipBuffer, artifactName) {
-    const zip = new (adm_zip_default())(zipBuffer);
-    const entries = zip.getEntries();
-    const results = [];
-    for (const entry of entries) {
-        if (entry.isDirectory) {
-            continue;
-        }
+function processZipEntry(entry) {
+    try {
         const entrySize = entry.header.size;
-        external_assert_default()(entrySize <= ARTIFACT_MAX_SIZE_BYTES, `Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`);
-        // Read the entry data
+        if (entrySize > ARTIFACT_MAX_SIZE_BYTES) {
+            console.error(`Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes, skipping`);
+            return [];
+        }
         let data = entry.getData();
-        // Decompress based on file extension
         const entryName = entry.entryName.toLowerCase();
         if (entryName.endsWith('.br') || entryName.endsWith('.brotli')) {
             console.log(`Decompressing brotli file: ${entry.entryName}`);
@@ -86003,11 +85998,11 @@ function extractJsonlFromZip(zipBuffer, artifactName) {
                 spans.push(span);
             }
             catch (error) {
-                console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`);
+                console.warn(`Failed to parse JSONL line in ${entry.entryName}: ${line.substring(0, 100)}...`);
             }
         }
         spans.sort((a, b) => b.duration - a.duration);
-        results.push(...spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE));
+        const results = spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE);
         if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
             const remainingSpans = spans.slice(MAX_DISTINCT_SPANS_PER_FILE);
             const totalDuration = remainingSpans.reduce((sum, span) => sum + span.duration, 0);
@@ -86018,17 +86013,34 @@ function extractJsonlFromZip(zipBuffer, artifactName) {
                 EndTime: new Date(new Date(remainingSpans[0].StartTime).getTime() + totalDuration / 1000000).toISOString(),
                 duration: totalDuration,
             };
-            aggregateSpan.Attributes = [];
-            aggregateSpan.Attributes.push({
-                Key: 'total_items',
-                Value: { Type: 'INT', Value: remainingSpans.length },
-            }, {
-                Key: 'ci.artifact.name',
-                Value: { Type: 'STRING', Value: entry.entryName },
-            });
+            aggregateSpan.Attributes = [
+                {
+                    Key: 'total_items',
+                    Value: { Type: 'INT', Value: remainingSpans.length },
+                },
+                {
+                    Key: 'ci.artifact.name',
+                    Value: { Type: 'STRING', Value: entry.entryName },
+                },
+            ];
             results.push(aggregateSpan);
         }
+        return results;
     }
+    catch (error) {
+        console.error(`Failed to process entry ${entry.entryName}:`, error);
+        return [];
+    }
+}
+function extractJsonlFromZip(zipBuffer, artifactName) {
+    const zip = new (adm_zip_default())(zipBuffer);
+    const results = new Map();
+    zip.getEntries()
+        .filter((entry) => !entry.isDirectory)
+        .forEach((entry) => {
+        const spans = processZipEntry(entry);
+        results.set(entry.entryName, spans);
+    });
     return results;
 }
 async function downloadAndParseArtifacts(octokit, job, pattern) {
@@ -86043,9 +86055,11 @@ async function downloadAndParseArtifacts(octokit, job, pattern) {
         external_assert_default()(artifact.size_in_bytes <= ARTIFACT_MAX_SIZE_BYTES, `Artifact size exceeds limit: ${artifact.size_in_bytes} bytes`);
         console.log(`Downloading and parsing artifact: ${artifact.name} (${artifact.size_in_bytes} bytes)`);
         const zipBuffer = await downloadArtifactBuffer(octokit, job, artifact.id);
-        const extracted = extractJsonlFromZip(zipBuffer, artifact.name);
-        console.log(`  Extracted ${extracted.length} trace(s) from ${artifact.name}`);
-        spans.push(...extracted);
+        const entriesMap = extractJsonlFromZip(zipBuffer, artifact.name);
+        for (const [entryName, entrySpans] of entriesMap) {
+            console.log(`  Extracted ${entrySpans.length} trace(s) from ${artifact.name} -> ${entryName}`);
+            spans.push(...entrySpans);
+        }
     }
     return spans;
 }

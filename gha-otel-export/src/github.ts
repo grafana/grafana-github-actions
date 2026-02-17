@@ -173,21 +173,15 @@ export async function downloadArtifactBuffer(
 	return Buffer.from(result.data as ArrayBuffer)
 }
 
-export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): any[] {
-	const zip = new AdmZip(zipBuffer)
-	const entries = zip.getEntries()
-
-	const results: any[] = []
-	for (const entry of entries) {
-		if (entry.isDirectory) {
-			continue
-		}
-
+function processZipEntry(entry: AdmZip.IZipEntry): any[] {
+	try {
 		const entrySize = entry.header.size
-		assert(
-			entrySize <= ARTIFACT_MAX_SIZE_BYTES,
-			`Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes`,
-		)
+		if (entrySize > ARTIFACT_MAX_SIZE_BYTES) {
+			console.error(
+				`Entry ${entry.entryName} size ${entrySize} bytes exceeds limit ${ARTIFACT_MAX_SIZE_BYTES} bytes, skipping`,
+			)
+			return []
+		}
 
 		let data = entry.getData()
 
@@ -223,13 +217,13 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 
 				spans.push(span)
 			} catch (error) {
-				console.warn(`Failed to parse JSONL line: ${line.substring(0, 100)}...`)
+				console.warn(`Failed to parse JSONL line in ${entry.entryName}: ${line.substring(0, 100)}...`)
 			}
 		}
 
 		spans.sort((a, b) => b.duration - a.duration)
 
-		results.push(...spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE))
+		const results = spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE)
 
 		if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
 			const remainingSpans = spans.slice(MAX_DISTINCT_SPANS_PER_FILE)
@@ -245,8 +239,7 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 				duration: totalDuration,
 			}
 
-			aggregateSpan.Attributes = []
-			aggregateSpan.Attributes.push(
+			aggregateSpan.Attributes = [
 				{
 					Key: 'total_items',
 					Value: { Type: 'INT', Value: remainingSpans.length },
@@ -255,11 +248,28 @@ export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): an
 					Key: 'ci.artifact.name',
 					Value: { Type: 'STRING', Value: entry.entryName },
 				},
-			)
+			]
 
 			results.push(aggregateSpan)
 		}
+
+		return results
+	} catch (error) {
+		console.error(`Failed to process entry ${entry.entryName}:`, error)
+		return []
 	}
+}
+
+export function extractJsonlFromZip(zipBuffer: Buffer, artifactName: string): Map<string, any[]> {
+	const zip = new AdmZip(zipBuffer)
+	const results = new Map<string, any[]>()
+
+	zip.getEntries()
+		.filter((entry) => !entry.isDirectory)
+		.forEach((entry) => {
+			const spans = processZipEntry(entry)
+			results.set(entry.entryName, spans)
+		})
 
 	return results
 }
@@ -289,9 +299,12 @@ export async function downloadAndParseArtifacts(
 		console.log(`Downloading and parsing artifact: ${artifact.name} (${artifact.size_in_bytes} bytes)`)
 
 		const zipBuffer = await downloadArtifactBuffer(octokit, job, artifact.id)
-		const extracted = extractJsonlFromZip(zipBuffer, artifact.name)
-		console.log(`  Extracted ${extracted.length} trace(s) from ${artifact.name}`)
-		spans.push(...extracted)
+		const entriesMap = extractJsonlFromZip(zipBuffer, artifact.name)
+
+		for (const [entryName, entrySpans] of entriesMap) {
+			console.log(`  Extracted ${entrySpans.length} trace(s) from ${artifact.name} -> ${entryName}`)
+			spans.push(...entrySpans)
+		}
 	}
 
 	return spans
