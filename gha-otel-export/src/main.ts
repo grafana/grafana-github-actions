@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv'
 import { createGithubClient, getRunData, downloadAndParseArtifacts } from './github.js'
 import { createTrace } from './github_actions_traces.js'
-import { parseToolexecTrace } from './tollexec_traces.js'
+import { parseToolexecTrace } from './trace_file_traces.js'
 import { initTracing, shutdownTracing, exportSpans } from './exporters.js'
 import assert from 'assert'
 
@@ -9,7 +9,7 @@ dotenv.config()
 
 async function main() {
 	const token = process.env.GITHUB_TOKEN
-	assert(token, 'GITHUB_TOKEN is not set and gh CLI is not authenticated. Run: gh auth login')
+	assert(token, 'GITHUB_TOKEN is not set')
 
 	const repoInput = process.env.REPO
 	assert(repoInput, 'REPO is not set')
@@ -115,6 +115,7 @@ async function processTookexecTraces(config: {
 	const { token, owner, repo, workflow, runId, attempt, traceArtifactGlob } = config
 
 	if (!traceArtifactGlob) {
+		console.log('No trace artifact glob provided, skipping.')
 		return 0
 	}
 

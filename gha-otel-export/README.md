@@ -63,6 +63,7 @@ jobs:
                   OTEL_RESOURCE_ATTRIBUTES: team=team,env=ci
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
+                  trace-artifacts-glob: traces-*.jsonl
 ```
 
 ## Inputs
@@ -72,9 +73,8 @@ jobs:
 | `github-token`         | GitHub token for API access. Use `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                         | Yes      |
 | `trace-artifacts-glob` | Glob pattern to match GitHub artifact(s) containing trace files. Files should be in JSONL format (output of OTEL logging provider). Files can be in plain text or compressed formats (brotli, zstandard) | No       |
 
-## Outputs
+> **Note:** To avoid polluting traces, the action appends at most 100 spans per file and aggregates the remaining spans into a single aggregate span.
 
-| Output     | Description                                                        |
 | ---------- | ------------------------------------------------------------------ |
 | `trace-id` | The generated OpenTelemetry trace ID for the exported workflow run |
 

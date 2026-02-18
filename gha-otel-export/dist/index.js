@@ -86301,7 +86301,7 @@ function createStepSpan(step, traceId, spanId, parentSpanContext) {
     }, parentSpanContext);
 }
 
-;// CONCATENATED MODULE: ./src/tollexec_traces.ts
+;// CONCATENATED MODULE: ./src/trace_file_traces.ts
 
 
 
@@ -86408,7 +86408,7 @@ function parseToolexecTrace(original) {
 main.config();
 async function main_main() {
     const token = process.env.GITHUB_TOKEN;
-    external_assert_default()(token, 'GITHUB_TOKEN is not set and gh CLI is not authenticated. Run: gh auth login');
+    external_assert_default()(token, 'GITHUB_TOKEN is not set');
     const repoInput = process.env.REPO;
     external_assert_default()(repoInput, 'REPO is not set');
     const [owner, repo] = repoInput.split('/');
@@ -86473,6 +86473,7 @@ async function traces(config) {
 async function processTookexecTraces(config) {
     const { token, owner, repo, workflow, runId, attempt, traceArtifactGlob } = config;
     if (!traceArtifactGlob) {
+        console.log('No trace artifact glob provided, skipping.');
         return 0;
     }
     const oktokit = createGithubClient(token);
