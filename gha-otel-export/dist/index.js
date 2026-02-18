@@ -85842,7 +85842,7 @@ var Decompress = /*#__PURE__*/ ((/* unused pure expression or super */ null && (
 
 
 
-const ARTIFACT_MAX_SIZE_BYTES = 15 * 1024 * 1024; // 5MB
+const ARTIFACT_MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const MAX_DISTINCT_SPANS_PER_FILE = 100;
 const createGithubClient = (token) => {
     return new dist_src_Octokit({

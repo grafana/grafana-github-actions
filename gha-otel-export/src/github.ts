@@ -16,7 +16,7 @@ export type ArtifactResponse =
 export type WorkflowJobResponse = WorkflowJobsResponse[number]
 export type WorkflowStepResponse = NonNullable<WorkflowJobResponse['steps']>[number]
 
-const ARTIFACT_MAX_SIZE_BYTES = 15 * 1024 * 1024 // 5MB
+const ARTIFACT_MAX_SIZE_BYTES = 5 * 1024 * 1024 // 5MB
 const MAX_DISTINCT_SPANS_PER_FILE = 100
 
 export const createGithubClient = (token: string): Octokit => {
