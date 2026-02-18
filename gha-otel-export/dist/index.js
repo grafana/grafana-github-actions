@@ -86028,7 +86028,7 @@ function processZipEntry(entry) {
         return results;
     }
     catch (error) {
-        console.error(`Failed to process entry ${entry.entryName}: ${error}`);
+        console.error(`  Failed to process entry ${entry.entryName}: ${error}`);
         return [];
     }
 }
@@ -86513,7 +86513,7 @@ async function writeSummary(traceId) {
 async function run() {
     const token = core.getInput('github-token', { required: true });
     external_assert_default()(token, 'GitHub token is required');
-    const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false }) || 'traces-*.jsonl';
+    const traceArtifactGlob = core.getInput('trace-artifacts-glob', { required: false });
     const context = github.context;
     external_assert_default()(context.eventName === 'workflow_run', 'This action only supports workflow_run events');
     const payload = context.payload;
