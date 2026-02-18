@@ -10,8 +10,8 @@ inputs:
     github-token:
         description: 'GitHub token for API access'
         required: true
-    trace-files-glob:
-        description: 'Glob pattern for local JSONL trace files to include in export'
+    trace-artifacts-glob:
+        description: 'Glob pattern to match GitHub artifact(s) containing trace files in JSONL format (output of OTEL logging provider)'
         required: false
 
 runs:

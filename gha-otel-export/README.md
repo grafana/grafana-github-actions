@@ -67,10 +67,10 @@ jobs:
 
 ## Inputs
 
-| Input          | Description                                                               | Required |
-| -------------- | ------------------------------------------------------------------------- | -------- |
-| `github-token` | GitHub token for API access. Use `${{ secrets.GITHUB_TOKEN }}`            | Yes      |
-| `trace-files`  | Comma-separated list of local JSONL trace file paths to include in export | No       |
+| Input                  | Description                                                                                                                                                                                            | Required |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `github-token`         | GitHub token for API access. Use `${{ secrets.GITHUB_TOKEN }}`                                                                                                                                         | Yes      |
+| `trace-artifacts-glob` | Glob pattern to match GitHub artifact(s) containing trace files. Files should be in JSONL format (output of OTEL logging provider). Files can be in plain text or compressed formats (brotli, zstandard) | No       |
 
 ## Outputs
 
