@@ -23,7 +23,7 @@ jobs:
               uses: actions/checkout@v5
               with:
                   repository: 'grafana/grafana'
-                  ref: grambbledook/test-toolexec-instrumentation
+                  ref: grambbledook/instrument-build-pipelines
                   persist-credentials: false
 
             - name: Install go-toolexec-otel-exporter
@@ -61,7 +61,7 @@ jobs:
                   GITHUB_STEP_NAME: Build Grafana With ToolExec
                   GOCACHE_TOOLEXEC_TRACES_LOG_FILE: ${{ github.workspace }}/build.jsonl
               run: |
-                  TOOLEXEC_PATH=go-toolexec-otel-exporter  make build-go
+                  GO_TRACE_TOOLEXEC_PATH=go-toolexec-otel-exporter make build-go
 
             # - name: Test Grafana With ToolExec
             #   continue-on-error: true
@@ -79,6 +79,3 @@ jobs:
                   path: |
                       ${{ github.workspace }}/build.jsonl
                   retention-days: 1
-            - name: Cleanup
-              run: |
-                  kill $(cat go-cache-plugin.pid)
