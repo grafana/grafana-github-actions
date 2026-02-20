@@ -10,7 +10,7 @@
 		"skipLibCheck": true,
 		"resolveJsonModule": true,
 		"importsNotUsedAsValues": "remove",
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
 	},
 
 	"include": ["src/**/*.ts"]

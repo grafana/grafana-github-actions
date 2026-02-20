@@ -38914,18 +38914,18 @@ var __webpack_unused_export__;
  * limitations under the License.
  */
 __webpack_unused_export__ = ({ value: true });
-__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = exports.tg = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = exports.l = void 0;
+__webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = __webpack_unused_export__ = exports.J = exports.l = void 0;
 var BasicTracerProvider_1 = __nccwpck_require__(32594);
 Object.defineProperty(exports, "l", ({ enumerable: true, get: function () { return BasicTracerProvider_1.BasicTracerProvider; } }));
 var platform_1 = __nccwpck_require__(58942);
-__webpack_unused_export__ = ({ enumerable: true, get: function () { return platform_1.BatchSpanProcessor; } });
+Object.defineProperty(exports, "J", ({ enumerable: true, get: function () { return platform_1.BatchSpanProcessor; } }));
 __webpack_unused_export__ = ({ enumerable: true, get: function () { return platform_1.RandomIdGenerator; } });
 var ConsoleSpanExporter_1 = __nccwpck_require__(34851);
 __webpack_unused_export__ = ({ enumerable: true, get: function () { return ConsoleSpanExporter_1.ConsoleSpanExporter; } });
 var InMemorySpanExporter_1 = __nccwpck_require__(9422);
 __webpack_unused_export__ = ({ enumerable: true, get: function () { return InMemorySpanExporter_1.InMemorySpanExporter; } });
 var SimpleSpanProcessor_1 = __nccwpck_require__(73381);
-Object.defineProperty(exports, "tg", ({ enumerable: true, get: function () { return SimpleSpanProcessor_1.SimpleSpanProcessor; } }));
+__webpack_unused_export__ = ({ enumerable: true, get: function () { return SimpleSpanProcessor_1.SimpleSpanProcessor; } });
 var NoopSpanProcessor_1 = __nccwpck_require__(44943);
 __webpack_unused_export__ = ({ enumerable: true, get: function () { return NoopSpanProcessor_1.NoopSpanProcessor; } });
 var AlwaysOffSampler_1 = __nccwpck_require__(78897);
@@ -86002,6 +86002,7 @@ function processZipEntry(entry) {
             }
         }
         spans.sort((a, b) => b.duration - a.duration);
+        console.log(`  Parsed ${spans.length} spans from ${entry.entryName}, taking top ${Math.min(spans.length, MAX_DISTINCT_SPANS_PER_FILE)}`);
         const results = spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE);
         if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
             const remainingSpans = spans.slice(MAX_DISTINCT_SPANS_PER_FILE);
@@ -86145,13 +86146,21 @@ const instrumentationScope = {
 };
 async function initTracing() {
     resource = await (0,resources_build_src.detectResources)({ detectors: [resources_build_src.envDetector] });
-    spanProcessor = new sdk_trace_base_build_src/* SimpleSpanProcessor */.tg(new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({}));
+    const exporter = new exporter_trace_otlp_proto_build_src/* OTLPTraceExporter */.Q({});
+    // Below are arbitrary numbers made out of thin air
+    spanProcessor = new sdk_trace_base_build_src/* BatchSpanProcessor */.J(exporter, {
+        maxQueueSize: 10000,
+        maxExportBatchSize: 512,
+        scheduledDelayMillis: 5000,
+        exportTimeoutMillis: 30000,
+    });
     traceProvider = new sdk_trace_base_build_src/* BasicTracerProvider */.l({
         resource: resource,
         spanProcessors: [spanProcessor],
     });
     const result = src.trace.setGlobalTracerProvider(traceProvider);
     external_assert_default()(result, 'Failed to set global tracer provider - it may already be set');
+    console.log('[initTracing] Using BatchSpanProcessor with maxQueueSize=10000, maxExportBatchSize=512');
 }
 function getResource() {
     external_assert_default()(resource, 'Tracing not initialized. Call initTracing() first.');
@@ -86162,10 +86171,28 @@ function getInstrumentationScope() {
 }
 async function exportSpans(spans) {
     external_assert_default()(spanProcessor, 'Tracing not initialized. Call initTracing() first.');
+    console.log(`Attempting to export ${spans.length} spans`);
+    let exportedCount = 0;
+    let failedCount = 0;
     for (const span of spans) {
-        spanProcessor.onEnd(span);
+        try {
+            spanProcessor.onEnd(span);
+            exportedCount++;
+        }
+        catch (error) {
+            failedCount++;
+            console.error(`Failed to export span ${span.name}:`, error);
+        }
     }
-    await spanProcessor.forceFlush();
+    console.log(`Queued ${exportedCount} spans, ${failedCount} failed`);
+    try {
+        await spanProcessor.forceFlush();
+        console.log(`Flush completed successfully`);
+    }
+    catch (error) {
+        console.error(`Flush failed:`, error);
+        throw error;
+    }
 }
 async function shutdownTracing() {
     if (!traceProvider) {

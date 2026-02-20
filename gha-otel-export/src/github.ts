@@ -223,6 +223,10 @@ function processZipEntry(entry: AdmZip.IZipEntry): any[] {
 
 		spans.sort((a, b) => b.duration - a.duration)
 
+		console.log(
+			`  Parsed ${spans.length} spans from ${entry.entryName}, taking top ${Math.min(spans.length, MAX_DISTINCT_SPANS_PER_FILE)}`,
+		)
+
 		const results = spans.slice(0, MAX_DISTINCT_SPANS_PER_FILE)
 
 		if (spans.length > MAX_DISTINCT_SPANS_PER_FILE) {
