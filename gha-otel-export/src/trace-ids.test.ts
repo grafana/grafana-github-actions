@@ -4,7 +4,7 @@ import {
 	generateStepSpanID,
 	generateStepSpanID_Number,
 	generateTraceID,
-} from './trace-ids'
+} from './trace-ids.js'
 
 const repo = 'grafana/grafana'
 const runId = '20137834310'
