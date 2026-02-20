@@ -1,104 +1,75 @@
 name: test-otel-export-workflow.yml
 on:
-  push:
-    branches:
-      - main
-      - grambbledook/grafana-build-example
+    push:
+        branches:
+            - main
+            - grambbledook/grafana-build-example
 jobs:
-  build:
-    runs-on: ubuntu-x64-small
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      # OTEL configuration - shared across all relevan steps
-      OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "https://otlp-gateway-ops-eu-south-0.grafana-ops.net/otlp"
-      OTEL_RESOURCE_ATTRIBUTES: team=grafanabackend,env=cd
-      OTEL_SERVICE_NAME: test-gha-otel-integration
-      
-      # GitHub context variables for span/trace id calculation
-      GITHUB_REPO: ${{ github.repository }}
-      GITHUB_RUN_ID: ${{ github.run_id }}
-      GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
-      GITHUB_JOB_NAME: ${{ github.job }}
-      GITHUB_STEP_ID: ${{ github.step }}
-
-      # GOCACHE configuration - shared across all relevant steps
-      GOCACHE_LOCAL_ONLY: true
-      GOCACHE_DIR: /tmp/gocache
-      GOCACHE_MODPROXY_NOCACHE: true
-      GOCACHE_ENABLE_TRACING: true
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-        with:
-          repository: 'grafana/grafana'
-          ref: grambbledook/test-toolexec-instrumentation
-          persist-credentials: false
-
-
-      - name: Checkout Go Cache Plugin - toolexec
-        uses: actions/checkout@v5
-        with:
-          repository: 'grafana/go-cache-plugin'
-          ref: grambbledook/toolexec
-          persist-credentials: false
-          path: gocacheplugin
-
-      - name: Setup Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Get Vault secrets
-        id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
-        with:
-          repo_secrets: |
-            OTEL_EXPORTER_OTLP_API_KEY=grafana-otlp-api-key:api-key-base64
-
-      - name: Build Go Cache Plugin
-        run: |
-          cd ./gocacheplugin/cmd/go-cache-plugin
-          GOWORK=off go build -o go-cache-plugin
-          cd ../../..
-          cd ./gocacheplugin/cmd/go-toolexec
-          GOWORK=off go build -o go-toolexec
-          cd ../../..
-          cp ./gocacheplugin/cmd/go-cache-plugin/go-cache-plugin ./
-          cp ./gocacheplugin/cmd/go-toolexec/go-toolexec ./
-
-      - name: Start Go Cache Plugin
-        id: start-cache-plugin
+    build:
+        runs-on: ubuntu-x64-small
+        permissions:
+            id-token: write
+            contents: read
         env:
-          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}"
-          # We intercept go build reqquests to mod proxy and and want to link them to the build step
-          GITHUB_STEP_NAME: Build Grafana
-        run: |
-          echo "${{ github.step }}"
-          ./go-cache-plugin serve --plugin 5930 --http=localhost:5970 --modproxy &
+            # GitHub context variables for span/trace id calculation
+            GITHUB_REPO: ${{ github.repository }}
+            GITHUB_RUN_ID: ${{ github.run_id }}
+            GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+            GITHUB_JOB_NAME: ${{ github.job }}
 
-          echo $! > go-cache-plugin.pid
-      
-      - name: Build Grafana With ToolExec
-        continue-on-error: true
-        env:
-          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}"
-          GITHUB_STEP_NAME: Build Grafana With ToolExec
-        run: |
-          TOOLEXEC_PATH=$(realpath ./go-toolexec) make build-go
-      
-      - name: Build Grafana
-        continue-on-error: true
-        env:
-          OTEL_EXPORTER_OTLP_HEADERS: "Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}"
-          GITHUB_STEP_NAME: Build Grafana
-        run: |
-          GOPROXY=http://localhost:5970/mod  GOCACHEPROG="./go-cache-plugin connect 5930" make build-go
+            # GOCACHE configuration - shared across all relevant steps
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+              with:
+                  repository: 'grafana/grafana'
+                  ref: grambbledook/test-toolexec-instrumentation
+                  persist-credentials: false
 
-      - name: Cleanup
-        run: |
-          kill $(cat go-cache-plugin.pid)
+            - name: Install go-toolexec-otel-exporter
+              env:
+                  GOTOE_VERSION: 'v0.1.4-otel-exporter5'
+                  GOTOE_OS: 'linux-amd64'
+                  GOTOE_HASH: 'ba1683605d60599f0f4ef3d7698ff546b092c74b7910eeb0614c916ea024f339'
+                  GITHUB_STEP_NAME: Run integration tests
+              run: |
+                  set -xeuo pipefail
+                  curl -LO "https://github.com/grafana/go-cache-plugin/releases/download/$GOTOE_VERSION/go-toolexec-otel-exporter-$GOTOE_OS"
+                  mv "go-toolexec-otel-exporter-$GOTOE_OS" go-toolexec-otel-exporter
+                  echo -e "$GOTOE_HASH\tgo-toolexec-otel-exporter" | sha256sum --check
+                  chmod +x go-toolexec-otel-exporter
+                  file go-toolexec-otel-exporter
+                  sudo mv go-toolexec-otel-exporter /bin/go-toolexec-otel-exporter # move to PATH
+
+            - name: Setup Go
+              uses: actions/setup-go@v6.0.0
+              with:
+                  go-version-file: go.mod
+                  cache: true
+
+            - name: Get Vault secrets
+              id: vault-secrets
+              uses: grafana/shared-workflows/actions/get-vault-secrets@main
+              with:
+                  repo_secrets: |
+                      OTEL_EXPORTER_OTLP_API_KEY=grafana-otlp-api-key:api-key-base64
+
+            - name: Build Grafana With ToolExec
+              continue-on-error: true
+              env:
+                  OTEL_EXPORTER_OTLP_HEADERS: 'Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}'
+                  GITHUB_STEP_NAME: Build Grafana With ToolExec
+              run: |
+                  TOOLEXEC_PATH=go-toolexec-otel-exporter  make build-go
+
+            - name: Test Grafana With ToolExec
+              continue-on-error: true
+              env:
+                  OTEL_EXPORTER_OTLP_HEADERS: 'Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}'
+                  GITHUB_STEP_NAME: Build Grafana With ToolExec
+              run: |
+                  go test -toolexec="go-toolexec-otel-exporter" .../.
+
+            - name: Cleanup
+              run: |
+                  kill $(cat go-cache-plugin.pid)
