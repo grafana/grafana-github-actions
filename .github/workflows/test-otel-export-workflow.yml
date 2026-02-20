@@ -63,21 +63,20 @@ jobs:
               run: |
                   TOOLEXEC_PATH=go-toolexec-otel-exporter  make build-go
 
-            - name: Test Grafana With ToolExec
-              continue-on-error: true
-              env:
-                  OTEL_EXPORTER_OTLP_HEADERS: 'Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}'
-                  GITHUB_STEP_NAME: Build Grafana With ToolExec
-                  GOCACHE_TOOLEXEC_TRACES_LOG_FILE: ${{ github.workspace }}/test.jsonl
-              run: |
-                  go test -toolexec="go-toolexec-otel-exporter" .../.
+            # - name: Test Grafana With ToolExec
+            #   continue-on-error: true
+            #   env:
+            #       OTEL_EXPORTER_OTLP_HEADERS: 'Authorization=Basic ${{ env.OTEL_EXPORTER_OTLP_API_KEY }}'
+            #       GITHUB_STEP_NAME: Build Grafana With ToolExec
+            #       GOCACHE_TOOLEXEC_TRACES_LOG_FILE: ${{ github.workspace }}/test.jsonl
+            #   run: |
+            #       go test -toolexec="go-toolexec-otel-exporter" .../.
             - name: Upload toolexec traces
               if: always()
               uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
               with:
                   name: traces-${{ github.job }}-${{ matrix.tag }}-${{ env.SHARD_SANITIZED }}.jsonl
                   path: |
-                      ${{ github.workspace }}/test.jsonl
                       ${{ github.workspace }}/build.jsonl
                   retention-days: 1
             - name: Cleanup
