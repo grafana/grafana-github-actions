@@ -1,0 +1,11 @@
+name: actionlint
+description: Lint GitHub Actions workflow files using rhysd/actionlint
+inputs:
+  args:
+    description: Arguments to pass to actionlint
+    default: ''
+runs:
+  using: docker
+  image: docker://rhysd/actionlint:1.7.11@sha256:6f03470d0152251d7f07f7c4dc019dbe7024c72cd952f839544c7798843efa8f
+  args:
+    - ${{ inputs.args }}
