@@ -1,6 +1,6 @@
 import crowdinImport from '@crowdin/crowdin-api-client';
 const TRANSLATED_CONNECTOR_DESCRIPTION = '{{tos_service_type: premium}}';
-const TRANSLATE_BY_VENDOR_WORKFLOW_TYPE = 'TranslateByVendor'
+const TRANSLATE_BY_VENDOR_WORKFLOW_TYPE = 'Translate'
 
 // TODO Remove this type assertion when https://github.com/crowdin/crowdin-api-client-js/issues/508 is fixed
 // @ts-expect-error
