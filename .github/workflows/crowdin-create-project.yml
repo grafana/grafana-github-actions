@@ -9,7 +9,7 @@ on:
         type: string
 
 jobs:
-  create-tasks-in-crowdin:
+  create-project-in-crowdin:
     runs-on: ubuntu-latest
 
     permissions:
