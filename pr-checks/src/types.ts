@@ -7,7 +7,7 @@ export enum CheckState {
 	Success = 'success',
 }
 
-export type CheckResult = {
+type CheckResult = {
 	state: CheckState
 	sha: string
 	title: string
