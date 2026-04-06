@@ -58,7 +58,9 @@ export function hasMatchingReleaseTagWithRefNames(
 	let releaseTags = filterRefNames(refNames, releaseTagRegexp)
 
 	core.debug(
-		`The following release tags match the release tag regular expression ${releaseTagRegexp}:\n${releaseTags.join('\n')}`,
+		`The following release tags match the release tag regular expression ${releaseTagRegexp}:\n${releaseTags.join(
+			'\n',
+		)}`,
 	)
 
 	let branchMatches = refName.match(releaseBranchRegexp)
