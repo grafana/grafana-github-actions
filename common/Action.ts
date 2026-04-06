@@ -9,7 +9,7 @@ import { getRequiredInput, logErrorToIssue, getRateLimit, errorLoggingIssue } fr
 import { getInput, setFailed } from '@actions/core'
 import { aiHandle } from './telemetry'
 import { debug } from 'console'
-import { EventPayloads } from '@octokit/webhooks'
+import { type EventPayloads } from '@octokit/webhooks'
 
 export abstract class ActionBase {
 	abstract id: string

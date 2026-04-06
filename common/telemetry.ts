@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { getInput } from './utils'
-import { GitHubIssue } from '../api/api'
+import { type GitHubIssue } from '../api/api'
 import axios from 'axios'
 import { context } from '@actions/github'
 

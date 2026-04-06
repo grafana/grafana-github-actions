@@ -1,4 +1,4 @@
-import { PullRequest } from '../api/api'
+import { type PullRequest } from '../../api/api'
 
 export enum CheckState {
 	Error = 'error',

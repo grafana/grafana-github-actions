@@ -1,8 +1,8 @@
 import { context } from '@actions/github'
-import { OctoKitIssue } from '../api/octokit'
-import { getRequiredInput } from '../common/utils'
-import { ActionBase } from '../common/Action'
-import { CheckConfig, getChecks } from './checks'
+import { OctoKitIssue } from '../../api/octokit'
+import { getRequiredInput } from '../../common/utils'
+import { ActionBase } from '../../common/Action'
+import { type CheckConfig, getChecks } from './checks'
 import { Dispatcher } from './Dispatcher'
 
 class PRChecksAction extends ActionBase {

@@ -1,7 +1,7 @@
 import { context } from '@actions/github'
-import { EventPayloads } from '@octokit/webhooks'
+import { type EventPayloads } from '@octokit/webhooks'
 import { Check } from '../Check'
-import { CheckContext, CheckSubscriber } from '../types'
+import { CheckContext, type CheckSubscriber } from '../types'
 
 export type LabelCheckConfig = {
 	title?: string

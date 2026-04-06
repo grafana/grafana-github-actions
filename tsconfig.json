@@ -9,7 +9,7 @@
 		"resolveJsonModule": true,
 		"sourceMap": true,
 		"lib": ["es2021"],
-		"skipLibCheck": true,
+		"skipLibCheck": true
 	},
-	"exclude": ["**/*.test.ts", "**/vm-filesystem/**", "__mocks__/**/*", "gha-otel-export/**"]
+	"exclude": ["**/*.test.ts", "**/vm-filesystem/**", "__mocks__/**/*", "gha-otel-export/**", "pr-checks/**"]
 }
