@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { GitHubIssue, Issue, User } from '../api/api'
-import { checkMatch, MatchConfig } from '../common/globmatcher'
-import { trackEvent } from '../common/telemetry'
-import { getProjectIdFromUrl } from '../common/utils'
+import type { GitHubIssue, Issue, User } from '../../api/api'
+import { checkMatch, type MatchConfig } from '../../common/globmatcher'
+import { trackEvent } from '../../common/telemetry'
+import { getProjectIdFromUrl } from '../../common/utils'
 
 /* eslint-disable */
 // confusing when eslint formats

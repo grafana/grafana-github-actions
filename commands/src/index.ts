@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { OctoKitIssue } from '../api/octokit'
-import { getRequiredInput } from '../common/utils'
+import type { OctoKitIssue } from '../../api/octokit'
+import { getRequiredInput } from '../../common/utils'
 import { Commands } from './Commands'
-import { Action } from '../common/Action'
+import { Action } from '../../common/Action'
 
 class CommandsRunner extends Action {
 	id = 'Commands'

@@ -5,7 +5,7 @@
 	"description": "GitHub Actions used by Grafana for triaging issues",
 	"scripts": {
 		"test": "jest --silent",
-		"build": "tsc && yarn workspace grafana-github-actions-pr-checks build",
+		"build": "tsc && yarn workspace grafana-github-actions-pr-checks build && yarn workspace grafana-github-actions-commands build",
 		"lint": "eslint -c .eslintrc --fix --ext .ts .",
 		"watch": "tsc --watch"
 	},
@@ -72,7 +72,8 @@
 	},
 	"workspaces": {
 		"packages": [
-			"pr-checks"
+			"pr-checks",
+			"commands"
 		]
 	}
 }
