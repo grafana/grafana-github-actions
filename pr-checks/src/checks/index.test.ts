@@ -1,9 +1,9 @@
 import { expect } from 'chai'
-import { getChecks } from './index'
+import { getChecks, type CheckConfig } from './index'
 
 describe('getChecks', () => {
 	it('Should return checks based on config', async () => {
-		const config = [
+		const config: CheckConfig[] = [
 			{
 				type: 'check-milestone',
 			},

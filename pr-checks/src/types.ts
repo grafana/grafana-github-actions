@@ -1,4 +1,4 @@
-import { PullRequest } from '../api/api'
+import { type PullRequest } from '../../api/api'
 
 export enum CheckState {
 	Error = 'error',
@@ -7,7 +7,7 @@ export enum CheckState {
 	Success = 'success',
 }
 
-export type CheckResult = {
+type CheckResult = {
 	state: CheckState
 	sha: string
 	title: string

@@ -1,5 +1,5 @@
 import { context } from '@actions/github'
-import { EventPayloads } from '@octokit/webhooks'
+import { type EventPayloads } from '@octokit/webhooks'
 import { expect } from 'chai'
 import { Dispatcher } from '../Dispatcher'
 import { CheckState } from '../types'

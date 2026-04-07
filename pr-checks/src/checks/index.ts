@@ -1,7 +1,7 @@
 import { Check } from '../Check'
-import { ChangelogCheck, ChangelogCheckConfig } from './ChangelogCheck'
-import { LabelCheck, LabelCheckConfig } from './LabelCheck'
-import { MilestoneCheck, MilestoneCheckConfig } from './MilestoneCheck'
+import { ChangelogCheck, type ChangelogCheckConfig } from './ChangelogCheck'
+import { LabelCheck, type LabelCheckConfig } from './LabelCheck'
+import { MilestoneCheck, type MilestoneCheckConfig } from './MilestoneCheck'
 
 export type CheckConfig =
 	| ({ type: 'check-milestone' } & MilestoneCheckConfig)

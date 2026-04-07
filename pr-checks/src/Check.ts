@@ -1,4 +1,4 @@
-import { CheckSubscriber } from './types'
+import { type CheckSubscriber } from './types'
 
 export abstract class Check {
 	abstract id: string

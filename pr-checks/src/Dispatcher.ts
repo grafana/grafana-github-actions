@@ -1,5 +1,5 @@
 import { Context } from '@actions/github/lib/context'
-import { API, CheckContext, CheckSubscriber, SubscribeCallback } from './types'
+import { type API, CheckContext, type CheckSubscriber, type SubscribeCallback } from './types'
 
 export class Dispatcher implements CheckSubscriber {
 	private subscribers: {

@@ -1,14 +1,16 @@
 import { expect } from 'chai'
 import { Dispatcher } from './Dispatcher'
 import { Check } from './Check'
-import { CheckState, CheckSubscriber } from './types'
+import { CheckState, type CheckSubscriber } from './types'
 import { context } from '@actions/github'
 
 describe('Dispatcher', () => {
+	const api = { createStatus: jest.fn(), getPullRequest: jest.fn() }
+
 	describe('isMatch and dispatch', () => {
 		describe('When check subscribes and webhook event unhandled is triggered', () => {
 			it('Should not dispatch to check', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'unhandled'
@@ -20,7 +22,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e1 is triggered', () => {
 			it('Should dispatch to check 2 times', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
@@ -35,7 +37,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e1 with action a1 is triggered', () => {
 			it('Should dispatch to check 6 times', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
@@ -50,7 +52,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e1 with action a2 is triggered', () => {
 			it('Should dispatch to check 4 times', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e1'
@@ -65,7 +67,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e2 is triggered', () => {
 			it('Should dispatch to check 1 time', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'
@@ -80,7 +82,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e2 with action a1 is triggered', () => {
 			it('Should dispatch to check 3 times', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'
@@ -95,7 +97,7 @@ describe('Dispatcher', () => {
 
 		describe('When check subscribes and webhook event e2 with action a2 is triggered', () => {
 			it('Should dispatch to check 2 times', async () => {
-				const d = new Dispatcher(null)
+				const d = new Dispatcher(api)
 				const check = new TestCheck()
 				check.subscribe(d)
 				context.eventName = 'e2'

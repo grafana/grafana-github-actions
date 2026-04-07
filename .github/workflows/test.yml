@@ -3,41 +3,29 @@ name: Test
 on: pull_request
 
 jobs:
-  test:
-    name: Test
-    runs-on: ubuntu-latest
+    test:
+        name: Test
+        runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 16.16.0
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v6
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
 
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+            - name: Install dependencies
+              run: yarn install --immutable
 
-      - name: Restore yarn cache
-        uses: actions/cache@v4
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: yarn-cache-folder-${{ hashFiles('**/yarn.lock', '.yarnrc.yml') }}
-          restore-keys: |
-            yarn-cache-folder-
+            - name: Build yarn
+              run: yarn run build
 
-      - name: Install dependencies
-        run: yarn install --immutable
+            - name: Git checkout
+              run: |
+                  if [ -n "$(git status --porcelain)" ]; then
+                    echo "ERROR: Please run *yarn build* and commit your changes.";
+                    git diff --exit-code
+                  fi
 
-      - name: Build yarn
-        run: yarn run build
-
-      - name: Git checkout
-        run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "ERROR: Please run *yarn build* and commit your changes.";
-            git diff --exit-code
-          fi
-
-      - name: Run tests
-        run: yarn run test
+            - name: Run tests
+              run: yarn run test

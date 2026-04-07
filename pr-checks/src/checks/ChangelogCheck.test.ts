@@ -7,7 +7,7 @@ import {
 	isTitleValid,
 } from './ChangelogCheck'
 import { context } from '@actions/github'
-import { EventPayloads } from '@octokit/webhooks'
+import { type EventPayloads } from '@octokit/webhooks'
 import { Dispatcher } from '../Dispatcher'
 import { CheckState } from '../types'
 

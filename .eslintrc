@@ -3,24 +3,11 @@
 	"parserOptions": {
 		"ecmaVersion": 6,
 		"sourceType": "module",
-		"project": [
-			"./tsconfig.json",
-			"./tsconfig.test.json"
-		]
+		"project": ["./tsconfig.json", "./tsconfig.test.json"]
 	},
-	"plugins": [
-		"@typescript-eslint",
-		"prettier"
-	],
-	"extends": [
-		"eslint:recommended",
-		"plugin:prettier/recommended"
-	],
-	"ignorePatterns": [
-		"node_modules",
-		"*.js",
-		"gha-otel-export/**"
-	],
+	"plugins": ["@typescript-eslint", "prettier"],
+	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
+	"ignorePatterns": ["node_modules", "*.js", "gha-otel-export/**", "pr-checks/**"],
 	"rules": {
 		"no-unused-vars": "off",
 		"@typescript-eslint/no-unused-vars": "error",
