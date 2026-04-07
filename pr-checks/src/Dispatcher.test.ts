@@ -3,10 +3,9 @@ import { Dispatcher } from './Dispatcher'
 import { Check } from './Check'
 import { CheckState, type CheckSubscriber } from './types'
 import { context } from '@actions/github'
-import { OctoKitIssue } from '../../api/octokit'
 
 describe('Dispatcher', () => {
-	const api = new OctoKitIssue('abc-123', context.repo, { number: 123 })
+	const api = { createStatus: jest.fn(), getPullRequest: jest.fn() }
 
 	describe('isMatch and dispatch', () => {
 		describe('When check subscribes and webhook event unhandled is triggered', () => {
