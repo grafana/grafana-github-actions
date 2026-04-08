@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-	Comment,
-	GitHub,
-	GitHubIssue,
-	Issue,
-	Milestone,
-	ProjectAndColumnIds,
+	type Comment,
+	type GitHub,
+	type GitHubIssue,
+	type Issue,
+	type Milestone,
+	type ProjectAndColumnIds,
 	projectType,
-	PullRequest,
-	Query,
-	User,
+	type PullRequest,
+	type Query,
+	type User,
 } from './api'
 
 type TestbedConfig = {

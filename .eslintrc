@@ -7,7 +7,7 @@
 	},
 	"plugins": ["@typescript-eslint", "prettier"],
 	"extends": ["eslint:recommended", "plugin:prettier/recommended"],
-	"ignorePatterns": ["node_modules", "*.js", "gha-otel-export/**", "pr-checks/**"],
+	"ignorePatterns": ["node_modules", "*.js", "gha-otel-export/**", "pr-checks/**", "commands/**"],
 	"rules": {
 		"no-unused-vars": "off",
 		"@typescript-eslint/no-unused-vars": "error",

@@ -5,7 +5,7 @@
 
 import { expect } from 'chai'
 import { expect as jestExpect } from '@jest/globals'
-import { TestbedIssue } from '../api/testbed'
+import { TestbedIssue } from '../../api/testbed'
 import { Command, Commands } from './Commands'
 
 describe('Commands', () => {
