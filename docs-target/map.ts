@@ -1,7 +1,7 @@
 import { coerce } from 'semver'
 
-let forcePrefix = 'v'
-let knownRefs = new Map<string, string>([
+const forcePrefix = 'v'
+const knownRefs = new Map<string, string>([
 	['main', 'next'],
 	['master', 'next'],
 ])
@@ -19,7 +19,7 @@ export function map(ref: string): string {
 		return knownRefs.get(ref)!
 	}
 
-	var ver = coerce(ref)
+	const ver = coerce(ref)
 	if (ver == null) {
 		throw 'ref_name invalid: ' + ref
 	}

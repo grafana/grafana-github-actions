@@ -36,9 +36,9 @@ const getLabelNames = ({
 }
 
 function getMatchedBackportLabels(labelsPR: string[], backportLabels: string[]): string[] {
-	let matchedLabels = []
+	const matchedLabels = []
 	for (const prLabel of labelsPR) {
-		for (let backportLabel of backportLabels) {
+		for (const backportLabel of backportLabels) {
 			if (backportLabel === prLabel) {
 				matchedLabels.push(backportLabel)
 			}
@@ -322,13 +322,13 @@ const backport = async ({
 	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
 	console.log('payloadAction: ' + payload.action)
 	if (payload.action !== 'closed') {
-		let payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : ''
+		const payloadLabel = typeof payload.label?.name === 'string' ? payload.label.name : ''
 		if (!(labelRegExp.test(payloadLabel) || backportLabels.includes(payloadLabel))) {
 			return
 		}
 	}
-	let labelsString = labels.map(({ name }) => name)
-	let matchedLabels = getMatchedBackportLabels(labelsString, backportLabels)
+	const labelsString = labels.map(({ name }) => name)
+	const matchedLabels = getMatchedBackportLabels(labelsString, backportLabels)
 	let matches = false
 	for (const label of labelsString) {
 		matches = labelRegExp.test(label)

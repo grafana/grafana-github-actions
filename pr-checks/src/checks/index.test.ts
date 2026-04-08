@@ -9,7 +9,7 @@ describe('getChecks', () => {
 			},
 		]
 		const checks = getChecks(config)
-		expect(checks[0]).to.not.be.undefined
+		expect(checks[0]).to.not.equal(undefined)
 		expect(checks[0].id).to.equal('milestone')
 	})
 })

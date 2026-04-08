@@ -28,7 +28,7 @@ class EnterpriseCheck extends Action {
 
 		debug('Getting branch ref from grafana enterprise...')
 		try {
-			let branch = await getBranch(octokit, sourceBranch)
+			const branch = await getBranch(octokit, sourceBranch)
 			if (branch) {
 				// Create the branch from the ref found in grafana-enterprise.
 				await createOrUpdateRef(octokit, prNumber, sourceBranch, branch.commit.sha, sourceSha)

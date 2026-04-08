@@ -65,7 +65,7 @@ class UpdateChangelog extends Action {
 				branchName,
 			)
 			branchExists = true
-		} catch (e) {
+		} catch {
 			branchExists = false
 		}
 

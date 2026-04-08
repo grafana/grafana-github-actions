@@ -8,7 +8,7 @@ export function hasMatchingReleaseTag(
 	releaseBranchRegexp: RegExp,
 	releaseBranchWithPatchRegexp: RegExp | undefined,
 ): string {
-	let refNames = splitStringIntoLines(execFileSync('git', ['tag'], { encoding: 'utf8' })).filter((e) => e)
+	const refNames = splitStringIntoLines(execFileSync('git', ['tag'], { encoding: 'utf8' })).filter((e) => e)
 
 	if (refNames.length == 0) {
 		core.warning(
@@ -55,7 +55,7 @@ export function hasMatchingReleaseTagWithRefNames(
 		return 'true'
 	}
 
-	let releaseTags = filterRefNames(refNames, releaseTagRegexp)
+	const releaseTags = filterRefNames(refNames, releaseTagRegexp)
 
 	core.debug(
 		`The following release tags match the release tag regular expression ${releaseTagRegexp}:\n${releaseTags.join(
@@ -66,7 +66,7 @@ export function hasMatchingReleaseTagWithRefNames(
 	let branchMatches = refName.match(releaseBranchRegexp)
 	if (branchMatches) {
 		for (let i = 0; i < releaseTags.length; i++) {
-			let tagMatches = releaseTags[i].match(releaseTagRegexp)
+			const tagMatches = releaseTags[i].match(releaseTagRegexp)
 			if (
 				tagMatches &&
 				tagMatches[1] == branchMatches[1] &&
@@ -84,7 +84,7 @@ export function hasMatchingReleaseTagWithRefNames(
 		branchMatches = refName.match(releaseBranchWithPatchRegexp)
 		if (branchMatches) {
 			for (let i = 0; i < releaseTags.length; i++) {
-				let tagMatches = releaseTags[i].match(releaseTagRegexp)
+				const tagMatches = releaseTags[i].match(releaseTagRegexp)
 				if (
 					tagMatches &&
 					tagMatches[1] == branchMatches[1] &&

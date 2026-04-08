@@ -181,7 +181,7 @@ const release = async ({
 }: ReleaseArgs) => {
 	const payload = context.payload as EventPayloads.WebhookPayloadPullRequest
 	console.log('payloadAction: ' + payload.action)
-	let labelsString = labels.map(({ name }) => name)
+	const labelsString = labels.map(({ name }) => name)
 	let matches = false
 	for (const label of labelsString) {
 		matches = labelMatcher === label
@@ -205,7 +205,7 @@ const release = async ({
 	await setConfig('grafanabot')
 
 	await group(`Adding ${pullRequestNumber} to release notes for next release`, async () => {
-		let head = `add-${pullRequestNumber}-to-release-notes`
+		const head = `add-${pullRequestNumber}-to-release-notes`
 		let title = titleTemplate
 		Object.entries({
 			pullRequestNumber: pullRequestNumber.toString(),

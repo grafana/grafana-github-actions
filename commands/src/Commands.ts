@@ -8,7 +8,6 @@ import { checkMatch, type MatchConfig } from '../../common/globmatcher'
 import { trackEvent } from '../../common/telemetry'
 import { getProjectIdFromUrl } from '../../common/utils'
 
-/* eslint-disable */
 // confusing when eslint formats
 export type Command = { name: string } & (
 	| { type: 'comment'; allowUsers: string[] }
@@ -27,13 +26,12 @@ export type Command = { name: string } & (
 	Partial<{ requireLabel: string; disallowLabel: string }> &
 	Partial<{ addToProject: { url: string; org?: string; column?: string } }> &
 	Partial<{ removeFromProject: { url: string; org?: string } }>
-/* eslint-enable */
 
 export class Commands {
 	constructor(
 		private github: GitHubIssue,
 		private config: Command[],
-		private action: { label: string } | { comment: string; user: User } | {},
+		private action: { label: string } | { comment: string; user: User } | Record<string, never>,
 	) {}
 
 	private async matches(command: Command, issue: Issue, changedFiles: string[]): Promise<boolean> {
@@ -61,13 +59,13 @@ export class Commands {
 			if (!command.name) {
 				command.name = 'changedfiles'
 			}
-			let matchCfg: MatchConfig = {
+			const matchCfg: MatchConfig = {
 				all: undefined,
 				any: undefined,
 			}
 
 			if (typeof command.matches === 'string') {
-				matchCfg.any = [command.matches as string]
+				matchCfg.any = [command.matches]
 			} else if ('any' in command.matches) {
 				matchCfg.any = command.matches.any
 			} else if ('all' in command.matches) {

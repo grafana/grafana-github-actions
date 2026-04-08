@@ -9,7 +9,6 @@ import { RequestError } from '@octokit/request-error'
 import { Octokit } from '@octokit/rest'
 import { graphql } from '@octokit/graphql'
 import { exec } from 'child_process'
-import type { GraphQlQueryResponseData } from '@octokit/graphql'
 import {
 	type Comment,
 	type GitHub,
@@ -201,6 +200,7 @@ export class OctoKit implements GitHub {
 			}
 			throw Error('Found directory at config path when expecting file' + JSON.stringify(data))
 		} catch (e) {
+			// eslint-disable-next-line preserve-caught-error -- typescript isn't typing this yet
 			throw Error('Error with config file at ' + repoPath + ': ' + JSON.stringify(e))
 		}
 	}
@@ -270,7 +270,7 @@ export class OctoKit implements GitHub {
 		console.debug('Running getProject for project ' + projectId)
 
 		try {
-			const result = (await this._octokitGraphQL({
+			const result: any = await this._octokitGraphQL({
 				query: `query getProjectNodeId($org: String!, $projectId: Int!) {
 					organization(login: $org) {	
 					  projectV2(number: $projectId) {
@@ -293,7 +293,7 @@ export class OctoKit implements GitHub {
 				`,
 				projectId: Math.floor(projectId),
 				org,
-			})) as GraphQlQueryResponseData
+			})
 			console.debug('getProject result ' + JSON.stringify(result))
 
 			if (result.organization.projectV2 && result.organization.projectV2.id) {
@@ -414,10 +414,10 @@ export class OctoKit implements GitHub {
 		}`
 
 		try {
-			const results = (await this._octokitGraphQL({
+			const results: any = await this._octokitGraphQL({
 				query: mutation,
 				issueNodeId,
-			})) as GraphQlQueryResponseData
+			})
 
 			// finding the right issueProjectV2NodeId
 			for (const issueProjectV2Node of results.node.projectItems.nodes) {
@@ -822,7 +822,7 @@ export class OctoKitIssue extends OctoKit implements GitHubIssue {
 			pull_number: pullNumber,
 		})
 
-		let filenames: string[] = []
+		const filenames: string[] = []
 
 		for await (const resp of this.octokit.paginate.iterator(options)) {
 			numRequests++

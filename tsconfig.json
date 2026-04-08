@@ -11,5 +11,12 @@
 		"lib": ["es2021"],
 		"skipLibCheck": true
 	},
-	"exclude": ["**/*.test.ts", "**/vm-filesystem/**", "__mocks__/**/*", "gha-otel-export/**", "pr-checks/**", "commands/**"]
+	"exclude": [
+		"**/*.test.ts",
+		"**/vm-filesystem/**",
+		"__mocks__/**/*",
+		"gha-otel-export/**",
+		"pr-checks/**",
+		"commands/**"
+	]
 }

@@ -102,13 +102,7 @@ export class ChangelogBuilder {
 
 	async getReleaseHeader(milestoneNumber: number, useDocsHeader?: boolean): Promise<string> {
 		const milestone = await this.octokit.getMilestone(milestoneNumber)
-		let datePart = ''
-
-		if (milestone.closed_at) {
-			datePart = ` (${milestone.closed_at.split('T')[0]})`
-		} else {
-			datePart = ' (unreleased)'
-		}
+		const datePart = milestone.closed_at ? ` (${milestone.closed_at.split('T')[0]})` : ' (unreleased)'
 
 		// Need to store title so we can get this seperatly for the release notes docs file
 		if (useDocsHeader) {

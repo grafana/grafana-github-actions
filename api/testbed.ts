@@ -180,8 +180,8 @@ export class TestbedIssue extends Testbed implements GitHubIssue {
 			updatedAt: +new Date(),
 			...issueConfig.issue,
 		}
-		;(issueConfig.pullRequestFilenames = issueConfig?.pullRequestFilenames ?? []),
-			(this.issueConfig = issueConfig as TestbedIssueConfig)
+		issueConfig.pullRequestFilenames = issueConfig?.pullRequestFilenames ?? []
+		this.issueConfig = issueConfig as TestbedIssueConfig
 	}
 
 	async addAssignee(assignee: string): Promise<void> {

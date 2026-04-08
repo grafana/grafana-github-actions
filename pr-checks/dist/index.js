@@ -100230,7 +100230,7 @@ class Dispatcher {
         console.debug('got matches', matches);
         for (let n = 0; n < matches.length; n++) {
             const match = matches[n];
-            let ctx = new CheckContext(this.api);
+            const ctx = new CheckContext(this.api);
             try {
                 console.debug('calling subcriber of event(s) and action(s)', match.events, match.actions);
                 await match.callback(ctx);

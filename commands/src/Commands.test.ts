@@ -285,7 +285,7 @@ describe('Commands', () => {
 			for await (const page of testbed.getComments()) {
 				comments.push(...page)
 			}
-			expect(comments[0]).to.be.undefined
+			expect(comments[0]).to.equal(undefined)
 		})
 	})
 

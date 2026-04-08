@@ -103848,7 +103848,6 @@ var telemetryExports = requireTelemetry();
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-/* eslint-enable */
 class Commands {
     github;
     config;
@@ -103877,7 +103876,7 @@ class Commands {
             if (!command.name) {
                 command.name = 'changedfiles';
             }
-            let matchCfg = {
+            const matchCfg = {
                 all: undefined,
                 any: undefined,
             };

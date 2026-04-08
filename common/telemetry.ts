@@ -50,7 +50,7 @@ if (apiKey) {
 				},
 				auth: {
 					username: '6371',
-					password: apiKey as string,
+					password: apiKey,
 				},
 				data: JSON.stringify([
 					{

@@ -15,7 +15,7 @@ export class FileAppender {
 	}
 
 	loadFile(relPath: string) {
-		let filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
+		const filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
 		if (!fs.existsSync(filePath)) {
 			throw new Error(`File not found ${filePath}`)
 		}
@@ -29,7 +29,7 @@ export class FileAppender {
 	}
 
 	writeFile(relPath: string) {
-		let filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
+		const filePath = this.options.cwd ? path.resolve(this.options.cwd, relPath) : relPath
 		fs.writeFileSync(filePath, this.getContent(), { encoding: 'utf-8' })
 	}
 
