@@ -1,19 +1,19 @@
 # As fallback we set grafana-delivery as owner for everything that has no
 # explicit owner in order to make mandatory reviews possible:
-* @grafana/grafana-release-guild
+* @grafana/grafana-backend-services-squad
 
 # Actions explicitly owned by docs-tooling
 /docs-target/ @grafana/docs-tooling
 /has-matching-release-tag/ @grafana/docs-tooling
 
 # Actions explicitly owned by grafana-delivery:
-/backport/ @grafana/grafana-release-guild
-/bump-version/ @grafana/grafana-release-guild
-/close-milestone/ @grafana/grafana-release-guild
-/enterprise-check/ @grafana/grafana-release-guild
-/github-release/ @grafana/grafana-release-guild
-/remove-milestone/ @grafana/grafana-release-guild
-/update-changelog/ @grafana/grafana-release-guild
+/backport/ @grafana/grafana-backend-services-squad
+/bump-version/ @grafana/grafana-backend-services-squad
+/close-milestone/ @grafana/grafana-backend-services-squad
+/enterprise-check/ @grafana/grafana-backend-services-squad
+/github-release/ @grafana/grafana-backend-services-squad
+/remove-milestone/ @grafana/grafana-backend-services-squad
+/update-changelog/ @grafana/grafana-backend-services-squad
 
 # Actions created by specified people:
 /repository-dispatch/ @AgnesToulet

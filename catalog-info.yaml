@@ -10,5 +10,5 @@ metadata:
 spec:
   type: library
   lifecycle: production
-  owner: "group:grafana-release-guild"
+  owner: "group:grafana-backend-services-squad"
   system: grafana
