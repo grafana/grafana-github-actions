@@ -6,7 +6,7 @@ permissions: {}
 
 jobs:
     verify-i18n:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-x86
         permissions:
             contents: read
         steps:

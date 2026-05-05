@@ -22,7 +22,7 @@ on:
 
 jobs:
   download-sources-from-crowdin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x86
 
     permissions:
       contents: write # needed to commit changes into the PR

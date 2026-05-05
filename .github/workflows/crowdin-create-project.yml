@@ -10,7 +10,7 @@ on:
 
 jobs:
   create-project-in-crowdin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x86
 
     permissions:
       contents: read
