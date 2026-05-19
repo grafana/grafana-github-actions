@@ -7,14 +7,6 @@ on:
                 description: 'The Crowdin project ID'
                 required: true
                 type: number
-            github_repo_token:
-                description: 'GitHub token with access to the repository, used to commit changes and create pull requests.'
-                required: true
-                type: string
-            crowdin_token:
-                description: 'Crowdin API token with access to the Crowdin project, used to download translations.'
-                required: true
-                type: string
             pr_labels:
                 description: 'Comma-separated list of labels to apply to the pull request'
                 required: false
@@ -27,10 +19,16 @@ on:
                 description: 'Comma-separated list of paths to en-US locale files. Use alongside github_pr_approver_token to enable automerging of the pull request.'
                 required: false
                 type: string
+        secrets:
+            github_repo_token:
+                description: 'GitHub token with access to the repository, used to commit changes and create pull requests.'
+                required: true
+            crowdin_token:
+                description: 'Crowdin API token with access to the Crowdin project, used to download translations.'
+                required: true
             github_pr_approver_token:
                 description: 'GitHub token with write access to the repository, used to automatically approve PR changes.'
                 required: false
-                type: string
 
 jobs:
     download-sources-from-crowdin:
@@ -41,6 +39,9 @@ jobs:
             pull-requests: write # needed to update PR description, labels, etc
             id-token: write # needed to get vault secrets
 
+        env:
+            GITHUB_PR_APPROVER_TOKEN: ${{ secrets.github_pr_approver_token }}
+
         outputs:
             pull_request_url: ${{ steps.crowdin-download.outputs.pull_request_url }}
 
@@ -48,7 +49,7 @@ jobs:
             - uses: actions/checkout@v4
               with:
                   ref: ${{ github.head_ref }}
-                  token: ${{ inputs.github_repo_token}}
+                  token: ${{ secrets.github_repo_token}}
                   persist-credentials: false
 
             - name: Download sources
@@ -78,9 +79,9 @@ jobs:
                   github_user_name: 'github-actions[bot]'
                   github_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
               env:
-                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+                  GITHUB_TOKEN: ${{ secrets.github_repo_token }}
                   CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
-                  CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token}}
+                  CROWDIN_PERSONAL_TOKEN: ${{ secrets.crowdin_token}}
 
             - name: Get pull request ID
               if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
@@ -91,7 +92,7 @@ jobs:
                   pr_id=$(gh pr view ${{ steps.crowdin-download.outputs.pull_request_url }} --json id -q .id)
                   echo "PULL_REQUEST_ID=$pr_id" >> "$GITHUB_ENV"
               env:
-                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+                  GITHUB_TOKEN: ${{ secrets.github_repo_token }}
 
             - name: Get project board ID
               uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
@@ -111,7 +112,7 @@ jobs:
                       org: grafana
                       project_number: ${{ inputs.github_board_id }}
               env:
-                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+                  GITHUB_TOKEN: ${{ secrets.github_repo_token }}
 
             - name: Add to project board
               uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
@@ -129,13 +130,13 @@ jobs:
                       projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
                       prid: ${{ env.PULL_REQUEST_ID }}
               env:
-                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+                  GITHUB_TOKEN: ${{ secrets.github_repo_token }}
 
             - name: Approve and automerge PR
-              if: inputs.en_paths && inputs.github_pr_approver_token && steps.crowdin-download.outputs.pull_request_url
+              if: inputs.en_paths && env.GITHUB_PR_APPROVER_TOKEN != '' && steps.crowdin-download.outputs.pull_request_url
               shell: bash
               env:
-                  GITHUB_TOKEN: ${{ inputs.github_pr_approver_token}}
+                  GITHUB_TOKEN: ${{ env.GITHUB_PR_APPROVER_TOKEN }}
                   QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
                   EN_PATHS: ${{ inputs.en_paths }}
               # Only approve if:

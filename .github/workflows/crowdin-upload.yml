@@ -7,10 +7,10 @@ on:
                 description: 'The Crowdin project ID'
                 required: true
                 type: string
+        secrets:
             crowdin_token:
                 description: 'Crowdin API token with access to the Crowdin project, used to upload translations.'
                 required: true
-                type: string
 
 jobs:
     upload-sources-to-crowdin:
@@ -38,4 +38,4 @@ jobs:
                   config: 'crowdin.yml'
               env:
                   CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
-                  CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
+                  CROWDIN_PERSONAL_TOKEN: ${{ secrets.crowdin_token }}
