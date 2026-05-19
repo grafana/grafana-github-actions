@@ -7,16 +7,28 @@ on:
                 description: 'The Crowdin project ID'
                 required: true
                 type: number
+            github_repo_token:
+                description: 'GitHub token with access to the repository, used to commit changes and create pull requests.'
+                required: true
+                type: string
+            crowdin_token:
+                description: 'Crowdin API token with access to the Crowdin project, used to download translations.'
+                required: true
+                type: string
             pr_labels:
                 description: 'Comma-separated list of labels to apply to the pull request'
                 required: false
                 type: string
-            en_paths:
-                description: 'Comma-separated list of paths to en-US locale files. NOTE: passing this input will enable automerge of the pull request.'
-                required: false
-                type: string
             github_board_id:
                 description: 'The ID of the GitHub project board to add the pull request to'
+                required: false
+                type: string
+            en_paths:
+                description: 'Comma-separated list of paths to en-US locale files. Use alongside github_pr_approver_token to enable automerging of the pull request.'
+                required: false
+                type: string
+            github_pr_approver_token:
+                description: 'GitHub token with write access to the repository, used to automatically approve PR changes.'
                 required: false
                 type: string
 
@@ -33,28 +45,10 @@ jobs:
             pull_request_url: ${{ steps.crowdin-download.outputs.pull_request_url }}
 
         steps:
-            - name: 'Get vault secrets'
-              id: vault-secrets
-              uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
-              with:
-                  # Vault secret paths:
-                  # - ci/common/grafana/...
-                  common_secrets: |
-                      CROWDIN_TOKEN=grafana/grafana_frontend_platform_crowdin_bot:access_token
-                      GRAFANA_PR_AUTOMATION_APP_ID=grafana_pr_automation_app:app_id
-                      GRAFANA_PR_AUTOMATION_APP_PEM=grafana_pr_automation_app:app_pem
-
-            - name: Generate token
-              id: generate_token
-              uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
-              with:
-                  app_id: ${{ env.GRAFANA_PR_AUTOMATION_APP_ID }}
-                  private_key: ${{ env.GRAFANA_PR_AUTOMATION_APP_PEM }}
-
             - uses: actions/checkout@v4
               with:
                   ref: ${{ github.head_ref }}
-                  token: ${{ steps.generate_token.outputs.token }}
+                  token: ${{ inputs.github_repo_token}}
                   persist-credentials: false
 
             - name: Download sources
@@ -84,9 +78,9 @@ jobs:
                   github_user_name: 'github-actions[bot]'
                   github_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
               env:
-                  GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
                   CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
-                  CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
+                  CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token}}
 
             - name: Get pull request ID
               if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
@@ -97,7 +91,7 @@ jobs:
                   pr_id=$(gh pr view ${{ steps.crowdin-download.outputs.pull_request_url }} --json id -q .id)
                   echo "PULL_REQUEST_ID=$pr_id" >> "$GITHUB_ENV"
               env:
-                  GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
 
             - name: Get project board ID
               uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
@@ -117,7 +111,7 @@ jobs:
                       org: grafana
                       project_number: ${{ inputs.github_board_id }}
               env:
-                  GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
 
             - name: Add to project board
               uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
@@ -135,37 +129,18 @@ jobs:
                       projectid: ${{ fromJson(steps.get-project-id.outputs.data).organization.projectV2.id }}
                       prid: ${{ env.PULL_REQUEST_ID }}
               env:
-                  GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-
-            - name: Get vault secrets
-              id: vault-secrets-approver
-              if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
-              uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
-              with:
-                  # Secrets placed in ci/repo/grafana/grafana/grafana-pr-approver
-                  repo_secrets: |
-                      GRAFANA_PR_APPROVER_APP_ID=grafana-pr-approver:app-id
-                      GRAFANA_PR_APPROVER_APP_PEM=grafana-pr-approver:private-key
-
-            - name: Generate approver token
-              if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
-              id: generate_approver_token
-              uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
-              with:
-                  app_id: ${{ env.GRAFANA_PR_APPROVER_APP_ID }}
-                  private_key: ${{ env.GRAFANA_PR_APPROVER_APP_PEM }}
+                  GITHUB_TOKEN: ${{ inputs.github_repo_token }}
 
             - name: Approve and automerge PR
-              if: inputs.en_paths && steps.crowdin-download.outputs.pull_request_url
+              if: inputs.en_paths && inputs.github_pr_approver_token && steps.crowdin-download.outputs.pull_request_url
               shell: bash
               env:
-                  GITHUB_TOKEN: ${{ steps.generate_approver_token.outputs.token }}
+                  GITHUB_TOKEN: ${{ inputs.github_pr_approver_token}}
                   QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
                   EN_PATHS: ${{ inputs.en_paths }}
               # Only approve if:
               # - the PR does not modify files other than json files under the public/locales/ directory
               # - the PR does not modify the en-US locale
-              # TODO make these paths inputs to the workflow when we move this to a shared repo
               run: |
                   # Crowdin action outputs a quoted string, so we need to unquote it when using it
                   # as an environment variable
