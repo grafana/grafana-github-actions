@@ -1,0 +1,35 @@
+name: Crowdin create tasks
+description: 'GitHub Action to create Crowdin tasks to trigger new translations.'
+
+inputs:
+    crowdin_project_id:
+        description: 'The Crowdin project ID'
+        required: true
+    crowdin_token:
+        description: 'Crowdin API token with access to the Crowdin project, used to create tasks in Crowdin.'
+        required: true
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+          with:
+              repository: 'grafana/grafana-github-actions'
+              persist-credentials: false
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+              node-version-file: '.nvmrc'
+
+        - name: Yarn install
+          shell: bash
+          run: yarn install --immutable --check-cache
+
+        - name: Create tasks
+          shell: bash
+          env:
+              CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
+              CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
+          run: node --experimental-strip-types ./create-tasks/create-tasks.ts

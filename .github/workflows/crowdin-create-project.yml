@@ -1,46 +1,46 @@
 name: Crowdin create project
 
 on:
-  workflow_dispatch:
-    inputs:
-      project_name:
-        description: "The project name to be used in Crowdin. Should correspond to a repository name."
-        required: true
-        type: string
+    workflow_dispatch:
+        inputs:
+            project_name:
+                description: 'The project name to be used in Crowdin. Should correspond to a repository name.'
+                required: true
+                type: string
 
 jobs:
-  create-project-in-crowdin:
-    runs-on: ubuntu-x64
+    create-project-in-crowdin:
+        runs-on: ubuntu-x64
 
-    permissions:
-      contents: read
-      id-token: write # needed to get vault secrets
+        permissions:
+            contents: read
+            id-token: write # needed to get vault secrets
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
 
-      - name: "Get vault secrets"
-        id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
-        with:
-          # Vault secret paths:
-          # - ci/repo/grafana/grafana-github-actions/grafana_frontend_platform_crowdin_bot
-          # NOTE: this is different to the common secret used in other workflows since creating a project requires additional permissions
-          repo_secrets: |
-            CROWDIN_TOKEN=grafana_frontend_platform_crowdin_bot:access_token
+            - name: 'Get vault secrets'
+              id: vault-secrets
+              uses: grafana/shared-workflows/actions/get-vault-secrets@main # zizmor: ignore[unpinned-uses]
+              with:
+                  # Vault secret paths:
+                  # - ci/repo/grafana/grafana-github-actions/grafana-frontend-crowdin-create-project-token
+                  # NOTE: this is different to the common secret used in other workflows since creating a project requires additional permissions
+                  repo_secrets: |
+                      CROWDIN_TOKEN=grafana-frontend-crowdin-create-project-token:access_token
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: '.nvmrc'
 
-      - run: yarn install --immutable --check-cache
+            - run: yarn install --immutable --check-cache
 
-      - name: Create project
-        env:
-          PROJECT_NAME: ${{ inputs.project_name }}
-          CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
-        run: node --experimental-strip-types ./.github/workflows/scripts/crowdin/create-project.ts
+            - name: Create project
+              env:
+                  PROJECT_NAME: ${{ inputs.project_name }}
+                  CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
+              run: node --experimental-strip-types ./.github/workflows/scripts/crowdin/create-project.ts

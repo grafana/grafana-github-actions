@@ -1,0 +1,25 @@
+name: Crowdin upload
+description: Upload sources to Crowdin
+inputs:
+    crowdin_project_id:
+        description: 'The Crowdin project ID'
+        required: true
+    crowdin_token:
+        description: 'Crowdin API token with access to the Crowdin project, used to upload translations.'
+        required: true
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Upload sources
+          uses: crowdin/github-action@b8012bd5491b8aa8578b73ab5b5f5e7c94aaa6e2
+          with:
+              upload_sources: true
+              upload_translations: false
+              download_translations: false
+              create_pull_request: false
+              base_url: 'https://grafana.api.crowdin.com'
+              config: 'crowdin.yml'
+          env:
+              CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
+              CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
