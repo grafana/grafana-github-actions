@@ -32,4 +32,4 @@ runs:
           env:
               CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
               CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
-          run: node --experimental-strip-types ./create-tasks/create-tasks.ts
+          run: node --experimental-strip-types ./crowdin-create-tasks/create-tasks.ts
