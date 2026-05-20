@@ -1,11 +1,7 @@
-import crowdinImport from '@crowdin/crowdin-api-client'
+import { Client } from '@crowdin/crowdin-api-client'
 
 const TRANSLATED_CONNECTOR_DESCRIPTION = '{{tos_service_type: premium}}'
 const TRANSLATE_BY_VENDOR_WORKFLOW_TYPE = 'Translate'
-
-// TODO Remove this type assertion when https://github.com/crowdin/crowdin-api-client-js/issues/508 is fixed
-// @ts-expect-error
-const crowdin = crowdinImport.default as typeof crowdinImport
 
 const API_TOKEN = process.env.CROWDIN_PERSONAL_TOKEN
 if (!API_TOKEN) {
@@ -24,7 +20,7 @@ const credentials = {
 	organization: 'grafana',
 }
 
-const { tasksApi, projectsGroupsApi, sourceFilesApi, workflowsApi } = new crowdin(credentials)
+const { tasksApi, projectsGroupsApi, sourceFilesApi, workflowsApi } = new Client(credentials)
 
 const languages = await getLanguages(PROJECT_ID)
 const fileIds = await getFileIds(PROJECT_ID)
