@@ -66,8 +66,9 @@ runs:
           # that looks like 'PR_kwDOAOaWjc5mP_GU'
           env:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
-              PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+              QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
           run: |
+              PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
               pr_id=$(gh pr view "$PR_URL" --json id -q .id)
               echo "pull_request_id=$pr_id" >> "$GITHUB_OUTPUT"
 
