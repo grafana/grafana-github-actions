@@ -1,4 +1,4 @@
-import { exec } from '@actions/exec'
+import { getExecOutput } from '@actions/exec'
 import { release } from './release'
 
 jest.mock('@actions/exec')
@@ -30,7 +30,7 @@ jest.mock('@actions/github', () => ({
 }))
 
 describe('release/error-propagation', () => {
-	const mockExec = exec as jest.MockedFunction<typeof exec>
+	const mockGetExecOutput = getExecOutput as jest.MockedFunction<typeof getExecOutput>
 
 	const mockGithub = {
 		issues: {
@@ -68,10 +68,21 @@ describe('release/error-propagation', () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks()
-		mockExec.mockRejectedValue(new Error('Process failed: /usr/bin/git failed with exit code 1'))
+		mockGetExecOutput.mockResolvedValue({
+			exitCode: 1,
+			stderr: 'error: pathspec \'main\' did not match any file(s) known to git',
+			stdout: '',
+		})
 	})
 
-	test('rejects when git operation fails', async () => {
+	test('rejects with captured git stderr when git operation fails', async () => {
 		await expect(release(releaseArgs)).rejects.toThrow()
+		expect(mockGithub.issues.createComment).toHaveBeenCalledWith(
+			expect.objectContaining({
+				body: expect.stringContaining(
+					"error: pathspec 'main' did not match any file(s) known to git",
+				),
+			}),
+		)
 	})
 })

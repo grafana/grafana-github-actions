@@ -1,7 +1,7 @@
 import { EventPayloads } from '@octokit/webhooks'
 import { context, GitHub } from '@actions/github'
 import { error as logError, group } from '@actions/core'
-import { exec } from '@actions/exec'
+import { getExecOutput } from '@actions/exec'
 import escapeRegExp from 'lodash.escaperegexp'
 
 import { FileAppender } from './FileAppender'
@@ -37,7 +37,10 @@ const createReleaseNotesPR = async ({
 	mergedBy: any
 }) => {
 	const git = async (...args: string[]) => {
-		await exec('git', args, { cwd: repo })
+		const { exitCode, stderr } = await getExecOutput('git', args, { cwd: repo, ignoreReturnCode: true })
+		if (exitCode !== 0) {
+			throw new Error(`git ${args[0]} failed:\n${stderr.trim()}`)
+		}
 	}
 
 	await git('checkout', 'main')

@@ -13,7 +13,10 @@ const git_1 = require("../common/git");
 const labelMatcher = 'add-to-release-notes';
 const createReleaseNotesPR = async ({ pullRequestNumber: prNumber, pullRequestUrl: prUrl, pullRequestTitle: prTitle, releaseNotesFile, github, head, labelsToAdd, owner, repo, title, milestone, mergedBy, }) => {
     const git = async (...args) => {
-        await (0, exec_1.exec)('git', args, { cwd: repo });
+        const { exitCode, stderr } = await (0, exec_1.getExecOutput)('git', args, { cwd: repo, ignoreReturnCode: true });
+        if (exitCode !== 0) {
+            throw new Error(`git ${args[0]} failed:\n${stderr.trim()}`);
+        }
     };
     await git('checkout', 'main');
     await git('pull');
