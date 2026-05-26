@@ -255,6 +255,7 @@ const release = async ({
 				owner,
 				repo,
 			})
+			throw error
 		}
 	})
 }

@@ -168,6 +168,7 @@ const release = async ({ labelsToAdd, payload: { pull_request: { labels, merged,
                 owner,
                 repo,
             });
+            throw error;
         }
     });
 };
