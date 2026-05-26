@@ -1,9 +1,28 @@
+import { exec, getExecOutput } from '@actions/exec'
 import {
 	BETTERER_RESULTS_PATH,
+	backport,
 	getFinalLabels,
 	isBettererConflict,
 	getFailedBackportCommentBody,
 } from './backport'
+
+jest.mock('@actions/exec')
+jest.mock('@actions/core', () => ({
+	error: jest.fn(),
+	group: (_name: string, fn: () => Promise<unknown>) => fn(),
+	info: jest.fn(),
+	setFailed: jest.fn(),
+}))
+jest.mock('../common/git', () => ({
+	cloneRepo: jest.fn().mockResolvedValue(undefined),
+	setConfig: jest.fn().mockResolvedValue(undefined),
+}))
+jest.mock('@betterer/betterer', () => ({ betterer: jest.fn() }))
+jest.mock('@actions/github', () => ({
+	context: { payload: { action: 'closed' } },
+	GitHub: jest.fn(),
+}))
 
 const onlyDocsChanges = ['docs/sources/_index.md', 'docs/sources/other.md']
 const onlyBettererChanges = [BETTERER_RESULTS_PATH]
@@ -85,4 +104,64 @@ test('getFailedBackportCommentBody/gh-line-with-body', () => {
 		`gh pr create --title '[v10.0.x] hello world' --body-file - --label 'backport' --label 'no-changelog' --base v10.0.x --milestone 10.0.x --web`,
 	)
 	expect(output).toContain('git push --set-upstream origin backport-123-to-v10.0.x')
+})
+
+describe('backport/error-propagation', () => {
+	const mockExec = exec as jest.MockedFunction<typeof exec>
+	const mockGetExecOutput = getExecOutput as jest.MockedFunction<typeof getExecOutput>
+
+	const mockGithub = {
+		issues: {
+			createComment: jest.fn().mockResolvedValue({}),
+			addLabels: jest.fn().mockResolvedValue({}),
+			removeLabel: jest.fn().mockResolvedValue({}),
+			listMilestonesForRepo: jest.fn().mockResolvedValue({ data: [] }),
+			update: jest.fn().mockResolvedValue({}),
+		},
+		pulls: {
+			create: jest.fn().mockResolvedValue({ data: { number: 1 } }),
+		},
+	}
+
+	const mockIssue = {
+		getIssue: jest.fn().mockResolvedValue({ labels: [], body: null }),
+	}
+
+	const backportArgs = {
+		issue: mockIssue as any,
+		labelsToAdd: [],
+		payload: {
+			action: 'closed',
+			label: { name: '' },
+			pull_request: {
+				labels: [{ name: 'backport v10.0.x' }, { name: 'type/bug' }],
+				merge_commit_sha: 'abc123',
+				merged: true,
+				number: 42,
+				title: 'fix: some fix',
+				merged_by: { login: 'user' },
+			},
+			repository: { name: 'test-repo', owner: { login: 'test-owner' } },
+		} as any,
+		titleTemplate: '[{{base}}] {{originalTitle}}',
+		removeDefaultReviewers: false,
+		github: mockGithub as any,
+		token: 'test-token',
+		sender: { login: 'user' } as any,
+	}
+
+	beforeEach(() => {
+		jest.clearAllMocks()
+		// git switch, git switch --create succeed; cherry-pick fails; cherry-pick --abort succeeds
+		mockExec
+			.mockResolvedValueOnce(0)
+			.mockResolvedValueOnce(0)
+			.mockRejectedValueOnce(new Error('Process failed: /usr/bin/git failed with exit code 1'))
+			.mockResolvedValueOnce(0)
+		mockGetExecOutput.mockResolvedValue({ stdout: 'conflicted-file.ts', stderr: '', exitCode: 1 })
+	})
+
+	test('rejects when cherry-pick fails', async () => {
+		await expect(backport(backportArgs)).rejects.toThrow()
+	})
 })
