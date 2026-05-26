@@ -423,6 +423,8 @@ const backport = async ({
 	await cloneRepo({ token, owner, repo })
 	await setConfig('grafana-delivery-bot')
 
+	const failedTargets: string[] = []
+
 	for (const [base, head] of Object.entries(backportBaseToHead)) {
 		const issueHasBody = !!ghIssue.body
 		const bodySuffix = issueHasBody ? `\n\n---\n\n${ghIssue.body}` : ''
@@ -457,6 +459,7 @@ const backport = async ({
 			} catch (error) {
 				const errorMessage: string =
 					error instanceof Error ? error.message : 'Unknown error while backporting'
+				failedTargets.push(base)
 				logError(errorMessage)
 
 				// Create comment
@@ -484,6 +487,10 @@ const backport = async ({
 				})
 			}
 		})
+	}
+
+	if (failedTargets.length > 0) {
+		throw new Error(`Backport failed for: ${failedTargets.join(', ')}`)
 	}
 }
 

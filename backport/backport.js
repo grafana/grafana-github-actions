@@ -300,6 +300,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
     const prLabels = Array.from(getFinalLabels(originalLabels, labelsToAdd).values());
     await (0, git_1.cloneRepo)({ token, owner, repo });
     await (0, git_1.setConfig)('grafana-delivery-bot');
+    const failedTargets = [];
     for (const [base, head] of Object.entries(backportBaseToHead)) {
         const issueHasBody = !!ghIssue.body;
         const bodySuffix = issueHasBody ? `\n\n---\n\n${ghIssue.body}` : '';
@@ -331,6 +332,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
             }
             catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error while backporting';
+                failedTargets.push(base);
                 (0, core_1.error)(errorMessage);
                 // Create comment
                 await github.issues.createComment({
@@ -357,6 +359,9 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
                 });
             }
         });
+    }
+    if (failedTargets.length > 0) {
+        throw new Error(`Backport failed for: ${failedTargets.join(', ')}`);
     }
 };
 exports.backport = backport;
