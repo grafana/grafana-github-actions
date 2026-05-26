@@ -152,16 +152,27 @@ describe('backport/error-propagation', () => {
 
 	beforeEach(() => {
 		jest.clearAllMocks()
-		// git switch, git switch --create succeed; cherry-pick fails; cherry-pick --abort succeeds
+		// git switch base, git switch --create, git cherry-pick --abort succeed
 		mockExec
 			.mockResolvedValueOnce(0)
 			.mockResolvedValueOnce(0)
-			.mockRejectedValueOnce(new Error('Process failed: /usr/bin/git failed with exit code 1'))
 			.mockResolvedValueOnce(0)
-		mockGetExecOutput.mockResolvedValue({ stdout: 'conflicted-file.ts', stderr: '', exitCode: 1 })
+		// cherry-pick returns non-zero with stderr; diff returns unmerged paths
+		mockGetExecOutput
+			.mockResolvedValueOnce({
+				exitCode: 1,
+				stderr: 'CONFLICT (content): Merge conflict in foo.ts',
+				stdout: '',
+			})
+			.mockResolvedValueOnce({ exitCode: 0, stdout: 'conflicted-file.ts', stderr: '' })
 	})
 
-	test('rejects when cherry-pick fails', async () => {
+	test('rejects with captured git stderr when cherry-pick fails', async () => {
 		await expect(backport(backportArgs)).rejects.toThrow()
+		expect(mockGithub.issues.createComment).toHaveBeenCalledWith(
+			expect.objectContaining({
+				body: expect.stringContaining('CONFLICT (content): Merge conflict in foo.ts'),
+			}),
+		)
 	})
 })

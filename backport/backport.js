@@ -71,10 +71,8 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
     };
     await git('switch', base);
     await git('switch', '--create', head);
-    try {
-        await git('cherry-pick', '-x', commitToBackport);
-    }
-    catch (error) {
+    const { exitCode: cherryPickExitCode, stderr: cherryPickStderr } = await (0, exec_1.getExecOutput)('git', ['cherry-pick', '-x', commitToBackport], { cwd: repo, ignoreReturnCode: true });
+    if (cherryPickExitCode !== 0) {
         const gitUnmergedPaths = await gitDiffUnmergedPaths();
         if (await (0, exports.isBettererConflict)(gitUnmergedPaths)) {
             try {
@@ -87,7 +85,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         }
         else {
             await git('cherry-pick', '--abort');
-            throw error;
+            throw new Error(`cherry-pick failed:\n${cherryPickStderr.trim()}`);
         }
     }
     await git('push', '--set-upstream', 'origin', head);
