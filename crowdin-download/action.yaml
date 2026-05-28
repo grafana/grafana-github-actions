@@ -23,6 +23,14 @@ inputs:
     github_pr_approver_token:
         description: 'GitHub token with write access to the repository, used to automatically approve PR changes.'
         required: false
+    post_download_command:
+        description: |
+            Optional shell command to run on the i18n_crowdin_translations branch after translations are
+            downloaded and before the pull request is created. Use this to normalise translation files
+            (e.g. pnpm i18n-extract). Any file changes produced are committed and pushed to the branch
+            before the PR is opened. The calling workflow is responsible for installing any required tools
+            (node, pnpm, etc.) before invoking this action.
+        required: false
 
 runs:
     using: 'composite'
@@ -37,17 +45,7 @@ runs:
               download_translations: true
               export_only_approved: true
               localization_branch_name: i18n_crowdin_translations
-              create_pull_request: true
-              pull_request_title: 'I18n: Download translations from Crowdin'
-              pull_request_body: |
-                  :robot: Automatic download of translations from Crowdin.
-
-                  This runs once per day and will merge automatically if all the required checks pass.
-
-                  If there's a conflict, close the pull request and **delete the branch**.
-                  You can then either wait for the schedule to trigger a new PR, or rerun the action manually.
-              pull_request_labels: ${{ inputs.pr_labels }}
-              pull_request_base_branch_name: 'main'
+              create_pull_request: false
               base_url: 'https://grafana.api.crowdin.com'
               config: 'crowdin.yml'
               # Magic details of the github-actions bot user, to pass CLA checks
@@ -58,15 +56,88 @@ runs:
               CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
               CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
 
+        - name: Detect i18n branch
+          id: detect-i18n-branch
+          shell: bash
+          run: |
+              if gh api "repos/${GITHUB_REPOSITORY}/git/refs/heads/i18n_crowdin_translations" --silent 2>/dev/null; then
+                echo "has_translations=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "has_translations=false" >> "$GITHUB_OUTPUT"
+              fi
+          env:
+              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+
+        - name: Run post-download command
+          if: inputs.post_download_command != '' && steps.detect-i18n-branch.outputs.has_translations == 'true'
+          shell: bash
+          run: |
+              git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+              git fetch origin i18n_crowdin_translations
+              git checkout -B i18n_crowdin_translations origin/i18n_crowdin_translations
+              eval "${POST_DOWNLOAD_COMMAND}"
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git add -A
+              if ! git diff --cached --quiet; then
+                git commit -m "Apply post-download i18n extraction"
+                git push origin i18n_crowdin_translations
+              fi
+          env:
+              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+              POST_DOWNLOAD_COMMAND: ${{ inputs.post_download_command }}
+
+        - name: Create pull request
+          id: create-pr
+          if: steps.detect-i18n-branch.outputs.has_translations == 'true'
+          shell: bash
+          run: |
+              # Return the URL of an existing open PR for this branch (idempotent re-runs)
+              PR_URL=$(gh pr view --head i18n_crowdin_translations --json url -q .url 2>/dev/null || true)
+
+              if [ -z "$PR_URL" ]; then
+                cat > /tmp/crowdin-pr-body.md << 'PREOF'
+              :robot: Automatic download of translations from Crowdin.
+
+              This runs once per day and will merge automatically if all the required checks pass.
+
+              If there's a conflict, close the pull request and **delete the branch**.
+              You can then either wait for the schedule to trigger a new PR, or rerun the action manually.
+              PREOF
+
+                LABEL_ARGS=()
+                if [ -n "$PR_LABELS" ]; then
+                  IFS=',' read -ra LABELS <<< "$PR_LABELS"
+                  for label in "${LABELS[@]}"; do
+                    label=$(echo "$label" | xargs)
+                    if [ -n "$label" ]; then
+                      LABEL_ARGS+=(--label "$label")
+                    fi
+                  done
+                fi
+
+                PR_URL=$(gh pr create \
+                  --title "I18n: Download translations from Crowdin" \
+                  --body-file /tmp/crowdin-pr-body.md \
+                  --base main \
+                  --head i18n_crowdin_translations \
+                  "${LABEL_ARGS[@]}")
+              fi
+
+              echo "pull_request_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          env:
+              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+              PR_LABELS: ${{ inputs.pr_labels }}
+
         - name: Get pull request ID
           id: get-pr-id
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           shell: bash
           # Crowdin action returns us the URL of the pull request, but we need an ID for the GraphQL API
           # that looks like 'PR_kwDOAOaWjc5mP_GU'
           env:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
-              QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+              QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
           run: |
               PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
               pr_id=$(gh pr view "$PR_URL" --json id -q .id)
@@ -75,7 +146,7 @@ runs:
         - name: Get project board ID
           uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
           id: get-project-id
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           with:
               query: |
                   query getProjectId($org: String!, $project_number: Int!){
@@ -94,7 +165,7 @@ runs:
 
         - name: Add to project board
           uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           with:
               query: |
                   mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
@@ -111,11 +182,11 @@ runs:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
 
         - name: Approve and automerge PR
-          if: inputs.en_paths && inputs.github_pr_approver_token && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.en_paths && inputs.github_pr_approver_token && steps.create-pr.outputs.pull_request_url
           shell: bash
           env:
               GITHUB_TOKEN: ${{ inputs.github_pr_approver_token }}
-              QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+              QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
               EN_PATHS: ${{ inputs.en_paths }}
           # Only approve if:
           # - the PR does not modify files other than json files under the public/locales/ directory
