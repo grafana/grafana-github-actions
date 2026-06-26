@@ -23,13 +23,6 @@ inputs:
     github_pr_approver_token:
         description: 'GitHub token with write access to the repository, used to automatically approve PR changes.'
         required: false
-    post_download_command:
-        description: |
-            Optional shell command to run after translations are downloaded and before the pull request
-            is created. Use this to normalise translation files (e.g. pnpm i18n-extract). The calling
-            workflow is responsible for installing any required tools (node, pnpm, etc.) before invoking
-            this action.
-        required: false
 
 runs:
     using: 'composite'
@@ -54,13 +47,6 @@ runs:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
               CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
               CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
-
-        - name: Run post-download command
-          if: inputs.post_download_command != ''
-          shell: bash
-          run: eval "${POST_DOWNLOAD_COMMAND}"
-          env:
-              POST_DOWNLOAD_COMMAND: ${{ inputs.post_download_command }}
 
         - name: Detect changes
           id: detect-changes
