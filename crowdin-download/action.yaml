@@ -25,11 +25,10 @@ inputs:
         required: false
     post_download_command:
         description: |
-            Optional shell command to run on the i18n_crowdin_translations branch after translations are
-            downloaded and before the pull request is created. Use this to normalise translation files
-            (e.g. pnpm i18n-extract). Any file changes produced are committed and pushed to the branch
-            before the PR is opened. The calling workflow is responsible for installing any required tools
-            (node, pnpm, etc.) before invoking this action.
+            Optional shell command to run after translations are downloaded and before the pull request
+            is created. Use this to normalise translation files (e.g. pnpm i18n-extract). The calling
+            workflow is responsible for installing any required tools (node, pnpm, etc.) before invoking
+            this action.
         required: false
 
 runs:
@@ -43,12 +42,12 @@ runs:
               upload_translations: false
               download_sources: false
               download_translations: true
+              push_translations: false
               export_only_approved: true
               localization_branch_name: i18n_crowdin_translations
               create_pull_request: false
               base_url: 'https://grafana.api.crowdin.com'
               config: 'crowdin.yml'
-              # Magic details of the github-actions bot user, to pass CLA checks
               github_user_name: 'github-actions[bot]'
               github_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
           env:
@@ -56,43 +55,105 @@ runs:
               CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
               CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
 
-        - name: Detect i18n branch
-          id: detect-i18n-branch
-          shell: bash
-          run: |
-              if gh api "repos/${GITHUB_REPOSITORY}/git/refs/heads/i18n_crowdin_translations" --silent 2>/dev/null; then
-                echo "has_translations=true" >> "$GITHUB_OUTPUT"
-              else
-                echo "has_translations=false" >> "$GITHUB_OUTPUT"
-              fi
-          env:
-              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
-
         - name: Run post-download command
-          if: inputs.post_download_command != '' && steps.detect-i18n-branch.outputs.has_translations == 'true'
+          if: inputs.post_download_command != ''
+          shell: bash
+          run: eval "${POST_DOWNLOAD_COMMAND}"
+          env:
+              POST_DOWNLOAD_COMMAND: ${{ inputs.post_download_command }}
+
+        - name: Detect changes
+          id: detect-changes
           shell: bash
           run: |
-              git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
-              git fetch origin i18n_crowdin_translations
-              git checkout -B i18n_crowdin_translations origin/i18n_crowdin_translations
-              eval "${POST_DOWNLOAD_COMMAND}"
-              git config user.name "github-actions[bot]"
-              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-              git add -A
-              if ! git diff --cached --quiet; then
-                git commit -m "Apply post-download i18n extraction"
-                git push origin i18n_crowdin_translations
+              if [ -n "$(git status --porcelain)" ]; then
+                echo "has_changes=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "has_changes=false" >> "$GITHUB_OUTPUT"
               fi
-          env:
-              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
-              POST_DOWNLOAD_COMMAND: ${{ inputs.post_download_command }}
+
+        - name: Create signed commit and update branch
+          id: signed-commit
+          if: steps.detect-changes.outputs.has_changes == 'true'
+          uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+          with:
+              github-token: ${{ inputs.github_repo_token }}
+              script: |
+                const fs = require('fs');
+                const path = require('path');
+                const { execSync } = require('child_process');
+
+                const owner = context.repo.owner;
+                const repo = context.repo.repo;
+                const ws = process.env.GITHUB_WORKSPACE;
+                const branch = 'i18n_crowdin_translations';
+
+                const { data: mainBranch } = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+                const baseSha = mainBranch.commit.sha;
+                const { data: baseCommit } = await github.rest.git.getCommit({ owner, repo, commit_sha: baseSha });
+
+                const changed = execSync('git diff --name-only', { cwd: ws, encoding: 'utf8' })
+                  .trim().split('\n').filter(Boolean);
+                const untracked = execSync('git ls-files --others --exclude-standard', { cwd: ws, encoding: 'utf8' })
+                  .trim().split('\n').filter(Boolean);
+                const allFiles = [...new Set([...changed, ...untracked])];
+
+                if (allFiles.length === 0) {
+                  core.info('No files to commit');
+                  return;
+                }
+
+                const tree = [];
+                for (const file of allFiles) {
+                  const content = fs.readFileSync(path.join(ws, file));
+                  const { data: blob } = await github.rest.git.createBlob({
+                    owner, repo,
+                    content: content.toString('base64'),
+                    encoding: 'base64',
+                  });
+                  tree.push({ path: file, mode: '100644', type: 'blob', sha: blob.sha });
+                }
+
+                const { data: newTree } = await github.rest.git.createTree({
+                  owner, repo,
+                  base_tree: baseCommit.tree.sha,
+                  tree,
+                });
+
+                const { data: commit } = await github.rest.git.createCommit({
+                  owner, repo,
+                  message: 'New Crowdin translations by GitHub Action',
+                  tree: newTree.sha,
+                  parents: [baseSha],
+                });
+
+                try {
+                  await github.rest.git.updateRef({
+                    owner, repo,
+                    ref: `heads/${branch}`,
+                    sha: commit.sha,
+                    force: true,
+                  });
+                } catch (e) {
+                  if (e.status === 422) {
+                    await github.rest.git.createRef({
+                      owner, repo,
+                      ref: `refs/heads/${branch}`,
+                      sha: commit.sha,
+                    });
+                  } else {
+                    throw e;
+                  }
+                }
+
+                core.info(`Created signed commit ${commit.sha} on ${branch}`);
+                core.setOutput('has_commit', 'true');
 
         - name: Create pull request
           id: create-pr
-          if: steps.detect-i18n-branch.outputs.has_translations == 'true'
+          if: steps.signed-commit.outputs.has_commit == 'true'
           shell: bash
           run: |
-              # Return the URL of an existing open PR for this branch (idempotent re-runs)
               PR_URL=$(gh pr view --head i18n_crowdin_translations --json url -q .url 2>/dev/null || true)
 
               if [ -z "$PR_URL" ]; then
@@ -133,8 +194,6 @@ runs:
           id: get-pr-id
           if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           shell: bash
-          # Crowdin action returns us the URL of the pull request, but we need an ID for the GraphQL API
-          # that looks like 'PR_kwDOAOaWjc5mP_GU'
           env:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
               QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
@@ -188,12 +247,7 @@ runs:
               GITHUB_TOKEN: ${{ inputs.github_pr_approver_token }}
               QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
               EN_PATHS: ${{ inputs.en_paths }}
-          # Only approve if:
-          # - the PR does not modify files other than json files under the public/locales/ directory
-          # - the PR does not modify the en-US locale
           run: |
-              # Crowdin action outputs a quoted string, so we need to unquote it when using it
-              # as an environment variable
               PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
 
               IFS=$'\n' read -ra CHANGED_ARRAY <<< "$(gh pr diff --name-only $PR_URL)"
@@ -201,35 +255,31 @@ runs:
 
               is_en_us_file() {
                 local file="$1"
-                
+
                 for en_us_path in "${EN_US_ARRAY[@]}"; do
-                  # Remove any trailing whitespace
                   en_us_path=$(echo "$en_us_path" | xargs)
-                  
+
                   if [[ "$file" == "$en_us_path" ]]; then
                       return 0
                   fi
                 done
-                
+
                 return 1
               }
 
               is_locale_file() {
                 local file="$1"
-                
+
                 for en_us_path in "${EN_US_ARRAY[@]}"; do
-                  # Remove any trailing whitespace
                   en_us_path=$(echo "$en_us_path" | xargs)
-                  
-                  # Replace /en-US/ with the locale pattern /[a-zA-Z\-]*/
+
                   locale_pattern=$(echo "$en_us_path" | sed 's|/en-US/|/[a-zA-Z\\-]*/|g')
-                  
-                  # Check if the file matches this locale pattern
+
                   if [[ "$file" =~ $locale_pattern ]]; then
                       return 0
                   fi
                 done
-                
+
                 return 1
               }
 
