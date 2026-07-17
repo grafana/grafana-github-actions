@@ -78,26 +78,27 @@ runs:
                 const baseSha = mainBranch.commit.sha;
                 const { data: baseCommit } = await github.rest.git.getCommit({ owner, repo, commit_sha: baseSha });
 
-                const changed = execSync('git diff --name-only', { cwd: ws, encoding: 'utf8' })
+                const status = execSync('git status --porcelain', { cwd: ws, encoding: 'utf8' })
                   .trim().split('\n').filter(Boolean);
-                const untracked = execSync('git ls-files --others --exclude-standard', { cwd: ws, encoding: 'utf8' })
-                  .trim().split('\n').filter(Boolean);
-                const allFiles = [...new Set([...changed, ...untracked])];
 
-                if (allFiles.length === 0) {
-                  core.info('No files to commit');
-                  return;
-                }
+                const files = status.map(line => ({
+                  status: line.substring(0, 2).trim(),
+                  path: line.substring(3),
+                }));
 
                 const tree = [];
-                for (const file of allFiles) {
-                  const content = fs.readFileSync(path.join(ws, file));
-                  const { data: blob } = await github.rest.git.createBlob({
-                    owner, repo,
-                    content: content.toString('base64'),
-                    encoding: 'base64',
-                  });
-                  tree.push({ path: file, mode: '100644', type: 'blob', sha: blob.sha });
+                for (const { status: st, path: filePath } of files) {
+                  if (st === 'D') {
+                    tree.push({ path: filePath, mode: '100644', type: 'blob', sha: null });
+                  } else {
+                    const content = fs.readFileSync(path.join(ws, filePath));
+                    const { data: blob } = await github.rest.git.createBlob({
+                      owner, repo,
+                      content: content.toString('base64'),
+                      encoding: 'base64',
+                    });
+                    tree.push({ path: filePath, mode: '100644', type: 'blob', sha: blob.sha });
+                  }
                 }
 
                 const { data: newTree } = await github.rest.git.createTree({
