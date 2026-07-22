@@ -23,7 +23,7 @@
 /crowdin-create-tasks/ @grafana/grafana-frontend-platform
 /crowdin-download/ @grafana/grafana-frontend-platform
 /crowdin-upload/ @grafana/grafana-frontend-platform
-/github/workflows/scripts/crowdin/create-project.ts @grafana/grafana-frontend-platform
-/github/workflows/crowdin-create-project.yml @grafana/grafana-frontend-platform
-/github/workflows/verify-i18n.yml @grafana/grafana-frontend-platform
+/.github/workflows/scripts/crowdin/create-project.ts @grafana/grafana-frontend-platform
+/.github/workflows/crowdin-create-project.yml @grafana/grafana-frontend-platform
+/.github/workflows/verify-i18n.yml @grafana/grafana-frontend-platform
 
