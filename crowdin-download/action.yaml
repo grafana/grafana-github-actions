@@ -35,22 +35,12 @@ runs:
               upload_translations: false
               download_sources: false
               download_translations: true
+              push_translations: false
               export_only_approved: true
               localization_branch_name: i18n_crowdin_translations
-              create_pull_request: true
-              pull_request_title: 'I18n: Download translations from Crowdin'
-              pull_request_body: |
-                  :robot: Automatic download of translations from Crowdin.
-
-                  This runs once per day and will merge automatically if all the required checks pass.
-
-                  If there's a conflict, close the pull request and **delete the branch**.
-                  You can then either wait for the schedule to trigger a new PR, or rerun the action manually.
-              pull_request_labels: ${{ inputs.pr_labels }}
-              pull_request_base_branch_name: 'main'
+              create_pull_request: false
               base_url: 'https://grafana.api.crowdin.com'
               config: 'crowdin.yml'
-              # Magic details of the github-actions bot user, to pass CLA checks
               github_user_name: 'github-actions[bot]'
               github_user_email: '41898282+github-actions[bot]@users.noreply.github.com'
           env:
@@ -58,15 +48,142 @@ runs:
               CROWDIN_PROJECT_ID: ${{ inputs.crowdin_project_id }}
               CROWDIN_PERSONAL_TOKEN: ${{ inputs.crowdin_token }}
 
-        - name: Get pull request ID
-          id: get-pr-id
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+        - name: Detect changes
+          id: detect-changes
           shell: bash
-          # Crowdin action returns us the URL of the pull request, but we need an ID for the GraphQL API
-          # that looks like 'PR_kwDOAOaWjc5mP_GU'
+          run: |
+              if [ -n "$(git status --porcelain)" ]; then
+                echo "has_changes=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "has_changes=false" >> "$GITHUB_OUTPUT"
+              fi
+
+        - name: Create signed commit and update branch
+          id: signed-commit
+          if: steps.detect-changes.outputs.has_changes == 'true'
+          uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+          with:
+              github-token: ${{ inputs.github_repo_token }}
+              script: |
+                const fs = require('fs');
+                const path = require('path');
+                const { execSync } = require('child_process');
+
+                const owner = context.repo.owner;
+                const repo = context.repo.repo;
+                const ws = process.env.GITHUB_WORKSPACE;
+                const branch = 'i18n_crowdin_translations';
+
+                const { data: mainBranch } = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+                const baseSha = mainBranch.commit.sha;
+                const { data: baseCommit } = await github.rest.git.getCommit({ owner, repo, commit_sha: baseSha });
+
+                const status = execSync('git status --porcelain', { cwd: ws, encoding: 'utf8' })
+                  .trim().split('\n').filter(Boolean);
+
+                const files = status.map(line => ({
+                  status: line.substring(0, 2).trim(),
+                  path: line.substring(3),
+                }));
+
+                const tree = [];
+                for (const { status: st, path: filePath } of files) {
+                  if (st === 'D') {
+                    tree.push({ path: filePath, mode: '100644', type: 'blob', sha: null });
+                  } else {
+                    const content = fs.readFileSync(path.join(ws, filePath));
+                    const { data: blob } = await github.rest.git.createBlob({
+                      owner, repo,
+                      content: content.toString('base64'),
+                      encoding: 'base64',
+                    });
+                    tree.push({ path: filePath, mode: '100644', type: 'blob', sha: blob.sha });
+                  }
+                }
+
+                const { data: newTree } = await github.rest.git.createTree({
+                  owner, repo,
+                  base_tree: baseCommit.tree.sha,
+                  tree,
+                });
+
+                const { data: commit } = await github.rest.git.createCommit({
+                  owner, repo,
+                  message: 'New Crowdin translations by GitHub Action',
+                  tree: newTree.sha,
+                  parents: [baseSha],
+                });
+
+                try {
+                  await github.rest.git.updateRef({
+                    owner, repo,
+                    ref: `heads/${branch}`,
+                    sha: commit.sha,
+                    force: true,
+                  });
+                } catch (e) {
+                  if (e.status === 422) {
+                    await github.rest.git.createRef({
+                      owner, repo,
+                      ref: `refs/heads/${branch}`,
+                      sha: commit.sha,
+                    });
+                  } else {
+                    throw e;
+                  }
+                }
+
+                core.info(`Created signed commit ${commit.sha} on ${branch}`);
+                core.setOutput('has_commit', 'true');
+
+        - name: Create pull request
+          id: create-pr
+          if: steps.signed-commit.outputs.has_commit == 'true'
+          shell: bash
+          run: |
+              PR_URL=$(gh pr view --head i18n_crowdin_translations --json url -q .url 2>/dev/null || true)
+
+              if [ -z "$PR_URL" ]; then
+                cat > /tmp/crowdin-pr-body.md << 'PREOF'
+              :robot: Automatic download of translations from Crowdin.
+
+              This runs once per day and will merge automatically if all the required checks pass.
+
+              If there's a conflict, close the pull request and **delete the branch**.
+              You can then either wait for the schedule to trigger a new PR, or rerun the action manually.
+              PREOF
+
+                LABEL_ARGS=()
+                if [ -n "$PR_LABELS" ]; then
+                  IFS=',' read -ra LABELS <<< "$PR_LABELS"
+                  for label in "${LABELS[@]}"; do
+                    label=$(echo "$label" | xargs)
+                    if [ -n "$label" ]; then
+                      LABEL_ARGS+=(--label "$label")
+                    fi
+                  done
+                fi
+
+                PR_URL=$(gh pr create \
+                  --title "I18n: Download translations from Crowdin" \
+                  --body-file /tmp/crowdin-pr-body.md \
+                  --base main \
+                  --head i18n_crowdin_translations \
+                  "${LABEL_ARGS[@]}")
+              fi
+
+              echo "pull_request_url=${PR_URL}" >> "$GITHUB_OUTPUT"
           env:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
-              QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+              PR_LABELS: ${{ inputs.pr_labels }}
+
+        - name: Get pull request ID
+          id: get-pr-id
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
+          shell: bash
+          env:
+              GITHUB_TOKEN: ${{ inputs.github_repo_token }}
+              QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
           run: |
               PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
               pr_id=$(gh pr view "$PR_URL" --json id -q .id)
@@ -75,7 +192,7 @@ runs:
         - name: Get project board ID
           uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
           id: get-project-id
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           with:
               query: |
                   query getProjectId($org: String!, $project_number: Int!){
@@ -94,7 +211,7 @@ runs:
 
         - name: Add to project board
           uses: octokit/graphql-action@51bf543c240dcd14761320e2efc625dc32ec0d32
-          if: inputs.github_board_id && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.github_board_id && steps.create-pr.outputs.pull_request_url
           with:
               query: |
                   mutation addPullRequestToProject($projectid: ID!, $prid: ID!){
@@ -111,18 +228,13 @@ runs:
               GITHUB_TOKEN: ${{ inputs.github_repo_token }}
 
         - name: Approve and automerge PR
-          if: inputs.en_paths && inputs.github_pr_approver_token && steps.crowdin-download.outputs.pull_request_url
+          if: inputs.en_paths && inputs.github_pr_approver_token && steps.create-pr.outputs.pull_request_url
           shell: bash
           env:
               GITHUB_TOKEN: ${{ inputs.github_pr_approver_token }}
-              QUOTED_PR_URL: ${{ steps.crowdin-download.outputs.pull_request_url }}
+              QUOTED_PR_URL: ${{ steps.create-pr.outputs.pull_request_url }}
               EN_PATHS: ${{ inputs.en_paths }}
-          # Only approve if:
-          # - the PR does not modify files other than json files under the public/locales/ directory
-          # - the PR does not modify the en-US locale
           run: |
-              # Crowdin action outputs a quoted string, so we need to unquote it when using it
-              # as an environment variable
               PR_URL=$(echo "$QUOTED_PR_URL" | sed -E 's/^["'\'']//; s/["'\'']$//')
 
               IFS=$'\n' read -ra CHANGED_ARRAY <<< "$(gh pr diff --name-only $PR_URL)"
@@ -130,35 +242,31 @@ runs:
 
               is_en_us_file() {
                 local file="$1"
-                
+
                 for en_us_path in "${EN_US_ARRAY[@]}"; do
-                  # Remove any trailing whitespace
                   en_us_path=$(echo "$en_us_path" | xargs)
-                  
+
                   if [[ "$file" == "$en_us_path" ]]; then
                       return 0
                   fi
                 done
-                
+
                 return 1
               }
 
               is_locale_file() {
                 local file="$1"
-                
+
                 for en_us_path in "${EN_US_ARRAY[@]}"; do
-                  # Remove any trailing whitespace
                   en_us_path=$(echo "$en_us_path" | xargs)
-                  
-                  # Replace /en-US/ with the locale pattern /[a-zA-Z\-]*/
+
                   locale_pattern=$(echo "$en_us_path" | sed 's|/en-US/|/[a-zA-Z\\-]*/|g')
-                  
-                  # Check if the file matches this locale pattern
+
                   if [[ "$file" =~ $locale_pattern ]]; then
                       return 0
                   fi
                 done
-                
+
                 return 1
               }
 
