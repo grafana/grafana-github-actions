@@ -78,8 +78,8 @@ runs:
                 const baseSha = mainBranch.commit.sha;
                 const { data: baseCommit } = await github.rest.git.getCommit({ owner, repo, commit_sha: baseSha });
 
-                const status = execSync('git status --porcelain', { cwd: ws, encoding: 'utf8' })
-                  .trim().split('\n').filter(Boolean);
+                const status = execSync('git status --porcelain -uall', { cwd: ws, encoding: 'utf8' })
+                  .split('\n').filter(Boolean);
 
                 const files = status.map(line => ({
                   status: line.substring(0, 2).trim(),
