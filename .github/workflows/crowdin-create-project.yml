@@ -42,5 +42,5 @@ jobs:
             - name: Create project
               env:
                   PROJECT_NAME: ${{ inputs.project_name }}
-                  CROWDIN_PERSONAL_TOKEN: ${{ env.CROWDIN_TOKEN }}
+                  CROWDIN_PERSONAL_TOKEN: ${{ fromJSON(steps.vault-secrets.outputs.secrets).CROWDIN_TOKEN }}
               run: node --experimental-strip-types ./.github/workflows/scripts/crowdin/create-project.ts
