@@ -87,7 +87,7 @@ const getFailedPRCommentBody = ({ prNumber, prUrl, prTitle, releaseNotesFile, er
         '# Add the relevant PR to the release notes',
         `echo "* [PR #${prNumber}](${prUrl}) - ${prTitle}" >> ${releaseNotesFile}`,
         `git add ${releaseNotesFile}`,
-        `git commit -m "Add PR #${prNumber} to release notes for next release`,
+        `git commit -m "Add PR #${prNumber} to release notes for next release"`,
         '# Push it to GitHub',
         `git push --set-upstream origin ${head}`,
         `git switch main`,
