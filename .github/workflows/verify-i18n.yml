@@ -1,11 +1,36 @@
 name: Verify i18n
 on:
     workflow_call:
+        inputs:
+            npm-registry-auth:
+                description: |
+                    Whether to authenticate to the npm registry in Google Artifact
+                    Registry before installing dependencies. Set this if any of the
+                    repository's dependencies are published privately to
+                    `cloud-npm-dev`, since the install cannot resolve them otherwise.
+
+                    Two requirements when true: the repository root must contain an
+                    `.npmrc` mapping the relevant scope to the registry, and the
+                    calling job must grant `id-token: write` so the workload identity
+                    exchange can happen. The calling repository must also be on the
+                    impersonation allow-list for the service account that holds read
+                    access.
+                type: boolean
+                required: false
+                default: false
 
 permissions: {}
 
 jobs:
+    # Two jobs rather than one conditional step, because a called workflow may
+    # only maintain or reduce the caller's permissions — never elevate them. A
+    # single job declaring `id-token: write` would therefore fail for every
+    # existing caller that does not grant it, and `permissions` cannot be set
+    # from an expression. Both jobs share a display name, so the check name a
+    # caller sees is the same either way.
     verify-i18n:
+        name: verify-i18n
+        if: ${{ inputs.npm-registry-auth != true }}
         runs-on: ubuntu-x64
         permissions:
             contents: read
@@ -36,6 +61,107 @@ jobs:
               with:
                   node-version-file: '.nvmrc'
                   cache: ${{ steps.detect-pm.outputs.package_manager }}
+
+            - name: Install dependencies
+              run: |
+                  if [ "${{ steps.detect-pm.outputs.package_manager }}" = "pnpm" ]; then
+                    pnpm install --frozen-lockfile
+                  elif [ "${{ steps.detect-pm.outputs.package_manager }}" = "yarn" ]; then
+                    yarn install --immutable --check-cache
+                  else
+                    npm ci
+                  fi
+
+            - name: Extract translations
+              run: |
+                  extract_error_message="::error::Extraction failed. Make sure that you have no dynamic translation phrases, such as \"t(\`preferences.theme.{themeID}\`, themeName)\" and that no translation key is used twice. Search the output for '[warning]' to find the offending file."
+
+                  if [ "${{ steps.detect-pm.outputs.package_manager }}" = "pnpm" ]; then
+                    pnpm i18n-extract || (echo "${extract_error_message}" && false)
+                  elif [ "${{ steps.detect-pm.outputs.package_manager }}" = "yarn" ]; then
+                    yarn i18n-extract || (echo "${extract_error_message}" && false)
+                  else
+                    npm run i18n-extract || (echo "${extract_error_message}" && false)
+                  fi
+
+            - name: Check for uncommitted changes
+              run: |
+                  pm="${{ steps.detect-pm.outputs.package_manager }}"
+                  if [ "$pm" = "pnpm" ]; then
+                    extract_cmd="pnpm i18n-extract"
+                  elif [ "$pm" = "yarn" ]; then
+                    extract_cmd="yarn i18n-extract"
+                  else
+                    extract_cmd="npm run i18n-extract"
+                  fi
+
+                  file_diff=$(git diff)
+                  if [ -n "$file_diff" ]; then
+                    echo "$file_diff"
+                    echo "::error::Translation extraction has not been committed. Please run '${extract_cmd}', commit the changes and push again."
+                    exit 1
+                  fi
+
+    # Identical to the job above, plus the two authentication steps before the
+    # install. Kept in step with it by hand: the only intended difference is the
+    # credential.
+    verify-i18n-registry-auth:
+        name: verify-i18n
+        if: ${{ inputs.npm-registry-auth == true }}
+        runs-on: ubuntu-x64
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  persist-credentials: false
+
+            - name: Detect package manager
+              id: detect-pm
+              run: |
+                  if [ -f "pnpm-lock.yaml" ]; then
+                    echo "package_manager=pnpm" >> $GITHUB_OUTPUT
+                  elif [ -f "yarn.lock" ]; then
+                    echo "package_manager=yarn" >> $GITHUB_OUTPUT
+                  elif [ -f "package-lock.json" ]; then
+                    echo "package_manager=npm" >> $GITHUB_OUTPUT
+                  else
+                    echo "::error::No lockfile found. Please commit pnpm-lock.yaml, yarn.lock, or package-lock.json"
+                    exit 1
+                  fi
+
+            - name: Install pnpm
+              if: steps.detect-pm.outputs.package_manager == 'pnpm'
+              uses: pnpm/action-setup@c5ba7f7862a0f64c1b1a05fbac13e0b8e86ba08c # v4
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: '.nvmrc'
+                  cache: ${{ steps.detect-pm.outputs.package_manager }}
+
+            # Impersonates the service account that holds read access on the
+            # registry, rather than authenticating as the calling repository's own
+            # workload identity — a repository principal has no reader binding of
+            # its own, which fails with a 403 on
+            # `artifactregistry.repositories.downloadArtifacts` rather than an
+            # honest missing-package error.
+            - name: Authenticate to Google Cloud
+              uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+              with:
+                  project_id: grafanalabs-workload-identity
+                  workload_identity_provider: projects/304398677251/locations/global/workloadIdentityPools/github/providers/github-provider
+                  service_account: github-cloud-npm-dev-pkgs@grafanalabs-workload-identity.iam.gserviceaccount.com
+                  token_format: access_token
+
+            # Reads the scope mapping from the repository's own .npmrc and writes a
+            # short-lived token to the user-level ~/.npmrc, so the checked-in file
+            # is never modified.
+            - name: Configure npm auth for Artifact Registry
+              run: |
+                  npx --yes google-artifactregistry-auth \
+                    --repo-config=./.npmrc \
+                    --credential-config="${HOME}/.npmrc"
 
             - name: Install dependencies
               run: |
