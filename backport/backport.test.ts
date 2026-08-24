@@ -1,5 +1,10 @@
+import { exec, getExecOutput } from '@actions/exec'
+import { promises as fs } from 'fs'
+import os from 'os'
+import path from 'path'
 import {
 	BETTERER_RESULTS_PATH,
+	buildFileChanges,
 	getFinalLabels,
 	isBettererConflict,
 	getFailedBackportCommentBody,
@@ -68,6 +73,58 @@ test('getFailedBackportCommentBody/gh-line-no-body', () => {
 		`gh pr create --title '[v10.0.x] hello world' --body 'Backport 123456 from #123' --label 'backport' --base v10.0.x --milestone 10.0.x --web`,
 	)
 	expect(output).toContain('git push --set-upstream origin backport-123-to-v10.0.x')
+})
+
+describe('buildFileChanges', () => {
+	let repoDir: string
+
+	const gitInit = async () => {
+		await exec('git', ['init', '-q', '-b', 'main'], { cwd: repoDir, silent: true })
+		await exec('git', ['config', 'user.email', 't@example.com'], { cwd: repoDir, silent: true })
+		await exec('git', ['config', 'user.name', 't'], { cwd: repoDir, silent: true })
+		await exec('git', ['config', 'commit.gpgsign', 'false'], { cwd: repoDir, silent: true })
+	}
+
+	beforeEach(async () => {
+		repoDir = await fs.mkdtemp(path.join(os.tmpdir(), 'backport-test-'))
+		await gitInit()
+	})
+
+	afterEach(async () => {
+		await fs.rm(repoDir, { recursive: true, force: true })
+	})
+
+	test('detects additions, modifications and deletions', async () => {
+		// Base state: keep.txt and del.txt exist with known content.
+		await fs.writeFile(path.join(repoDir, 'keep.txt'), 'keep-v1\n')
+		await fs.writeFile(path.join(repoDir, 'del.txt'), 'will be deleted\n')
+		await exec('git', ['add', '.'], { cwd: repoDir, silent: true })
+		await exec('git', ['commit', '-q', '-m', 'base'], { cwd: repoDir, silent: true })
+		const { stdout: baseRaw } = await getExecOutput('git', ['rev-parse', 'HEAD'], {
+			cwd: repoDir,
+			silent: true,
+		})
+		const base = baseRaw.trim()
+
+		// Tip state: modify keep.txt, add new.txt, delete del.txt.
+		await fs.writeFile(path.join(repoDir, 'keep.txt'), 'keep-v2\n')
+		await fs.writeFile(path.join(repoDir, 'new.txt'), 'brand-new\n')
+		await fs.rm(path.join(repoDir, 'del.txt'))
+		await exec('git', ['add', '-A'], { cwd: repoDir, silent: true })
+		await exec('git', ['commit', '-q', '-m', 'tip'], { cwd: repoDir, silent: true })
+
+		const changes = await buildFileChanges(repoDir, base, 'HEAD')
+
+		const paths = changes.additions.map((a) => a.path).sort()
+		expect(paths).toEqual(['keep.txt', 'new.txt'])
+
+		const decoded = (p: string) =>
+			Buffer.from(changes.additions.find((a) => a.path === p)!.contents, 'base64').toString()
+		expect(decoded('keep.txt')).toBe('keep-v2\n')
+		expect(decoded('new.txt')).toBe('brand-new\n')
+
+		expect(changes.deletions).toEqual([{ path: 'del.txt' }])
+	})
 })
 
 test('getFailedBackportCommentBody/gh-line-with-body', () => {
