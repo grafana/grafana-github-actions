@@ -20,15 +20,19 @@ const credentials = {
 	organization: 'grafana',
 }
 
-const { tasksApi, projectsGroupsApi, sourceFilesApi, workflowsApi } = new Client(credentials)
+const { tasksApi, projectsGroupsApi, sourceStringsApi, workflowsApi } = new Client(credentials)
 
 const languages = await getLanguages(PROJECT_ID)
-const fileIds = await getFileIds(PROJECT_ID)
 const workflowStepId = await getWorkflowStepId(PROJECT_ID)
 
 for (const language of languages) {
 	const { name, id } = language
-	await createTask(PROJECT_ID, `Translate to ${name}`, id, fileIds, workflowStepId)
+	const stringIds = await getUntranslatedStringIds(PROJECT_ID, id)
+	if (stringIds.length === 0) {
+		console.log(`No untranslated strings for ${name}, skipping`)
+		continue
+	}
+	await createTask(PROJECT_ID, `Translate to ${name}`, id, stringIds, workflowStepId)
 }
 
 async function getLanguages(projectId: number) {
@@ -46,15 +50,19 @@ async function getLanguages(projectId: number) {
 	}
 }
 
-async function getFileIds(projectId: number) {
+// Crowdin has no "skip translated strings" option when creating a task, so tasks are scoped
+// to string ids rather than file ids to avoid paying to re-translate translated strings.
+async function getUntranslatedStringIds(projectId: number, languageId: string) {
 	try {
-		const response = await sourceFilesApi.listProjectFiles(projectId)
-		const files = response.data
-		const fileIds = files.map((file) => file.data.id)
-		console.log('Fetched file ids successfully!')
-		return fileIds
+		// withFetchAll() only applies to the next request, so it has to be called every time
+		const response = await sourceStringsApi.withFetchAll().listProjectStrings(projectId, {
+			croql: `count of translations where (language = @language:"${languageId}") = 0`,
+		})
+		const stringIds = response.data.map((string) => string.data.id)
+		console.log(`Fetched ${stringIds.length} untranslated string ids for ${languageId}`)
+		return stringIds
 	} catch (error) {
-		console.error('Failed to fetch file IDs: ', error.message)
+		console.error(`Failed to fetch untranslated string ids for ${languageId}: `, error.message)
 		if (error.response && error.response.data) {
 			console.error('Error details: ', JSON.stringify(error.response.data, null, 2))
 		}
@@ -87,7 +95,7 @@ async function createTask(
 	projectId: number,
 	title: string,
 	languageId: string,
-	fileIds: number[],
+	stringIds: number[],
 	workflowStepId: number,
 ) {
 	try {
@@ -97,7 +105,7 @@ async function createTask(
 			languageId,
 			workflowStepId,
 			skipAssignedStrings: true,
-			fileIds,
+			stringIds,
 			assignees: [
 				{
 					// ID for Translated
