@@ -1,4 +1,4 @@
-import { Client } from '@crowdin/crowdin-api-client'
+import { Client, TasksModel } from '@crowdin/crowdin-api-client'
 
 const TRANSLATED_CONNECTOR_DESCRIPTION = '{{tos_service_type: premium}}'
 const TRANSLATE_BY_VENDOR_WORKFLOW_TYPE = 'Translate'
@@ -91,13 +91,19 @@ async function createTask(
 	workflowStepId: number,
 ) {
 	try {
-		const taskParams = {
+		const taskParams: TasksModel.CreateTaskRequest = {
 			title,
 			description: TRANSLATED_CONNECTOR_DESCRIPTION,
 			languageId,
 			workflowStepId,
 			skipAssignedStrings: true,
 			fileIds,
+			assignees: [
+				{
+					// ID for Translated
+					id: 133,
+				},
+			],
 		}
 
 		console.log(`Creating Crowdin task: "${title}" for language ${languageId}`)
