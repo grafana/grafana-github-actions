@@ -4,6 +4,9 @@ module.exports = {
 		'^.+\\.(ts|tsx|js|jsx)$': 'ts-jest',
 	},
 	moduleDirectories: ['node_modules'],
+	moduleNameMapper: {
+		'^(\\.{1,2}/.*)\\.js$': '$1',
+	},
 	testRegex: '(\\.|/)(test)\\.(jsx?|tsx?)$',
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 	globals: { 'ts-jest': { isolatedModules: true } },
