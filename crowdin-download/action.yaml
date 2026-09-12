@@ -29,7 +29,7 @@ runs:
     steps:
         - name: Download sources
           id: crowdin-download
-          uses: crowdin/github-action@b8012bd5491b8aa8578b73ab5b5f5e7c94aaa6e2 # v2.7.0
+          uses: crowdin/github-action@8f01d54f70f1713ee3f09d82c2bbb2daeac28689 # v2.17.1
           with:
               upload_sources: false
               upload_translations: false
