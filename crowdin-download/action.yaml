@@ -141,7 +141,7 @@ runs:
           if: steps.signed-commit.outputs.has_commit == 'true'
           shell: bash
           run: |
-              PR_URL=$(gh pr view --head i18n_crowdin_translations --json url -q .url 2>/dev/null || true)
+              PR_URL=$(gh pr list --head i18n_crowdin_translations --state open --json url -q '.[0].url' 2>/dev/null || true)
 
               if [ -z "$PR_URL" ]; then
                 cat > /tmp/crowdin-pr-body.md << 'PREOF'
