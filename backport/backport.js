@@ -4,13 +4,62 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.backport = exports.getFinalLabels = exports.getFailedBackportCommentBody = exports.isBettererConflict = exports.LABEL_NO_CHANGELOG = exports.LABEL_ADD_TO_CHANGELOG = exports.BETTERER_RESULTS_PATH = void 0;
+exports.backport = exports.getFinalLabels = exports.getFailedBackportCommentBody = exports.isBettererConflict = exports.LABEL_NO_CHANGELOG = exports.LABEL_ADD_TO_CHANGELOG = exports.BETTERER_RESULTS_PATH = exports.buildFileChanges = void 0;
 const core_1 = require("@actions/core");
 const exec_1 = require("@actions/exec");
 const github_1 = require("@actions/github");
 const betterer_1 = require("@betterer/betterer");
+const graphql_1 = require("@octokit/graphql");
+const fs_1 = require("fs");
 const lodash_escaperegexp_1 = __importDefault(require("lodash.escaperegexp"));
+const path_1 = __importDefault(require("path"));
 const git_1 = require("../common/git");
+// Build the FileChanges payload for createCommitOnBranch from the diff between two refs in a
+// local git checkout. Renames are not represented separately by createCommitOnBranch, so we
+// pass --no-renames to git and let renamed files appear as a deletion + addition.
+async function buildFileChanges(repoDir, fromRef, toRef) {
+    const { stdout } = await (0, exec_1.getExecOutput)('git', ['diff', '--no-renames', '--name-status', '-z', fromRef, toRef], { cwd: repoDir, silent: true });
+    const additions = [];
+    const deletions = [];
+    // `git diff -z --name-status` emits NUL-separated tokens, alternating "<status>" and
+    // "<path>". With --no-renames there are no rename/copy triples to worry about.
+    const tokens = stdout.split('\0').filter((t) => t.length > 0);
+    for (let i = 0; i + 1 < tokens.length; i += 2) {
+        const status = tokens[i][0];
+        const filePath = tokens[i + 1];
+        if (status === 'D') {
+            deletions.push({ path: filePath });
+        }
+        else {
+            // A (added), M (modified), T (type change) — read the new content.
+            const buf = await fs_1.promises.readFile(path_1.default.join(repoDir, filePath));
+            additions.push({ path: filePath, contents: buf.toString('base64') });
+        }
+    }
+    return { additions, deletions };
+}
+exports.buildFileChanges = buildFileChanges;
+const createCommitOnBranchMutation = `
+  mutation(
+    $repo: String!
+    $branch: String!
+    $oid: GitObjectID!
+    $message: String!
+    $additions: [FileAddition!]
+    $deletions: [FileDeletion!]
+  ) {
+    createCommitOnBranch(
+      input: {
+        branch: { repositoryNameWithOwner: $repo, branchName: $branch }
+        expectedHeadOid: $oid
+        fileChanges: { additions: $additions, deletions: $deletions }
+        message: { headline: $message }
+      }
+    ) {
+      commit { url oid }
+    }
+  }
+`;
 exports.BETTERER_RESULTS_PATH = '.betterer.results';
 exports.LABEL_ADD_TO_CHANGELOG = 'add to changelog';
 exports.LABEL_NO_CHANGELOG = 'no-changelog';
@@ -53,9 +102,13 @@ const isBettererConflict = async (gitUnmergedPaths) => {
     return gitUnmergedPaths.length === 1 && gitUnmergedPaths[0] === exports.BETTERER_RESULTS_PATH;
 };
 exports.isBettererConflict = isBettererConflict;
-const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, removeDefaultReviewers, owner, repo, title, mergedBy, }) => {
+const backportOnce = async ({ base, body, commitToBackport, github, head, labelsToAdd, removeDefaultReviewers, owner, repo, title, mergedBy, token, }) => {
     const git = async (...args) => {
         await (0, exec_1.exec)('git', args, { cwd: repo });
+    };
+    const gitOutput = async (...args) => {
+        const { stdout } = await (0, exec_1.getExecOutput)('git', args, { cwd: repo, silent: true });
+        return stdout.trim();
     };
     const gitDiffUnmergedPaths = async () => {
         const { stdout } = await (0, exec_1.getExecOutput)('git', ['diff', '--name-only', '--diff-filter=U'], {
@@ -70,6 +123,7 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
         await git('-c', 'core.editor=true', 'cherry-pick', '--continue');
     };
     await git('switch', base);
+    const baseSha = await gitOutput('rev-parse', 'HEAD');
     await git('switch', '--create', head);
     try {
         await git('cherry-pick', '-x', commitToBackport);
@@ -90,7 +144,26 @@ const backportOnce = async ({ base, body, commitToBackport, github, head, labels
             throw error;
         }
     }
-    await git('push', '--set-upstream', 'origin', head);
+    // Publish the cherry-picked commit via the GraphQL createCommitOnBranch mutation so that the
+    // resulting commit is signed by GitHub's web-flow key (shows as Verified) instead of an
+    // unsigned `git push`. The original author is preserved via a Co-authored-by trailer, since
+    // the API uses the authenticated identity (typically a GitHub App) as the author/committer.
+    const fileChanges = await buildFileChanges(repo, baseSha, 'HEAD');
+    const commitMessage = await gitOutput('log', '-1', '--format=%B', 'HEAD');
+    const originalAuthorName = await gitOutput('log', '-1', '--format=%an', commitToBackport);
+    const originalAuthorEmail = await gitOutput('log', '-1', '--format=%ae', commitToBackport);
+    const message = commitMessage.replace(/\s+$/, '') +
+        `\n\nCo-authored-by: ${originalAuthorName} <${originalAuthorEmail}>`;
+    await github.git.createRef({ owner, repo, ref: `refs/heads/${head}`, sha: baseSha });
+    const authedGraphQL = graphql_1.graphql.defaults({ headers: { authorization: `token ${token}` } });
+    await authedGraphQL(createCommitOnBranchMutation, {
+        repo: `${owner}/${repo}`,
+        branch: head,
+        oid: baseSha,
+        message,
+        additions: fileChanges.additions,
+        deletions: fileChanges.deletions,
+    });
     const createRsp = await github.pulls.create({
         base,
         body,
@@ -327,6 +400,7 @@ const backport = async ({ issue, labelsToAdd, payload: { action, label, pull_req
                     repo,
                     title,
                     mergedBy: merged_by,
+                    token,
                 });
             }
             catch (error) {
