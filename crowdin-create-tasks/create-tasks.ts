@@ -24,15 +24,30 @@ const { tasksApi, projectsGroupsApi, sourceStringsApi, workflowsApi } = new Clie
 
 const languages = await getLanguages(PROJECT_ID)
 const workflowStepId = await getWorkflowStepId(PROJECT_ID)
+const failures: { language: string; operation: string; error: unknown }[] = []
 
 for (const language of languages) {
 	const { name, id } = language
-	const stringIds = await getUntranslatedStringIds(PROJECT_ID, id)
-	if (stringIds.length === 0) {
-		console.log(`No untranslated strings for ${name}, skipping`)
-		continue
+	let operation = 'fetch untranslated strings'
+	try {
+		const stringIds = await getUntranslatedStringIds(PROJECT_ID, id)
+		if (stringIds.length === 0) {
+			console.log(`No untranslated strings for ${name}, skipping`)
+			continue
+		}
+		operation = 'create task'
+		await createTask(PROJECT_ID, `Translate to ${name}`, id, stringIds, workflowStepId)
+	} catch (error) {
+		failures.push({ language: `${name} (${id})`, operation, error })
 	}
-	await createTask(PROJECT_ID, `Translate to ${name}`, id, stringIds, workflowStepId)
+}
+
+if (failures.length > 0) {
+	console.error(`Failed to process ${failures.length} of ${languages.length} languages:`)
+	for (const { language, operation, error } of failures) {
+		console.error(`Failed to ${operation} for ${language}:`, error)
+	}
+	process.exitCode = 1
 }
 
 async function getLanguages(projectId: number) {
@@ -53,21 +68,13 @@ async function getLanguages(projectId: number) {
 // Crowdin has no "skip translated strings" option when creating a task, so tasks are scoped
 // to string ids rather than file ids to avoid paying to re-translate translated strings.
 async function getUntranslatedStringIds(projectId: number, languageId: string) {
-	try {
-		// withFetchAll() only applies to the next request, so it has to be called every time
-		const response = await sourceStringsApi.withFetchAll().listProjectStrings(projectId, {
-			croql: `count of translations where (language = @language:"${languageId}") = 0`,
-		})
-		const stringIds = response.data.map((string) => string.data.id)
-		console.log(`Fetched ${stringIds.length} untranslated string ids for ${languageId}`)
-		return stringIds
-	} catch (error) {
-		console.error(`Failed to fetch untranslated string ids for ${languageId}: `, error.message)
-		if (error.response && error.response.data) {
-			console.error('Error details: ', JSON.stringify(error.response.data, null, 2))
-		}
-		process.exit(1)
-	}
+	// withFetchAll() only applies to the next request, so it has to be called every time
+	const response = await sourceStringsApi.withFetchAll().listProjectStrings(projectId, {
+		croql: `count of translations where (language = @language:"${languageId}") = 0`,
+	})
+	const stringIds = response.data.map((string) => string.data.id)
+	console.log(`Fetched ${stringIds.length} untranslated string ids for ${languageId}`)
+	return stringIds
 }
 
 async function getWorkflowStepId(projectId: number) {
@@ -120,10 +127,10 @@ async function createTask(
 		console.log(`Task created successfully! Task ID: ${response.data.id}`)
 		return response.data
 	} catch (error) {
-		console.error('Failed to create Crowdin task: ', error.message)
-		if (error.response && error.response.data) {
-			console.error('Error details: ', JSON.stringify(error.response.data, null, 2))
+		if (error instanceof Error && error.message === 'Language has no untranslated words') {
+			console.log(`No untranslated words for ${languageId}, skipping`)
+			return
 		}
-		process.exit(1)
+		throw error
 	}
 }
