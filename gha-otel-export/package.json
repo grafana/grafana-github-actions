@@ -34,7 +34,7 @@
 		"ts-retry": "^5.0.1"
 	},
 	"devDependencies": {
-		"@eslint/eslintrc": "^3.3.1",
+		"@eslint/eslintrc": "^3.3.3",
 		"@eslint/js": "^9.39.1",
 		"@octokit/types": "^16.0.0",
 		"@opentelemetry/sdk-node": "0.208.0",
