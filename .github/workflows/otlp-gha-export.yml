@@ -23,7 +23,7 @@ jobs:
           repo_secrets: |
             OTEL_EXPORTER_OTLP_API_KEY=grafana-otlp-api-key:api-key-base64
 
-      - uses: grafana/grafana-github-actions/gha-otel-export@grambbledook/otel-exporter-actiopn
+      - uses: grafana/grafana-github-actions/gha-otel-export@c2c47dcee1ab847c366cd0672bab7e0c7f560373 # grambbledook/otel-exporter-actiopn
         env:
           OTEL_SERVICE_NAME: test-gha-otel-integration
           OTEL_LOG_LEVEL: debug
