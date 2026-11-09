@@ -27,7 +27,7 @@
 		"@opentelemetry/exporter-trace-otlp-proto": "^0.208.0",
 		"@opentelemetry/resources": "^2.2.0",
 		"@opentelemetry/sdk-trace-base": "^2.2.0",
-		"adm-zip": "^0.5.16",
+		"adm-zip": "^0.6.0",
 		"dotenv": "^16.3.1",
 		"fzstd": "^0.1.1",
 		"minimatch": "^9.0.5",
