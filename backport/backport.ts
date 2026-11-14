@@ -4,10 +4,77 @@ import { error as logError, group, info } from '@actions/core'
 import { exec, getExecOutput } from '@actions/exec'
 import { context, GitHub } from '@actions/github'
 import { betterer } from '@betterer/betterer'
+import { graphql } from '@octokit/graphql'
 import { EventPayloads } from '@octokit/webhooks'
+import { promises as fs } from 'fs'
 import escapeRegExp from 'lodash.escaperegexp'
+import path from 'path'
 import { cloneRepo, setConfig } from '../common/git'
 import { OctoKitIssue } from '../api/octokit'
+
+export interface FileAddition {
+	path: string
+	contents: string // base64-encoded
+}
+
+export interface FileChanges {
+	additions: FileAddition[]
+	deletions: { path: string }[]
+}
+
+// Build the FileChanges payload for createCommitOnBranch from the diff between two refs in a
+// local git checkout. Renames are not represented separately by createCommitOnBranch, so we
+// pass --no-renames to git and let renamed files appear as a deletion + addition.
+export async function buildFileChanges(
+	repoDir: string,
+	fromRef: string,
+	toRef: string,
+): Promise<FileChanges> {
+	const { stdout } = await getExecOutput(
+		'git',
+		['diff', '--no-renames', '--name-status', '-z', fromRef, toRef],
+		{ cwd: repoDir, silent: true },
+	)
+	const additions: FileAddition[] = []
+	const deletions: { path: string }[] = []
+	// `git diff -z --name-status` emits NUL-separated tokens, alternating "<status>" and
+	// "<path>". With --no-renames there are no rename/copy triples to worry about.
+	const tokens = stdout.split('\0').filter((t) => t.length > 0)
+	for (let i = 0; i + 1 < tokens.length; i += 2) {
+		const status = tokens[i][0]
+		const filePath = tokens[i + 1]
+		if (status === 'D') {
+			deletions.push({ path: filePath })
+		} else {
+			// A (added), M (modified), T (type change) — read the new content.
+			const buf = await fs.readFile(path.join(repoDir, filePath))
+			additions.push({ path: filePath, contents: buf.toString('base64') })
+		}
+	}
+	return { additions, deletions }
+}
+
+const createCommitOnBranchMutation = `
+  mutation(
+    $repo: String!
+    $branch: String!
+    $oid: GitObjectID!
+    $message: String!
+    $additions: [FileAddition!]
+    $deletions: [FileDeletion!]
+  ) {
+    createCommitOnBranch(
+      input: {
+        branch: { repositoryNameWithOwner: $repo, branchName: $branch }
+        expectedHeadOid: $oid
+        fileChanges: { additions: $additions, deletions: $deletions }
+        message: { headline: $message }
+      }
+    ) {
+      commit { url oid }
+    }
+  }
+`
 
 export const BETTERER_RESULTS_PATH = '.betterer.results'
 export const LABEL_ADD_TO_CHANGELOG = 'add to changelog'
@@ -88,6 +155,7 @@ const backportOnce = async ({
 	repo,
 	title,
 	mergedBy,
+	token,
 }: {
 	base: string
 	body: string
@@ -100,9 +168,14 @@ const backportOnce = async ({
 	repo: string
 	title: string
 	mergedBy: any
+	token: string
 }) => {
 	const git = async (...args: string[]) => {
 		await exec('git', args, { cwd: repo })
+	}
+	const gitOutput = async (...args: string[]): Promise<string> => {
+		const { stdout } = await getExecOutput('git', args, { cwd: repo, silent: true })
+		return stdout.trim()
 	}
 
 	const gitDiffUnmergedPaths = async (): Promise<string[]> => {
@@ -121,6 +194,7 @@ const backportOnce = async ({
 	}
 
 	await git('switch', base)
+	const baseSha = await gitOutput('rev-parse', 'HEAD')
 	await git('switch', '--create', head)
 	try {
 		await git('cherry-pick', '-x', commitToBackport)
@@ -140,7 +214,30 @@ const backportOnce = async ({
 		}
 	}
 
-	await git('push', '--set-upstream', 'origin', head)
+	// Publish the cherry-picked commit via the GraphQL createCommitOnBranch mutation so that the
+	// resulting commit is signed by GitHub's web-flow key (shows as Verified) instead of an
+	// unsigned `git push`. The original author is preserved via a Co-authored-by trailer, since
+	// the API uses the authenticated identity (typically a GitHub App) as the author/committer.
+	const fileChanges = await buildFileChanges(repo, baseSha, 'HEAD')
+	const commitMessage = await gitOutput('log', '-1', '--format=%B', 'HEAD')
+	const originalAuthorName = await gitOutput('log', '-1', '--format=%an', commitToBackport)
+	const originalAuthorEmail = await gitOutput('log', '-1', '--format=%ae', commitToBackport)
+	const message =
+		commitMessage.replace(/\s+$/, '') +
+		`\n\nCo-authored-by: ${originalAuthorName} <${originalAuthorEmail}>`
+
+	await github.git.createRef({ owner, repo, ref: `refs/heads/${head}`, sha: baseSha })
+
+	const authedGraphQL = graphql.defaults({ headers: { authorization: `token ${token}` } })
+	await authedGraphQL(createCommitOnBranchMutation, {
+		repo: `${owner}/${repo}`,
+		branch: head,
+		oid: baseSha,
+		message,
+		additions: fileChanges.additions,
+		deletions: fileChanges.deletions,
+	})
+
 	const createRsp = await github.pulls.create({
 		base,
 		body,
@@ -453,6 +550,7 @@ const backport = async ({
 					repo,
 					title,
 					mergedBy: merged_by,
+					token,
 				})
 			} catch (error) {
 				const errorMessage: string =
